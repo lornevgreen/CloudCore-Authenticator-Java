@@ -1,41 +1,61 @@
 package com.cloudcore.authenticator;
 
-import com.cloudcore.authenticator.core.CloudCoin;
-import com.cloudcore.authenticator.core.IFileSystem;
-import com.cloudcore.authenticator.core.Node;
+import com.cloudcore.authenticator.core.*;
 import com.cloudcore.authenticator.utils.SimpleLogger;
+import com.sun.deploy.jcp.controller.Network;
 
 import java.util.ArrayList;
+import java.util.concurrent.CompletableFuture;
 
 public class RAIDA {
 
     public static RAIDA MainNetwork;
     public Node[] nodes = new Node[Config.NodeCount];
-    public IFileSystem FS;
-    public static IFileSystem FileSystem;
-    public CloudCoin coin;
-    public IEnumerable<CloudCoin> coins;
     public MultiDetectRequest multiRequest;
     public Network network;
     public int NetworkNumber=1;
+
+    public static IFileSystem FileSystem;
+    public IFileSystem FS;
+
+    public ArrayList<CloudCoin> coins;
+    public CloudCoin coin;
+
     public static ArrayList<RAIDA> networks = new ArrayList<>();
     public static RAIDA ActiveRAIDA;
     public static String Workspace;
     public static SimpleLogger logger;
 
     public static void ProcessCoins() {
+        int[] networks = new int[IFileSystem.importCoins.size()];
+        for (int i = 0; i < IFileSystem.importCoins.size(); i++) {
+            CloudCoin cc = IFileSystem.importCoins.get(i);
+            networks[i] = cc.nn;
+        }
+
+        // TODO: remove duplicates in array
+
         boolean ChangeANs = true;
-        var networks = (from x in IFileSystem.importCoins select x.nn).Distinct().ToList();
         long ts;
         long before = System.currentTimeMillis();
         long after;
 
-        foreach (var nn in networks)
-        {
-            ActiveRAIDA = (from x in RAIDA.networks where x.NetworkNumber == nn select x).FirstOrDefault();
-            int NetworkExists = (from x in RAIDA.networks where x.NetworkNumber == nn select x).Count();
-            if (NetworkExists > 0)
-            {
+        for (int nn : networks) {
+            ActiveRAIDA = null;
+
+            for (RAIDA network : RAIDA.networks) {
+                if (ActiveRAIDA == null && nn == network.NetworkNumber) {
+                    ActiveRAIDA = network;
+                }
+            }
+
+            int NetworkExists = 0;
+            for (RAIDA network : RAIDA.networks) {
+                if (nn == network.NetworkNumber) {
+                    NetworkExists++;
+                }
+            }
+            if (NetworkExists != 0) {
                 //updateLog("Starting Coins detection for Network " + nn);
                 await ProcessNetworkCoins(nn, ChangeANs);
                 //updateLog("Coins detection for Network " + nn + "Finished.");
@@ -48,44 +68,54 @@ public class RAIDA {
         // TODO: updateLog("Detection Completed in : " + ts.TotalMilliseconds / 1000);
     }
 
-    public async static Task ProcessNetworkCoins(int NetworkNumber, bool ChangeANS= true)
-    {
-        IFileSystem FS = FileSystem;
+    public static CompletableFuture<Object> ProcessNetworkCoins(int NetworkNumber) {
+        return ProcessNetworkCoins(NetworkNumber, true);
+    }
+
+    public static CompletableFuture<Object> ProcessNetworkCoins(int NetworkNumber, boolean ChangeANS) {
         FileSystem.LoadFileSystem();
         FileSystem.DetectPreProcessing();
 
-        var predetectCoins = FS.LoadFolderCoins(FS.PreDetectFolder);
-        predetectCoins = (from x in predetectCoins
-        where x.nn == NetworkNumber
-        select x).ToList();
+        ArrayList<CloudCoin> oldPredetectCoins = FileSystem.LoadFolderCoins(FileSystem.PreDetectFolder);
+        ArrayList<CloudCoin> predetectCoins = new ArrayList<>();
+        for (int i = 0; i < oldPredetectCoins.size(); i++) {
+            if (NetworkNumber == oldPredetectCoins.get(i).nn) {
+                predetectCoins.add(oldPredetectCoins.get(i));
+            }
+        }
 
         IFileSystem.predetectCoins = predetectCoins;
 
-        RAIDA raida = (from x in networks
-        where x.NetworkNumber == NetworkNumber
-        select x).FirstOrDefault();
+        RAIDA raida;
+        for (RAIDA network : RAIDA.networks) {
+            if (raida == null && NetworkNumber == network.NetworkNumber) {
+                raida = network;
+            }
+        }
+
         if (raida == null)
-            return;
+            return null;
+
         // Process Coins in Lots of 200. Can be changed from Config File
-        int LotCount = predetectCoins.Count() / Config.MultiDetectLoad;
-        if (predetectCoins.Count() % Config.MultiDetectLoad > 0) LotCount++;
+        int LotCount = predetectCoins.size() / Config.MultiDetectLoad;
+        if (predetectCoins.size() % Config.MultiDetectLoad > 0)
+            LotCount++;
         ProgressChangedEventArgs pge = new ProgressChangedEventArgs();
 
         int CoinCount = 0;
-        int totalCoinCount = predetectCoins.Count();
-        for (int i = 0; i < LotCount; i++)
-        {
+        int totalCoinCount = predetectCoins.size();
+        for (int i = 0; i < LotCount; i++) {
             //Pick up 200 Coins and send them to RAIDA
-            var coins = predetectCoins.Skip(i * Config.MultiDetectLoad).Take(200);
-            try
-            {
+            ArrayList<CloudCoin> coins = new ArrayList<>(predetectCoins.subList(i * Config.MultiDetectLoad, Math.min(predetectCoins.size(), 200)));
+            try {
                 raida.coins = coins;
             }
             catch(Exception e)
             {
-                Console.WriteLine(e.Message);
+                System.out.println(e.getMessage());
+                e.printStackTrace();
             }
-            var tasks = raida.GetMultiDetectTasks(coins.ToArray(), Config.milliSecondsToTimeOut,ChangeANS);
+            var tasks = raida.GetMultiDetectTasks(coins, Config.milliSecondsToTimeOut,ChangeANS);
             try
             {
                 String requestFileName = Utils.RandomString(16).ToLower() + DateTime.Now.ToString("yyyyMMddHHmmss") + ".stack";
@@ -194,5 +224,78 @@ public class RAIDA {
 
         pge.MinorProgress = 100;
         System.out.println("Minor Progress- " + pge.MinorProgress);
+    }
+
+    public ArrayList<CompletableFuture<Object>> GetMultiDetectTasks(ArrayList<CloudCoin> coins, int milliSecondsToTimeOut) {
+        return GetMultiDetectTasks(coins, milliSecondsToTimeOut, true);
+    }
+
+    public ArrayList<CompletableFuture<Object>> GetMultiDetectTasks(ArrayList<CloudCoin> coins, int milliSecondsToTimeOut, boolean changeANs) {
+        this.coins = coins;
+
+        int[] nns = new int[coins.size()];
+        int[] sns = new int[coins.size()];
+
+        String[][] ans = new String[Config.NodeCount][];
+        String[][] pans = new String[Config.NodeCount][];
+
+        int[] dens = new int[coins.size()]; // Denominations
+        ArrayList<Runnable> detectTasks = new ArrayList<>(); // Stripe the coins
+
+        for (int i = 0; i < coins.size(); i++) {
+            if (changeANs)
+                coins.get(i).GeneratePAN();
+            else
+                coins.get(i).SetAnsToPans();
+            nns[i] = coins.get(i).nn;
+            sns[i] = coins.get(i).getSn();
+            dens[i] = coins.get(i).denomination;
+        }
+
+        multiRequest = new MultiDetectRequest();
+        multiRequest.timeout = Config.milliSecondsToTimeOut;
+        for (int nodeNumber = 0; nodeNumber < Config.NodeCount; nodeNumber++) {
+            ans[nodeNumber] = new String[coins.size()];
+            pans[nodeNumber] = new String[coins.size()];
+
+            for (int i = 0; i < coins.size(); i++) {
+                ans[nodeNumber][i] = coins.get(i).an.get(nodeNumber);
+                pans[nodeNumber][i] = coins.get(i).pan[nodeNumber];
+            }
+            multiRequest.an[nodeNumber] = ans[nodeNumber];
+            multiRequest.pan[nodeNumber] = pans[nodeNumber];
+            multiRequest.nn = nns;
+            multiRequest.sn = sns;
+            multiRequest.d = dens;
+        }
+
+
+        for (int nodeNumber = 0; nodeNumber < Config.NodeCount; nodeNumber++) {
+            detectTasks.add(nodes[nodeNumber].MultiDetect());
+        }
+
+        return detectTasks;
+    }
+
+    public Event ProgressChanged;
+    public Event LoggerHandler;
+    public Event CoinDetected;
+
+    public int ReadyCount { get { return nodes.Where(x => x.RAIDANodeStatus == NodeStatus.Ready).Count(); } }
+    public int NotReadyCount { get { return nodes.Where(x => x.RAIDANodeStatus == NodeStatus.NotReady).Count(); } }
+
+    public void OnProgressChanged(ProgressChangedEventArgs e)
+    {
+        ProgressChanged.Invoke(this, e);
+    }
+
+    public void OnLogRecieved(ProgressChangedEventArgs e)
+    {
+        LoggerHandler.Invoke(this, e);
+    }
+
+    protected void OnCoinDetected(DetectEventArgs e)
+    {
+        CoinDetected.Invoke(this, e);
     }
 }

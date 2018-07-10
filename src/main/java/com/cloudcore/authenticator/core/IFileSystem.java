@@ -39,21 +39,21 @@ public abstract class IFileSystem {
 
     //public abstract IFileSystem(String path);
 
-    public static IEnumerable<CloudCoin> importCoins;
-    public static IEnumerable<CloudCoin> exportCoins;
-    public static IEnumerable<CloudCoin> importedCoins;
-    public static IEnumerable<FileInfo> templateFiles;
-    public static IEnumerable<CloudCoin> languageCoins;
-    public static IEnumerable<CloudCoin> counterfeitCoins;
-    public static IEnumerable<CloudCoin> partialCoins;
-    public static IEnumerable<CloudCoin> frackedCoins;
-    public static IEnumerable<CloudCoin> detectedCoins;
-    public static IEnumerable<CloudCoin> suspectCoins;
-    public static IEnumerable<CloudCoin> trashCoins;
-    public static IEnumerable<CloudCoin> bankCoins;
-    public static IEnumerable<CloudCoin> lostCoins;
-    public static IEnumerable<CloudCoin> predetectCoins;
-    public static IEnumerable<CloudCoin> dangerousCoins;
+    public static ArrayList<CloudCoin> importCoins;
+    public static ArrayList<CloudCoin> exportCoins;
+    public static ArrayList<CloudCoin> importedCoins;
+    // TODO: public static ArrayList<FileInfo> templateFiles;
+    public static ArrayList<CloudCoin> languageCoins;
+    public static ArrayList<CloudCoin> counterfeitCoins;
+    public static ArrayList<CloudCoin> partialCoins;
+    public static ArrayList<CloudCoin> frackedCoins;
+    public static ArrayList<CloudCoin> detectedCoins;
+    public static ArrayList<CloudCoin> suspectCoins;
+    public static ArrayList<CloudCoin> trashCoins;
+    public static ArrayList<CloudCoin> bankCoins;
+    public static ArrayList<CloudCoin> lostCoins;
+    public static ArrayList<CloudCoin> predetectCoins;
+    public static ArrayList<CloudCoin> dangerousCoins;
 
     public abstract boolean CreateFolderStructure();
 
@@ -106,15 +106,13 @@ public abstract class IFileSystem {
         return folderCoins;
     }
 
-    public ArrayList<CloudCoin> LoadFolderBarCodes(String folder)
-    {
+    public ArrayList<CloudCoin> LoadFolderBarCodes(String folder) {
         ArrayList<CloudCoin> folderCoins = new ArrayList<>();
 
         return folderCoins;
     }
 
-    public ArrayList<CloudCoin> LoadFolderCoins(String folder)
-    {
+    public ArrayList<CloudCoin> LoadFolderCoins(String folder) {
         ArrayList<CloudCoin> folderCoins = new ArrayList<>();
 
         String[] fileNames = FileUtils.selectFileNamesInFolder(folder);
@@ -166,7 +164,7 @@ public abstract class IFileSystem {
         {
             Bitmap bitmap = new Bitmap(fileName);
             BarcodeReader reader = new BarcodeReader { AutoRotate = true, TryInverted = true };
-            Result result = reader.Decode(bitmap);
+            //Result result = reader.Decode(bitmap);
             String decoded = result.ToString().Trim();
 
             CloudCoin cloudCoin = JsonConvert.DeserializeObject<CloudCoin>(decoded);

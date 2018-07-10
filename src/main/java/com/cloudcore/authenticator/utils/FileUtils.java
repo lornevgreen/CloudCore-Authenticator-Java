@@ -115,6 +115,4 @@ public class FileUtils {
         }
         return arr;
     }
-
-    public static
 }

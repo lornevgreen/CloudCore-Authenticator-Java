@@ -1,21 +1,35 @@
 package com.cloudcore.authenticator.core;
 
+import com.cloudcore.authenticator.RAIDA;
+import org.asynchttpclient.AsyncHandler;
+import org.asynchttpclient.AsyncHttpClient;
+import org.asynchttpclient.HttpResponseBodyPart;
+import org.asynchttpclient.HttpResponseStatus;
+
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+
+import org.asynchttpclient.*;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import static org.asynchttpclient.Dsl.asyncHttpClient;
+
 public class Node {
 
-    public enum NodeStatus
-    {
-        Ready,
-        NotReady,
-    }
-    public enum TicketHistory { Untried, Failed, Success };
-
-    public class Node
-    {
+        public enum NodeStatus
+        {
+            Ready,
+            NotReady,
+        }
+        public enum TicketHistory { Untried, Failed, Success };
         /*
          *
          * This Class Contains the properties of a RAIDA node.
          *
          * */
+
+        private AsyncHttpClient client;
 
         public int NodeNumber;
         public int EchoTime = 0;
@@ -39,7 +53,9 @@ public class Node {
         {
             this.NodeNumber = NodeNumber;
             FullUrl = GetFullURL();
-            Debug.WriteLine(FullUrl);
+            System.out.println(FullUrl);
+
+            client = asyncHttpClient();
         }
 
         public Node(int NodeNumber,RAIDANode node)
@@ -48,7 +64,9 @@ public class Node {
             this.node = node;
             FullUrl = GetFullURL();
             FullUrl = "https://" +node.urls[0].url+"/service/";
-            Debug.WriteLine(FullUrl);
+            System.out.println(FullUrl);
+
+            client = asyncHttpClient();
         }
 
         public String GetFullURL()
@@ -63,7 +81,7 @@ public class Node {
             Ticket = "";
         }
 
-        public async Task<string> GetTicketResponse(int nn, int sn, String an, int d)
+        public async Task<String> GetTicketResponse(int nn, int sn, String an, int d)
     {
         RAIDA raida = RAIDA.GetInstance();
         Response get_ticketResponse = new Response();
@@ -83,7 +101,7 @@ public class Node {
                 String message = KeyPairs[3];
                 int startTicket = Utils.ordinalIndexOf(message, "\"", 3) + 2;
                 int endTicket = Utils.ordinalIndexOf(message, "\"", 4) - startTicket;
-                get_ticketResponse.outcome = message.Substring(startTicket - 1, endTicket + 1); //This is the ticket or message
+                get_ticketResponse.outcome = message.SubString(startTicket - 1, endTicket + 1); //This is the ticket or message
                 get_ticketResponse.success = true;
                 HasTicket = true;
                 ticketHistory = TicketHistory.Success;
@@ -120,7 +138,7 @@ public class Node {
         try
         {
             echoResponse.fullResponse = await Utils.GetHtmlFromURL(echoResponse.fullRequest);
-            Debug.WriteLine("Echo From Node - " + NodeNumber + ". " + echoResponse.fullResponse);
+            System.out.println("Echo From Node - " + NodeNumber + ". " + echoResponse.fullResponse);
             try
             {
                 echoresult = JsonConvert.DeserializeObject<NodeEchoResponse>(echoResponse.fullResponse);
@@ -129,7 +147,7 @@ public class Node {
             {
 
             }
-            //Debug.WriteLine("Echo URL - "+ FullUrl);
+            //System.out.println("Echo URL - "+ FullUrl);
             if (echoResponse.fullResponse.Contains("ready"))
             {
                 echoResponse.success = true;
@@ -156,12 +174,12 @@ public class Node {
             //RAIDA_Status.failsEcho[raidaID] = true;
             if (ex.InnerException != null)
                 echoResponse.fullResponse = ex.InnerException.Message;
-            Debug.WriteLine("Error---" + ex.Message);
+            System.out.println("Error---" + ex.Message);
         }
         DateTime after = DateTime.Now; TimeSpan ts = after.Subtract(before);
         echoResponse.milliseconds = Convert.ToInt32(ts.Milliseconds);
         EchoTime = Convert.ToInt32(ts.Milliseconds);
-        //Debug.WriteLine("Echo Complete-Node No.-" + NodeNumber + ".Status-" + RAIDANodeStatus);
+        //System.out.println("Echo Complete-Node No.-" + NodeNumber + ".Status-" + RAIDANodeStatus);
         return echoResponse;
     }//end detect
 
@@ -217,12 +235,12 @@ public class Node {
         /**
          * Method DETECT
          * Sends a Detection request to a RAIDA server
-         * @param nn  int that is the coin's Network Number 
+         * @param nn  int that is the coin's Network Number
          * @param sn  int that is the coin's Serial Number
          * @param an String that is the coin's Authenticity Number (GUID)
          * @param pan String that is the Proposed Authenticity Number to replace the AN.
          * @param d int that is the Denomination of the Coin
-         * @return Response object. 
+         * @return Response object.
          */
         public async Task<Response> Detect(CloudCoin coin)
     {
@@ -281,447 +299,381 @@ public class Node {
         {
             public Response[] responses;
         }
-        public async Task<MultiDetectResponse> MultiDetect(int[] nn, int[] sn, String[] an, String[] pan, int[] d, int timeout)
-    {
-        /*PREPARE REQUEST*/
-        Response[] response = new Response[nn.Length];
-        for (int i = 0; i < nn.Length; i++)
-        {
-            response[i] = new Response();
-        }
 
-        MultiResponse.responses = new Response[nn.Length];
+        public Runnable MultiDetect(int[] nn, int[] sn, String[] an, String[] pan, int[] d, int timeout) {
+            return new Runnable() {
+                @Override
+                public void run() {
+                    /*PREPARE REQUEST*/
+                    Response[] response = new Response[nn.length];
+                    for (int i = 0; i < nn.length; i++) {
+                        response[i] = new Response();
+                    }
 
-        //Create List of KeyValuePairs to use as the POST data
-        List<KeyValuePair<string, string>> postVariables = new List<KeyValuePair<string, string>>();
+                    MultiResponse.responses = new Response[nn.Length];
 
-        //Loop over String array and add all instances to our bodyPoperties
-        for (int i = 0; i < nn.Length; i++)
-        {
-            postVariables.Add(new KeyValuePair<string, string>("nns[]", nn[i].ToString()));
-            postVariables.Add(new KeyValuePair<string, string>("sns[]", sn[i].ToString()));
-            postVariables.Add(new KeyValuePair<string, string>("ans[]", an[i]));
-            postVariables.Add(new KeyValuePair<string, string>("pans[]", pan[i]));
-            postVariables.Add(new KeyValuePair<string, string>("denomination[]", d[i].ToString()));
-            //Debug.WriteLine("url is " + this.fullUrl + "detect?nns[]=" + nn[i] + "&sns[]=" + sn[i] + "&ans[]=" + an[i] + "&pans[]=" + pan[i] + "&denomination[]=" + d[i]);
+                    //Create List of KeyValuePairs to use as the POST data
+                    List<KeyValuePair<String, String>> postVariables = new List<KeyValuePair<String, String>>();
 
-            response[i].fullRequest = this.FullUrl + "detect?nns[]=" + nn[i] + "&sns[]=" + sn[i] + "&ans[]=" + an[i] + "&pans[]=" + pan[i] + "&denomination[]=" + d[i];//Record what was sent
-        }
-
-        //convert postVariables to an object of FormUrlEncodedContent
-        var dataContent = new FormUrlEncodedContent(postVariables.ToArray());
-        DateTime before = DateTime.Now;
-        DateTime after;
-        TimeSpan ts = new TimeSpan();
-
-
-        /*MAKE REQEST*/
-        string totalResponse = "";
-        var client = new HttpClient();
-        client.Timeout = TimeSpan.FromMilliseconds(timeout);
-
-        try
-        {
-            //POST THE REQUEST AND FILL THE ANSER IN totalResponse
-            totalResponse = "";
-            HttpResponseMessage json;
-
-            using (client)
-            {
-                // Console.Write("postHtml await for response: ");
-                json = await client.PostAsync(FullUrl + "multi_detect", dataContent);
-
-                //Console.Write(".");
-                if (json.IsSuccessStatusCode)//200 status good
-                {
-                    totalResponse = await json.Content.ReadAsStringAsync();
-                    Debug.WriteLine("RAIDA " + NodeNumber + " returned good: " + json.StatusCode);
-                    //  Console.Out.WriteLine(totalResponse);
-                }
-                else //404 not found or 500 error. 
-                {
-                    Debug.WriteLine("RAIDA " + NodeNumber + " had an error: " + json.StatusCode);
-                    after = DateTime.Now;
-                    ts = after.Subtract(before);//Start the timer
+                    //Loop over String array and add all instances to our bodyPoperties
                     for (int i = 0; i < nn.Length; i++)
                     {
-                        response[i].outcome = "error";
-                        response[i].fullResponse = json.StatusCode.ToString();
-                        response[i].success = false;
-                        response[i].milliseconds = Convert.ToInt32(ts.Milliseconds);
-                        FailsDetect = true;
-                        //RAIDA_Status.failsDetect[RAIDANumber] = true;
-                    }//end for every CloudCoin note
-                    MultiResponse.responses = response;
-                    return MultiResponse;//END IF THE REQUEST GOT AN ERROR
+                        postVariables.Add(new KeyValuePair<String, String>("nns[]", nn[i].ToString()));
+                        postVariables.Add(new KeyValuePair<String, String>("sns[]", sn[i].ToString()));
+                        postVariables.Add(new KeyValuePair<String, String>("ans[]", an[i]));
+                        postVariables.Add(new KeyValuePair<String, String>("pans[]", pan[i]));
+                        postVariables.Add(new KeyValuePair<String, String>("denomination[]", d[i].ToString()));
+                        //System.out.println("url is " + this.fullUrl + "detect?nns[]=" + nn[i] + "&sns[]=" + sn[i] + "&ans[]=" + an[i] + "&pans[]=" + pan[i] + "&denomination[]=" + d[i]);
 
-                }//end else 404 or 500
-
-            }//end using
-
-        }
-        catch (TaskCanceledException ex)//This means it timed out
-        {
-            // Console.WriteLine("T1:" + ex.Message);
-            after = DateTime.Now;
-            ts = after.Subtract(before);//Start the timer
-            for (int i = 0; i < nn.Length; i++)
-            {
-                response[i].outcome = "noresponse";
-                response[i].fullResponse = ex.Message;
-                response[i].success = false;
-                response[i].milliseconds = Convert.ToInt32(ts.Milliseconds);
-                FailsDetect = true;
-                //RAIDA_Status.failsDetect[RAIDANumber] = true;
-            }//end for every CloudCoin note
-            MultiResponse.responses = response;
-
-            return MultiResponse;//END IF THE REQUEST FAILED
-        }
-        catch (Exception ex)//Request failed with some kind of error that did not provide a response. 
-        {
-            // Console.WriteLine("M1:" + ex.Message);
-            after = DateTime.Now;
-            ts = after.Subtract(before);//Start the timer
-            for (int i = 0; i < nn.Length; i++)
-            {
-                response[i].outcome = "error";
-                response[i].fullResponse = ex.Message;
-                response[i].success = false;
-                response[i].milliseconds = Convert.ToInt32(ts.Milliseconds);
-                FailsDetect = true;
-                //RAIDA_Status.failsDetect[RAIDANumber] = true;
-            }//end for every CloudCoin note
-            MultiResponse.responses = response;
-            return MultiResponse;//END IF THE REQUEST FAILED
-        }//end catch request attmept
-
-
-        /* PROCESS REQUEST*/
-        after = DateTime.Now;
-        ts = after.Subtract(before);//Start the timer
-        //Is the request a dud?
-        if (totalResponse.Contains("dud"))
-        {
-            //Mark all Responses as duds
-            for (int i = 0; i < nn.Length; i++)
-            {
-                response[i].fullResponse = totalResponse;
-                response[i].success = false;
-                response[i].outcome = "dud";
-                response[i].milliseconds = Convert.ToInt32(ts.Milliseconds);
-            }//end for each dud
-        }//end if dud
-        else
-        {
-            //Not a dud so break up parts into smaller pieces
-            //Remove leading "[{"
-            totalResponse = totalResponse.Remove(0, 2);
-            //Remove trailing "}]"
-            totalResponse = totalResponse.Remove(totalResponse.Length - 2, 2);
-            //Split by "},{"
-            string[] responseArray = Regex.Split(totalResponse, "},{");
-            //Check to see if the responseArray is the same length as the request detectResponse. They should be the same
-            if (response.Length != responseArray.Length)
-            {
-                //Mark all Responses as duds
-                for (int i = 0; i < nn.Length; i++)
-                {
-                    response[i].fullResponse = totalResponse;
-                    response[i].success = false;
-                    response[i].outcome = "dud";
-                    response[i].milliseconds = Convert.ToInt32(ts.Milliseconds);
-                }//end for each dud
-            }//end if lenghts are not the same
-            else//Lengths are the same so lets go through each one
-            {
-
-
-                for (int i = 0; i < nn.Length; i++)
-                {
-                    if (responseArray[i].Contains("pass"))
-                    {
-                        response[i].fullResponse = responseArray[i];
-                        response[i].outcome = "pass";
-                        response[i].success = true;
-                        response[i].milliseconds = Convert.ToInt32(ts.Milliseconds);
+                        response[i].fullRequest = this.FullUrl + "detect?nns[]=" + nn[i] + "&sns[]=" + sn[i] + "&ans[]=" + an[i] + "&pans[]=" + pan[i] + "&denomination[]=" + d[i];//Record what was sent
                     }
-                    else if (responseArray[i].Contains("fail") && responseArray[i].Length < 200)//less than 200 incase there is a fail message inside errored page
+
+                    //convert postVariables to an object of FormUrlEncodedContent
+                    var dataContent = new FormUrlEncodedContent(postVariables.ToArray());
+                    DateTime before = DateTime.Now;
+                    DateTime after;
+                    TimeSpan ts = new TimeSpan();
+
+
+                    /*MAKE REQEST*/
+                    String totalResponse = "";
+                    var client = new HttpClient();
+                    client.Timeout = TimeSpan.FromMilliseconds(timeout);
+
+                    try
                     {
-                        response[i].fullResponse = responseArray[i];
-                        response[i].outcome = "fail";
-                        response[i].success = false;
-                        response[i].milliseconds = Convert.ToInt32(ts.Milliseconds);
+                        //POST THE REQUEST AND FILL THE ANSER IN totalResponse
+                        totalResponse = "";
+                        HttpResponseMessage json;
+
+                        using (client)
+                        {
+                            // Console.Write("postHtml await for response: ");
+                            json = await client.PostAsync(FullUrl + "multi_detect", dataContent);
+
+                            //Console.Write(".");
+                            if (json.IsSuccessStatusCode)//200 status good
+                            {
+                                totalResponse = await json.Content.ReadAsStringAsync();
+                                System.out.println("RAIDA " + NodeNumber + " returned good: " + json.StatusCode);
+                                //  System.out.println(totalResponse);
+                            }
+                            else //404 not found or 500 error.
+                            {
+                                System.out.println("RAIDA " + NodeNumber + " had an error: " + json.StatusCode);
+                                after = DateTime.Now;
+                                ts = after.Subtract(before);//Start the timer
+                                for (int i = 0; i < nn.Length; i++)
+                                {
+                                    response[i].outcome = "error";
+                                    response[i].fullResponse = json.StatusCode.ToString();
+                                    response[i].success = false;
+                                    response[i].milliseconds = Convert.ToInt32(ts.Milliseconds);
+                                    FailsDetect = true;
+                                    //RAIDA_Status.failsDetect[RAIDANumber] = true;
+                                }//end for every CloudCoin note
+                                MultiResponse.responses = response;
+                                return MultiResponse;//END IF THE REQUEST GOT AN ERROR
+
+                            }//end else 404 or 500
+
+                        }//end using
+
                     }
-                    else
+                    catch (TaskCanceledException ex)//This means it timed out
                     {
-                        response[i].fullResponse = responseArray[i];
-                        response[i].outcome = "error";
-                        response[i].success = false;
-                        response[i].milliseconds = Convert.ToInt32(ts.Milliseconds);
-                    }
-                }//End for each response
-            }//end if array lengths are the same
-
-        }//End Else not a dud
-        //Break the respons into sub responses. 
-        //RAIDA_Status.multiDetectTime[NodeNumber] = Convert.ToInt32(ts.Milliseconds);
-        MultiResponse.responses = response;
-        MultiDetectTime = Convert.ToInt32(ts.Milliseconds);
-        return MultiResponse;
-    }//End multi detect
-
-
-
-        //int[] nn, int[] sn, String[] an, String[] pan, int[] d, int timeout
-        public async Task<MultiDetectResponse> MultiDetect()
-    {
-
-        /*PREPARE REQUEST*/
-        try
-        {
-
-            var raida =RAIDA.ActiveRAIDA ;
-            int[] nn = raida.multiRequest.nn;
-            int[] sn = raida.multiRequest.sn;
-            String[] an = raida.multiRequest.an[NodeNumber - 1];
-            String[] pan = raida.multiRequest.pan[NodeNumber - 1];
-            int[] d = raida.multiRequest.d;
-            int timeout = raida.multiRequest.timeout;
-
-            Response[] response = new Response[nn.Length];
-            for (int i = 0; i < nn.Length; i++)
-            {
-                response[i] = new Response();
-            }
-
-            //Create List of KeyValuePairs to use as the POST data
-            List<KeyValuePair<string, string>> postVariables = new List<KeyValuePair<string, string>>();
-
-            //Loop over String array and add all instances to our bodyPoperties
-            for (int i = 0; i < nn.Length; i++)
-            {
-                postVariables.Add(new KeyValuePair<string, string>("nns[]", nn[i].ToString()));
-                postVariables.Add(new KeyValuePair<string, string>("sns[]", sn[i].ToString()));
-                postVariables.Add(new KeyValuePair<string, string>("ans[]", an[i]));
-                postVariables.Add(new KeyValuePair<string, string>("pans[]", pan[i]));
-                postVariables.Add(new KeyValuePair<string, string>("denomination[]", d[i].ToString()));
-                // Debug.WriteLine("url is " + this.fullUrl + "detect?nns[]=" + nn[i] + "&sns[]=" + sn[i] + "&ans[]=" + an[i] + "&pans[]=" + pan[i] + "&denomination[]=" + d[i]);
-
-                response[i].fullRequest = this.FullUrl + "detect?nns[]=" + nn[i] + "&sns[]=" + sn[i] + "&ans[]=" + an[i] + "&pans[]=" + pan[i] + "&denomination[]=" + d[i];//Record what was sent
-            }
-
-            //convert postVariables to an object of FormUrlEncodedContent
-            var dataContent = new FormUrlEncodedContent(postVariables.ToArray());
-            DateTime before = DateTime.Now;
-            DateTime after;
-            TimeSpan ts = new TimeSpan();
-
-
-            /*MAKE REQEST*/
-            string totalResponse = "";
-            var client = new HttpClient();
-            client.Timeout = TimeSpan.FromMilliseconds(timeout);
-
-            try
-            {
-                //POST THE REQUEST AND FILL THE ANSER IN totalResponse
-                totalResponse = "";
-                HttpResponseMessage json;
-
-                using (client)
-                {
-                    // Console.Write("postHtml await for response: ");
-                    json = await client.PostAsync(FullUrl + "multi_detect", dataContent);
-
-                    //Console.Write(".");
-                    if (json.IsSuccessStatusCode)//200 status good
-                    {
-                        totalResponse = await json.Content.ReadAsStringAsync();
-                        // Console.Out.WriteLine("RAIDA " + NodeNumber + " returned good: " + json.StatusCode);
-                        //  Console.Out.WriteLine(totalResponse);
-                    }
-                    else //404 not found or 500 error. 
-                    {
-                        Console.Out.WriteLine("RAIDA " + NodeNumber + " had an error: " + json.StatusCode);
+                        // Console.WriteLine("T1:" + ex.Message);
                         after = DateTime.Now;
                         ts = after.Subtract(before);//Start the timer
                         for (int i = 0; i < nn.Length; i++)
                         {
-                            response[i].outcome = "error";
-                            response[i].fullResponse = json.StatusCode.ToString();
+                            response[i].outcome = "noresponse";
+                            response[i].fullResponse = ex.Message;
                             response[i].success = false;
                             response[i].milliseconds = Convert.ToInt32(ts.Milliseconds);
                             FailsDetect = true;
                             //RAIDA_Status.failsDetect[RAIDANumber] = true;
                         }//end for every CloudCoin note
                         MultiResponse.responses = response;
-                        return MultiResponse;//END IF THE REQUEST GOT AN ERROR
 
-                    }//end else 404 or 500
-
-                }//end using
-
-            }
-            catch (TaskCanceledException ex)//This means it timed out
-            {
-                // Console.WriteLine("T1:" + ex.Message);
-                after = DateTime.Now;
-                ts = after.Subtract(before);//Start the timer
-                for (int i = 0; i < nn.Length; i++)
-                {
-                    response[i].outcome = "noresponse";
-                    response[i].fullResponse = ex.Message;
-                    response[i].success = false;
-                    response[i].milliseconds = Convert.ToInt32(ts.Milliseconds);
-                    FailsDetect = true;
-                    //RAIDA_Status.failsDetect[RAIDANumber] = true;
-                }//end for every CloudCoin note
-                MultiResponse.responses = response;
-
-                return MultiResponse;//END IF THE REQUEST FAILED
-            }
-            catch (Exception ex)//Request failed with some kind of error that did not provide a response. 
-            {
-                // Console.WriteLine("M1:" + ex.Message);
-                after = DateTime.Now;
-                ts = after.Subtract(before);//Start the timer
-                for (int i = 0; i < nn.Length; i++)
-                {
-                    response[i].outcome = "error";
-                    response[i].fullResponse = ex.Message;
-                    response[i].success = false;
-                    response[i].milliseconds = Convert.ToInt32(ts.Milliseconds);
-                    FailsDetect = true;
-                    //RAIDA_Status.failsDetect[RAIDANumber] = true;
-                }//end for every CloudCoin note
-                MultiResponse.responses = response;
-                return MultiResponse;//END IF THE REQUEST FAILED
-            }//end catch request attmept
+                        return MultiResponse;//END IF THE REQUEST FAILED
+                    }
+                    catch (Exception ex)//Request failed with some kind of error that did not provide a response.
+                    {
+                        // Console.WriteLine("M1:" + ex.Message);
+                        after = DateTime.Now;
+                        ts = after.Subtract(before);//Start the timer
+                        for (int i = 0; i < nn.Length; i++)
+                        {
+                            response[i].outcome = "error";
+                            response[i].fullResponse = ex.Message;
+                            response[i].success = false;
+                            response[i].milliseconds = Convert.ToInt32(ts.Milliseconds);
+                            FailsDetect = true;
+                            //RAIDA_Status.failsDetect[RAIDANumber] = true;
+                        }//end for every CloudCoin note
+                        MultiResponse.responses = response;
+                        return MultiResponse;//END IF THE REQUEST FAILED
+                    }//end catch request attmept
 
 
-            /* PROCESS REQUEST*/
-            after = DateTime.Now;
-            ts = after.Subtract(before);//Start the timer
-            //Is the request a dud?
-
-            try
-            {
-                DetectResponse[] responses = JsonConvert.DeserializeObject<DetectResponse[]>(totalResponse);
-
-                for (int i = 0; i < nn.Length; i++)
-                {
-                    response[i].fullResponse = totalResponse;
-                    if (responses[i].status == "pass")
-                        response[i].success = true;
+                    /* PROCESS REQUEST*/
+                    after = DateTime.Now;
+                    ts = after.Subtract(before);//Start the timer
+                    //Is the request a dud?
+                    if (totalResponse.Contains("dud"))
+                    {
+                        //Mark all Responses as duds
+                        for (int i = 0; i < nn.Length; i++)
+                        {
+                            response[i].fullResponse = totalResponse;
+                            response[i].success = false;
+                            response[i].outcome = "dud";
+                            response[i].milliseconds = Convert.ToInt32(ts.Milliseconds);
+                        }//end for each dud
+                    }//end if dud
                     else
-                        response[i].success = false;
+                    {
+                        //Not a dud so break up parts into smaller pieces
+                        //Remove leading "[{"
+                        totalResponse = totalResponse.Remove(0, 2);
+                        //Remove trailing "}]"
+                        totalResponse = totalResponse.Remove(totalResponse.Length - 2, 2);
+                        //Split by "},{"
+                        String[] responseArray = Regex.Split(totalResponse, "},{");
+                        //Check to see if the responseArray is the same length as the request detectResponse. They should be the same
+                        if (response.Length != responseArray.Length)
+                        {
+                            //Mark all Responses as duds
+                            for (int i = 0; i < nn.Length; i++)
+                            {
+                                response[i].fullResponse = totalResponse;
+                                response[i].success = false;
+                                response[i].outcome = "dud";
+                                response[i].milliseconds = Convert.ToInt32(ts.Milliseconds);
+                            }//end for each dud
+                        }//end if lenghts are not the same
+                        else//Lengths are the same so lets go through each one
+                        {
 
-                    response[i].outcome = responses[i].status;
-                    response[i].milliseconds = Convert.ToInt32(ts.Milliseconds);
-                }//end for each dud
 
+                            for (int i = 0; i < nn.Length; i++)
+                            {
+                                if (responseArray[i].Contains("pass"))
+                                {
+                                    response[i].fullResponse = responseArray[i];
+                                    response[i].outcome = "pass";
+                                    response[i].success = true;
+                                    response[i].milliseconds = Convert.ToInt32(ts.Milliseconds);
+                                }
+                                else if (responseArray[i].Contains("fail") && responseArray[i].Length < 200)//less than 200 incase there is a fail message inside errored page
+                                {
+                                    response[i].fullResponse = responseArray[i];
+                                    response[i].outcome = "fail";
+                                    response[i].success = false;
+                                    response[i].milliseconds = Convert.ToInt32(ts.Milliseconds);
+                                }
+                                else
+                                {
+                                    response[i].fullResponse = responseArray[i];
+                                    response[i].outcome = "error";
+                                    response[i].success = false;
+                                    response[i].milliseconds = Convert.ToInt32(ts.Milliseconds);
+                                }
+                            }//End for each response
+                        }//end if array lengths are the same
+
+                    }//End Else not a dud
+                    //Break the respons into sub responses.
+                    //RAIDA_Status.multiDetectTime[NodeNumber] = Convert.ToInt32(ts.Milliseconds);
+                    MultiResponse.responses = response;
+                    MultiDetectTime = Convert.ToInt32(ts.Milliseconds);
+                    return MultiResponse;
+                }
             }
-            catch (Exception e)
-            {
-                for (int i = 0; i < nn.Length; i++)
-                {
-                    response[i].fullResponse = totalResponse;
-                    response[i].success = false;
-                    response[i].outcome = "e";
-                    response[i].milliseconds = Convert.ToInt32(ts.Milliseconds);
-                }//end for each dud
+        }//End multi detect
 
-            }
+        //int[] nn, int[] sn, String[] an, String[] pan, int[] d, int timeout
+        public CompletableFuture<MultiDetectResponse> MultiDetect() {
+                /*PREPARE REQUEST*/
+                try {
+                    RAIDA raida = RAIDA.ActiveRAIDA ;
+                    int[] nn = raida.multiRequest.nn;
+                    int[] sn = raida.multiRequest.sn;
+                    String[] an = raida.multiRequest.an[NodeNumber - 1];
+                    String[] pan = raida.multiRequest.pan[NodeNumber - 1];
+                    int[] d = raida.multiRequest.d;
+                    int timeout = raida.multiRequest.timeout;
 
-            //if (totalResponse.Contains("dud"))
-            //{
-            //    //Mark all Responses as duds
-            //    for (int i = 0; i < nn.Length; i++)
-            //    {
-            //        response[i].fullResponse = totalResponse;
-            //        response[i].success = false;
+                    Response[] response = new Response[nn.length];
+                    for (int i = 0; i < nn.length; i++) {
+                        response[i] = new Response();
+                    }
 
-            //        response[i].outcome = "dud";
-            //        response[i].milliseconds = Convert.ToInt32(ts.Milliseconds);
-            //    }//end for each dud
-            //}//end if dud
-            //else
-            //{
-            //    //Not a dud so break up parts into smaller pieces
-            //    //Remove leading "[{"
-            //    totalResponse = totalResponse.Remove(0, 2);
-            //    //Remove trailing "}]"
-            //    totalResponse = totalResponse.Remove(totalResponse.Length - 2, 2);
-            //    //Split by "},{"
-            //    string[] responseArray = Regex.Split(totalResponse, "},{");
-            //    //Check to see if the responseArray is the same length as the request detectResponse. They should be the same
-            //    if (response.Length != responseArray.Length)
-            //    {
-            //        //Mark all Responses as duds
-            //        for (int i = 0; i < nn.Length; i++)
-            //        {
-            //            response[i].fullResponse = totalResponse;
-            //            response[i].success = false;
-            //            response[i].outcome = "dud";
-            //            response[i].milliseconds = Convert.ToInt32(ts.Milliseconds);
-            //        }//end for each dud
-            //    }//end if lenghts are not the same
-            //    else//Lengths are the same so lets go through each one
-            //    {
+                    Map<String, List<String>> formParams = new HashMap<>();
+                    for (int i = 0; i < nn.length; i++) {
+                        formParams.put("nns[]", new ArrayList<>(nn[i]));
+                        formParams.put("sns[]", new ArrayList<>(sn[i]));
+                        formParams.put("ans[]", new ArrayList<>(Arrays.asList(an[i])));
+                        formParams.put("pan[]", new ArrayList<>(Arrays.asList(pan[i])));
+                        formParams.put("denomination[]", new ArrayList<>(d[i]));
+                        // System.out.println("url is " + this.fullUrl + "detect?nns[]=" + nn[i] + "&sns[]=" + sn[i] + "&ans[]=" + an[i] + "&pans[]=" + pan[i] + "&denomination[]=" + d[i]);
+                        response[i].fullRequest = this.FullUrl + "detect?nns[]=" + nn[i] + "&sns[]=" + sn[i] + "&ans[]=" + an[i] + "&pans[]=" + pan[i] + "&denomination[]=" + d[i]; // Record what was sent
+                    }
+
+                    long before = System.currentTimeMillis();
+                    long after, ts;
+
+                    /* MAKE REQEST */
+                    String totalResponse = "";
+
+                    CompletableFuture<Object> clientCall = client.preparePost(FullUrl + "multi_detect")
+                            .setFormParams(formParams)
+                            .setRequestTimeout((int) (timeout * 0.001f))
+                            .execute(new AsyncHandler<>() {
+                                private final org.asynchttpclient.Response.ResponseBuilder builder = new org.asynchttpclient.Response.ResponseBuilder();
+                                private Integer status;
+
+                                @Override
+                                public State onStatusReceived(HttpResponseStatus responseStatus) {
+                                    builder.accumulate(responseStatus);
+                                    status = responseStatus.getStatusCode();
+                                    return State.CONTINUE;
+                                }
+
+                                @Override
+                                public State onHeadersReceived(HttpResponseHeaders headers) {
+                                    builder.accumulate(headers);
+                                    return State.CONTINUE;
+                                }
+
+                                @Override
+                                public State onBodyPartReceived(HttpResponseBodyPart bodyPart) {
+                                    builder.accumulate(bodyPart);
+                                    return State.CONTINUE;
+                                }
+
+                                @Override
+                                public Integer onCompleted() {
+                                    org.asynchttpclient.Response httpResponse = builder.build();
+                                    totalResponse = httpResponse.getResponseBody();
+                                    try {
+                                        JSONObject json = new JSONObject(httpResponse);
+
+                                        if (200 != builder.build().getStatusCode()) { // 404 not found or 500 error.
+                                            System.out.println("RAIDA " + NodeNumber + " had an error: " + httpResponse.getStatusCode());
+                                            after = System.currentTimeMillis();
+                                            ts = after - before;
+
+                                            for (int i = 0; i < nn.length; i++) {
+                                                response[i].outcome = "error";
+                                                response[i].fullResponse = Integer.toString(httpResponse.getStatusCode());
+                                                response[i].success = false;
+                                                response[i].milliseconds = (int) ts;
+                                                FailsDetect = true;
+                                            }
+                                            MultiResponse.responses = response;
+                                            return MultiResponse;
+
+                                        }//end else 404 or 500
+                                    } catch (JSONException e) {
+                                        System.out.println("Exception: " + e.getMessage());
+                                        e.printStackTrace();
+                                    }
+                                    return status;
+                                }
+
+                                @Override
+                                public void onThrowable(Throwable t) {
+                                    after = System.currentTimeMillis();
+                                    ts = after - before;
+
+                                    switch(t.getClass().getCanonicalName()) {
+                                        case "TimeoutException":
+                                            for (int i = 0; i < nn.length; i++) {
+                                                response[i].outcome = "noresponse";
+                                                response[i].fullResponse = t.getMessage();
+                                                response[i].success = false;
+                                                response[i].milliseconds = (int) ts;
+                                                FailsDetect = true;
+                                            }
+                                            MultiResponse.responses = response;
+                                            return MultiResponse;
+                                            break;
+                                        default:
+                                            for (int i = 0; i < nn.length; i++) {
+                                                response[i].outcome = "error";
+                                                response[i].fullResponse = t.getMessage();
+                                                response[i].success = false;
+                                                response[i].milliseconds = (int) ts;
+                                                FailsDetect = true;
+                                            }
+                                            MultiResponse.responses = response;
+                                            return MultiResponse;
+                                            break;
+                                    }
+                                    System.out.println("Exception: " + t.getMessage());
+                                    System.out.println("Check your connection, or your public key");
+                                }
+                            }).toCompletableFuture();
+
+                    /* PROCESS REQUEST*/
+                    after = DateTime.Now;
+                    ts = after.Subtract(before);//Start the timer
+                    //Is the request a dud?
+
+                    try
+                    {
+                        DetectResponse[] responses = JsonConvert.DeserializeObject<DetectResponse[]>(totalResponse);
+
+                        for (int i = 0; i < nn.Length; i++)
+                        {
+                            response[i].fullResponse = totalResponse;
+                            if (responses[i].status == "pass")
+                                response[i].success = true;
+                            else
+                                response[i].success = false;
+
+                            response[i].outcome = responses[i].status;
+                            response[i].milliseconds = Convert.ToInt32(ts.Milliseconds);
+                        }//end for each dud
+
+                    }
+                    catch (Exception e)
+                    {
+                        for (int i = 0; i < nn.Length; i++)
+                        {
+                            response[i].fullResponse = totalResponse;
+                            response[i].success = false;
+                            response[i].outcome = "e";
+                            response[i].milliseconds = Convert.ToInt32(ts.Milliseconds);
+                        }//end for each dud
+
+                    }
 
 
-            //        for (int i = 0; i < nn.Length; i++)
-            //        {
-            //            if (responseArray[i].Contains("pass"))
-            //            {
-            //                response[i].fullResponse = responseArray[i];
-            //                response[i].outcome = "pass";
-            //                response[i].success = true;
-            //                response[i].milliseconds = Convert.ToInt32(ts.Milliseconds);
-            //            }
-            //            else if (responseArray[i].Contains("fail") && responseArray[i].Length < 200)//less than 200 incase there is a fail message inside errored page
-            //            {
-            //                response[i].fullResponse = responseArray[i];
-            //                response[i].outcome = "fail";
-            //                response[i].success = false;
-            //                response[i].milliseconds = Convert.ToInt32(ts.Milliseconds);
-            //            }
-            //            else
-            //            {
-            //                response[i].fullResponse = responseArray[i];
-            //                response[i].outcome = "error";
-            //                response[i].success = false;
-            //                response[i].milliseconds = Convert.ToInt32(ts.Milliseconds);
-            //            }
-            //        }//End for each response
-            //    }//end if array lengths are the same
+                    MultiDetectTime = Convert.ToInt32(ts.Milliseconds);
+                    MultiResponse.responses = response;
+                    return MultiResponse;
 
-            //}//End Else not a dud
-            //Break the respons into sub responses. 
-            MultiDetectTime = Convert.ToInt32(ts.Milliseconds);
-            MultiResponse.responses = response;
-            return MultiResponse;
-
-        }
-        catch (Exception e)
-        {
-
-            Debug.WriteLine(e.Message);
-
-        }
-        return null;
+                }
+                catch (Exception e) {
+                    System.out.println(e.getMessage());
+                    e.printStackTrace();
+                }
+                return null;
+            });
     }//End multi detect
 
         /**
          * Method FIX
          * Repairs a fracked RAIDA
          * @param triad three ints trusted server RAIDA numbers
-         * @param m1 string ticket from the first trusted server
-         * @param m2 string ticket from the second trusted server
-         * @param m3 string ticket from the third trusted server
-         * @param pan string proposed authenticity number (to replace the wrong AN the RAIDA has)
-         * @return string status sent back from the server: sucess, fail or error. 
+         * @param m1 String ticket from the first trusted server
+         * @param m2 String ticket from the second trusted server
+         * @param m3 String ticket from the third trusted server
+         * @param pan String proposed authenticity number (to replace the wrong AN the RAIDA has)
+         * @return String status sent back from the server: sucess, fail or error. 
          */
         public async Task<Response> Fix(int[] triad, String m1, String m2, String m3, String pan)
     {
@@ -784,7 +736,7 @@ public class Node {
                 String message = KeyPairs[3];
                 int startTicket = Utils.ordinalIndexOf(message, "\"", 3) + 2;
                 int endTicket = Utils.ordinalIndexOf(message, "\"", 4) - startTicket;
-                get_ticketResponse.outcome = message.Substring(startTicket - 1, endTicket + 1); //This is the ticket or message
+                get_ticketResponse.outcome = message.SubString(startTicket - 1, endTicket + 1); //This is the ticket or message
                 get_ticketResponse.success = true;
                 HasTicket = true;
                 ticketHistory = TicketHistory.Success;
@@ -811,4 +763,3 @@ public class Node {
     }//end get ticket
 
     }
-}

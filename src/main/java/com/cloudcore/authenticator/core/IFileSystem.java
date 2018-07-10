@@ -2,12 +2,16 @@ package com.cloudcore.authenticator.core;
 
 import com.cloudcore.authenticator.Formats;
 import com.cloudcore.authenticator.utils.FileUtils;
+import com.google.gson.Gson;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.cloudcore.authenticator.Formats.BarCode;
@@ -347,12 +351,12 @@ public abstract class IFileSystem {
         }
         catch (JsonReaderException)
         {
-            Console.WriteLine("There was an error reading files in your bank.");
-            Console.WriteLine("You may have the aoid memo bug that uses too many double quote marks.");
-            Console.WriteLine("Your bank files are stored using and older version that did not use properly formed JSON.");
-            Console.WriteLine("Would you like to upgrade these files to the newer standard?");
-            Console.WriteLine("Your files will be edited.");
-            Console.WriteLine("1 for yes, 2 for no.");
+            System.out.println("There was an error reading files in your bank.");
+            System.out.println("You may have the aoid memo bug that uses too many double quote marks.");
+            System.out.println("Your bank files are stored using and older version that did not use properly formed JSON.");
+            System.out.println("Would you like to upgrade these files to the newer standard?");
+            System.out.println("Your files will be edited.");
+            System.out.println("1 for yes, 2 for no.");
 
 
         }
@@ -410,8 +414,8 @@ public abstract class IFileSystem {
         catch (Exception e)
         {
             // Let the user know what went wrong.
-            Console.WriteLine("The file " + jsonfile + " could not be read:");
-            Console.WriteLine(e.Message);
+            System.out.println("The file " + jsonfile + " could not be read:");
+            System.out.println(e.Message);
         }
         return jsonData;
     }//end importJSON
@@ -460,110 +464,68 @@ public abstract class IFileSystem {
     // end get JSON
 
     public abstract void MoveImportedFiles();
-    public void RemoveCoins(IEnumerable<CloudCoin> coins, String folder)
-    {
 
-        foreach (var coin in coins)
-        {
-            File.Delete(folder + (coin.FileName) + ".stack");
 
+    public void RemoveCoins(ArrayList<CloudCoin> coins, String folder) {
+        RemoveCoins(coins, folder, ".stack");
+    }
+    public void RemoveCoins(ArrayList<CloudCoin> coins, String folder, String extension) {
+        for (CloudCoin coin : coins)  {
+            try {
+                Files.delete(Paths.get(folder + coin.FileName() + extension));
+            } catch (IOException e) {
+                System.out.println(e.getMessage());
+                e.printStackTrace();
+            }
         }
     }
 
-    public void RemoveCoins(IEnumerable<CloudCoin> coins, String folder, String extension)
-    {
-
-        foreach (var coin in coins)
-        {
-            File.Delete(folder + (coin.FileName) + extension);
-
-        }
+    public void MoveCoins(ArrayList<CloudCoin> coins, String sourceFolder, String targetFolder) {
+        MoveCoins(coins, sourceFolder, targetFolder, ".stack", false);
     }
+    public void MoveCoins(ArrayList<CloudCoin> coins, String sourceFolder, String targetFolder, String extension) {
+        MoveCoins(coins, sourceFolder, targetFolder, extension, false);
+    }
+    public void MoveCoins(ArrayList<CloudCoin> coins, String sourceFolder, String targetFolder, String extension, boolean replaceCoins) {
+        ArrayList<CloudCoin> folderCoins = LoadFolderCoins(targetFolder);
 
-    public void MoveCoins(IEnumerable<CloudCoin> coins, String sourceFolder, String targetFolder, boolean replaceCoins = false)
-    {
-        var folderCoins = LoadFolderCoins(targetFolder);
+        for (CloudCoin coin : coins) {
+            String fileName = (coin.FileName());
+            int coinExists = 0;
+            for (CloudCoin folderCoin : folderCoins)
+                if (folderCoin.getSn() == coin.getSn())
+                    coinExists++;
+            //int coinExists = (int) Arrays.stream(folderCoins.toArray(new CloudCoin[0])).filter(x -> x.getSn() == coin.getSn()).count();
 
-        foreach (var coin in coins)
-        {
-            String fileName = (coin.FileName);
-            int coinExists = (from x in folderCoins
-            where x.sn == coin.sn
-            select x).Count();
-            if (coinExists > 0 && !replaceCoins)
-            {
+            if (coinExists > 0 && !replaceCoins) {
                 String suffix = Utils.RandomString(16);
-                fileName += suffix.ToLower();
+                fileName += suffix.toLowerCase();
             }
-            try
-            {
-                JsonSerializer serializer = new JsonSerializer();
-                serializer.Converters.Add(new JavaScriptDateTimeConverter());
-                serializer.NullValueHandling = NullValueHandling.Ignore;
+            try {
+                Gson gson = new Gson();
                 Stack stack = new Stack(coin);
-                using (StreamWriter sw = new StreamWriter(targetFolder + fileName + ".stack"))
-                using (JsonWriter writer = new JsonTextWriter(sw))
-                {
-                    serializer.Serialize(writer, stack);
-                }
-                File.Delete(sourceFolder + (coin.FileName) + ".stack");
+                Files.write(Paths.get(targetFolder + fileName + extension), gson.toJson(stack).getBytes(StandardCharsets.UTF_8));
+                Files.delete(Paths.get(sourceFolder + coin.FileName() + extension));
             }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
+            catch (Exception e) {
+                System.out.println(e.getMessage());
+                e.printStackTrace();
             }
-
-
         }
     }
 
-    public void MoveCoins(IEnumerable<CloudCoin> coins, String sourceFolder, String targetFolder, String extension, boolean replaceCoins = false)
-    {
-        var folderCoins = LoadFolderCoins(targetFolder);
-
-        foreach (var coin in coins)
-        {
-            String fileName = (coin.FileName);
-            int coinExists = (from x in folderCoins
-            where x.sn == coin.sn
-            select x).Count();
-            if (coinExists > 0 && !replaceCoins)
-            {
-                String suffix = Utils.RandomString(16);
-                fileName += suffix.ToLower();
-            }
-            try
-            {
-                JsonSerializer serializer = new JsonSerializer();
-                serializer.Converters.Add(new JavaScriptDateTimeConverter());
-                serializer.NullValueHandling = NullValueHandling.Ignore;
-                Stack stack = new Stack(coin);
-                using (StreamWriter sw = new StreamWriter(targetFolder + fileName + extension))
-                using (JsonWriter writer = new JsonTextWriter(sw))
-                {
-                    serializer.Serialize(writer, stack);
-                }
-                File.Delete(sourceFolder + (coin.FileName) + extension);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-            }
-
-
-        }
+    public void WriteCoinsToFile(ArrayList<CloudCoin> coins, String fileName) {
+        WriteCoinsToFile(coins, fileName, ".stack");
     }
-
-    public void WriteCoinsToFile(IEnumerable<CloudCoin> coins, String fileName, String extension = ".stack")
-    {
-        JsonSerializer serializer = new JsonSerializer();
-        serializer.Converters.Add(new JavaScriptDateTimeConverter());
-        serializer.NullValueHandling = NullValueHandling.Ignore;
-        Stack stack = new Stack(coins.ToArray());
-        using (StreamWriter sw = new StreamWriter(fileName + extension))
-        using (JsonWriter writer = new JsonTextWriter(sw))
-        {
-            serializer.Serialize(writer, stack);
+    public void WriteCoinsToFile(ArrayList<CloudCoin> coins, String fileName, String extension) {
+        Gson gson = new Gson();
+        Stack stack = new Stack((CloudCoin[]) coins.toArray());
+        try {
+            Files.write(Paths.get(fileName + extension), gson.toJson(stack).getBytes());
+        }
+        catch (IOException e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -605,22 +567,22 @@ public abstract class IFileSystem {
         }
     }
 
-    public void WriteCoin(IEnumerable<CloudCoin> coins, String folder, boolean writeAll = false)
-    {
-        if (writeAll)
-        {
-            String fileName = Utils.RandomString(16) + ".stack";
-            JsonSerializer serializer = new JsonSerializer();
-            serializer.Converters.Add(new JavaScriptDateTimeConverter());
-            serializer.NullValueHandling = NullValueHandling.Ignore;
-            Stack stack = new Stack(coins.ToArray());
-            using (StreamWriter sw = new StreamWriter(folder + fileName + ".stack"))
-            using (JsonWriter writer = new JsonTextWriter(sw))
-            {
-                serializer.Serialize(writer, stack);
+    public void WriteCoin(ArrayList<CloudCoin> coins, String folder) {
+        WriteCoin(coins, folder, false);
+    }
+    public void WriteCoin(ArrayList<CloudCoin> coins, String folder, boolean writeAll) {
+        if (writeAll) {
+            String file = folder + Utils.RandomString(16) + ".stack";
+            try {
+                Stack stack = new Stack(coins);
+                Gson gson = new Gson();
+                Files.write(Paths.get(file), gson.toJson(stack).getBytes(StandardCharsets.UTF_8));
+            } catch (Exception e) {
+                e.printStackTrace();
             }
             return;
         }
+
         var folderCoins = LoadFolderCoins(folder);
 
         foreach (var coin in coins)
@@ -697,7 +659,7 @@ public abstract class IFileSystem {
         }
         catch(Exception e)
         {
-            Console.WriteLine(e.Message);
+            System.out.println(e.Message);
             return false;
         }
     }
@@ -720,7 +682,7 @@ public abstract class IFileSystem {
         //}
         //catch (Exception e)
         //{
-        //    Console.WriteLine(e.Message);
+        //    System.out.println(e.Message);
         //    return false;
         //}
         return true;
@@ -1232,7 +1194,7 @@ public abstract class IFileSystem {
             }
             else
             {
-                Console.WriteLine(cc.FileName() + ".stack" + " already exists in the folder " + folder);
+                System.out.println(cc.FileName() + ".stack" + " already exists in the folder " + folder);
                 //CoreLogger.Log(cu.fileName + ".stack" + " already exists in the folder " + folder);
                 return alreadyExists;
 

@@ -2,6 +2,7 @@ package com.cloudcore.authenticator.core;
 
 import com.cloudcore.authenticator.Config;
 import com.cloudcore.authenticator.RAIDA;
+import com.google.gson.annotations.SerializedName;
 
 import java.security.SecureRandom;
 import java.time.LocalDate;
@@ -23,9 +24,13 @@ public class CloudCoin {
     public String[] gradeStatus = new String[3];// What passed, what failed, what was undetected
     //Fields
 
+    public Response[] response = new Response[Config.NodeCount];
+
+    @SerializedName("nn")
     public int nn;
 
 
+    @SerializedName("sn")
     private int sn;
     public int getSn() {
         return pSN;
@@ -35,16 +40,16 @@ public class CloudCoin {
         denomination = getDenomination();
     }
 
-
+    @SerializedName("an")
     public List<String> an;
 
-
+    @SerializedName("ed")
     public String ed;
 
-
+    @SerializedName("pown")
     public String pown;
 
-
+    @SerializedName("aoid")
     public List<String> aoid;
 
 

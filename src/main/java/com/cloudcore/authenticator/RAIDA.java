@@ -4,8 +4,14 @@ import com.cloudcore.authenticator.core.*;
 import com.cloudcore.authenticator.utils.SimpleLogger;
 import com.sun.deploy.jcp.controller.Network;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class RAIDA {
 
@@ -13,7 +19,7 @@ public class RAIDA {
     public Node[] nodes = new Node[Config.NodeCount];
     public MultiDetectRequest multiRequest;
     public Network network;
-    public int NetworkNumber=1;
+    public int NetworkNumber = 1;
 
     public static IFileSystem FileSystem;
     public IFileSystem FS;
@@ -26,46 +32,61 @@ public class RAIDA {
     public static String Workspace;
     public static SimpleLogger logger;
 
-    public static void ProcessCoins() {
-        int[] networks = new int[IFileSystem.importCoins.size()];
-        for (int i = 0; i < IFileSystem.importCoins.size(); i++) {
-            CloudCoin cc = IFileSystem.importCoins.get(i);
-            networks[i] = cc.nn;
-        }
+    public Event ProgressChanged;
+    public Event LoggerHandler;
+    public Event CoinDetected;
 
-        // TODO: remove duplicates in array
+    static DateTimeFormatter datetimeFormat = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
-        boolean ChangeANs = true;
-        long ts;
-        long before = System.currentTimeMillis();
-        long after;
+    public static CompletableFuture ProcessCoins() {
+        return CompletableFuture.supplyAsync(() -> {
+            int[] networks = new int[IFileSystem.importCoins.size()];
+            for (int i = 0; i < IFileSystem.importCoins.size(); i++) {
+                CloudCoin cc = IFileSystem.importCoins.get(i);
+                networks[i] = cc.nn;
+            }
 
-        for (int nn : networks) {
-            ActiveRAIDA = null;
+            // TODO: remove duplicates in array
 
-            for (RAIDA network : RAIDA.networks) {
-                if (ActiveRAIDA == null && nn == network.NetworkNumber) {
-                    ActiveRAIDA = network;
+            long ts;
+            long before = System.currentTimeMillis();
+            long after;
+
+            for (int nn : networks) {
+                ActiveRAIDA = null;
+
+                for (RAIDA network : RAIDA.networks) {
+                    if (ActiveRAIDA == null && nn == network.NetworkNumber) {
+                        ActiveRAIDA = network;
+                    }
+                }
+
+                int NetworkExists = 0;
+                for (RAIDA network : RAIDA.networks) {
+                    if (nn == network.NetworkNumber) {
+                        NetworkExists++;
+                    }
+                }
+                if (NetworkExists != 0) {
+                    //updateLog("Starting Coins detection for Network " + nn);
+                    try {
+                        CompletableFuture task = ProcessNetworkCoins(nn, true);
+                        if (task != null)
+                            task.get();
+                    } catch (InterruptedException | ExecutionException e) {
+                        e.printStackTrace();
+                    }
+                    //updateLog("Coins detection for Network " + nn + "Finished.");
                 }
             }
+            after = System.currentTimeMillis();
+            ts = after - before;
 
-            int NetworkExists = 0;
-            for (RAIDA network : RAIDA.networks) {
-                if (nn == network.NetworkNumber) {
-                    NetworkExists++;
-                }
-            }
-            if (NetworkExists != 0) {
-                //updateLog("Starting Coins detection for Network " + nn);
-                await ProcessNetworkCoins(nn, ChangeANs);
-                //updateLog("Coins detection for Network " + nn + "Finished.");
-            }
-        }
-        after = System.currentTimeMillis();
-        ts = after - before;
+            System.out.println("Detection Completed in : " + ts / 1000);
+            updateLog("Detection Completed in : " + ts / 1000);
 
-        System.out.println("Detection Completed in : " + ts / 1000);
-        // TODO: updateLog("Detection Completed in : " + ts.TotalMilliseconds / 1000);
+            return null;
+        });
     }
 
     public static CompletableFuture<Object> ProcessNetworkCoins(int NetworkNumber) {
@@ -73,164 +94,157 @@ public class RAIDA {
     }
 
     public static CompletableFuture<Object> ProcessNetworkCoins(int NetworkNumber, boolean ChangeANS) {
-        FileSystem.LoadFileSystem();
-        FileSystem.DetectPreProcessing();
+        return CompletableFuture.supplyAsync(() -> {
+            FileSystem.LoadFileSystem();
+            FileSystem.DetectPreProcessing();
 
-        ArrayList<CloudCoin> oldPredetectCoins = FileSystem.LoadFolderCoins(FileSystem.PreDetectFolder);
-        ArrayList<CloudCoin> predetectCoins = new ArrayList<>();
-        for (int i = 0; i < oldPredetectCoins.size(); i++) {
-            if (NetworkNumber == oldPredetectCoins.get(i).nn) {
-                predetectCoins.add(oldPredetectCoins.get(i));
+            ArrayList<CloudCoin> oldPredetectCoins = FileSystem.LoadFolderCoins(FileSystem.PreDetectFolder);
+            ArrayList<CloudCoin> predetectCoins = new ArrayList<>();
+            for (int i = 0; i < oldPredetectCoins.size(); i++) {
+                if (NetworkNumber == oldPredetectCoins.get(i).nn) {
+                    predetectCoins.add(oldPredetectCoins.get(i));
+                }
             }
-        }
 
-        IFileSystem.predetectCoins = predetectCoins;
+            IFileSystem.predetectCoins = predetectCoins;
 
-        RAIDA raida;
-        for (RAIDA network : RAIDA.networks) {
-            if (raida == null && NetworkNumber == network.NetworkNumber) {
-                raida = network;
+            RAIDA raida = null;
+            for (RAIDA network : RAIDA.networks) {
+                if (raida == null && NetworkNumber == network.NetworkNumber) {
+                    raida = network;
+                }
             }
-        }
 
-        if (raida == null)
-            return null;
+            if (raida == null)
+                return null;
 
-        // Process Coins in Lots of 200. Can be changed from Config File
-        int LotCount = predetectCoins.size() / Config.MultiDetectLoad;
-        if (predetectCoins.size() % Config.MultiDetectLoad > 0)
-            LotCount++;
-        ProgressChangedEventArgs pge = new ProgressChangedEventArgs();
+            // Process Coins in Lots of 200. Can be changed from Config File
+            int LotCount = predetectCoins.size() / Config.MultiDetectLoad;
+            if (predetectCoins.size() % Config.MultiDetectLoad > 0)
+                LotCount++;
+            ProgressChangedEventArgs pge = new ProgressChangedEventArgs();
 
-        int CoinCount = 0;
-        int totalCoinCount = predetectCoins.size();
-        for (int i = 0; i < LotCount; i++) {
-            //Pick up 200 Coins and send them to RAIDA
-            ArrayList<CloudCoin> coins = new ArrayList<>(predetectCoins.subList(i * Config.MultiDetectLoad, Math.min(predetectCoins.size(), 200)));
-            try {
-                raida.coins = coins;
-            }
-            catch(Exception e)
-            {
-                System.out.println(e.getMessage());
-                e.printStackTrace();
-            }
-            var tasks = raida.GetMultiDetectTasks(coins, Config.milliSecondsToTimeOut,ChangeANS);
-            try
-            {
-                String requestFileName = Utils.RandomString(16).ToLower() + DateTime.Now.ToString("yyyyMMddHHmmss") + ".stack";
-                // Write Request To file before detect
-                FS.WriteCoinsToFile(coins, FS.RequestsFolder + requestFileName);
-                await Task.WhenAll(tasks.AsParallel().Select(async task => await task()));
-                int j = 0;
-                foreach (var coin in coins)
-                {
-                    coin.pown = "";
-                    for (int k = 0; k < CloudCoinCore.Config.NodeCount; k++)
-                    {
-                        coin.response[k] = raida.nodes[k].MultiResponse.responses[j];
-                        coin.pown += coin.response[k].outcome.SubString(0, 1);
+            int CoinCount = 0;
+            int totalCoinCount = predetectCoins.size();
+            for (int i = 0; i < LotCount; i++) {
+                ArrayList<CloudCoin> coins = new ArrayList<>();
+                try { // Pick up to 200 Coins and send them to RAIDA
+                    coins = new ArrayList<>(predetectCoins.subList(i * Config.MultiDetectLoad, Math.min(predetectCoins.size(), 200)));
+                    raida.coins = coins;
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                    e.printStackTrace();
+                }
+                ArrayList<CompletableFuture<Node.MultiDetectResponse>> tasks = raida.GetMultiDetectTasks(raida.coins, Config.milliSecondsToTimeOut, ChangeANS);
+                try {
+                    String requestFileName = Utils.RandomString(16).toLowerCase() + LocalDateTime.now().format(datetimeFormat) + ".stack";
+                    // Write Request To file before detect
+                    FileSystem.WriteCoinsToFile(coins, FileSystem.RequestsFolder + requestFileName);
+                    CompletableFuture.allOf(tasks.toArray(new CompletableFuture[0])).get();
+
+                    for (int j = 0; j < coins.size(); j++) {
+                        CloudCoin coin = coins.get(j);
+                        StringBuilder pownString = new StringBuilder();
+                        coin.pown = "";
+                        int countp = 0;
+                        int countf = 0;
+                        for (int k = 0; k < Config.NodeCount; k++) {
+                            coin.response[k] = raida.nodes[k].MultiResponse.responses[j];
+                            pownString.append(coin.response[k].outcome.substring(0, 1));
+                            if ("pass".equals(coin.response[k].outcome))
+                                countp++;
+                            else
+                                countf++;
+                        }
+                        coin.pown = pownString.toString();
+                        coin.setPassCount(countp);
+                        coin.setFailCount(countf);
+                        CoinCount++;
+
+                        updateLog("No. " + CoinCount + ". Coin Deteced. S. No. - " + coin.getSn() + ". Pass Count - " + coin.getPassCount() +
+                                ". Fail Count  - " + coin.getFailCount() + ". Result - " + coin.DetectionResult + "." + coin.pown);
+                        System.out.println("Coin Deteced. S. No. - " + coin.getSn() + ". Pass Count - " + coin.getPassCount() +
+                                ". Fail Count  - " + coin.getFailCount() + ". Result - " + coin.DetectionResult);
+                        //coin.sortToFolder();
+                        pge.MinorProgress = (CoinCount) * 100 / totalCoinCount;
+                        System.out.println("Minor Progress- " + pge.MinorProgress);
+                        raida.OnProgressChanged(pge);
+                        j++;
                     }
-                    int countp = coin.response.Where(x => x.outcome == "pass").Count();
-                    int countf = coin.response.Where(x => x.outcome == "fail").Count();
-                    coin.PassCount = countp;
-                    coin.FailCount = countf;
-                    CoinCount++;
-
-
-                    updateLog("No. " + CoinCount + ". Coin Deteced. S. No. - " + coin.sn + ". Pass Count - " + coin.PassCount + ". Fail Count  - " + coin.FailCount + ". Result - " + coin.DetectionResult + "." + coin.pown);
-                    System.out.println("Coin Deteced. S. No. - " + coin.sn + ". Pass Count - " + coin.PassCount + ". Fail Count  - " + coin.FailCount + ". Result - " + coin.DetectionResult);
-                    //coin.sortToFolder();
-                    pge.MinorProgress = (CoinCount) * 100 / totalCoinCount;
+                    pge.MinorProgress = (CoinCount - 1) * 100 / totalCoinCount;
                     System.out.println("Minor Progress- " + pge.MinorProgress);
                     raida.OnProgressChanged(pge);
-                    j++;
+                    FileSystem.WriteCoin(coins, FileSystem.DetectedFolder);
+                    FileSystem.RemoveCoins(coins, FileSystem.PreDetectFolder);
+
+                    updateLog(pge.MinorProgress + " % of Coins on Network " + NetworkNumber + " processed.");
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                    e.printStackTrace();
                 }
-                pge.MinorProgress = (CoinCount - 1) * 100 / totalCoinCount;
-                System.out.println("Minor Progress- " + pge.MinorProgress);
-                raida.OnProgressChanged(pge);
-                FS.WriteCoin(coins, FS.DetectedFolder);
-                FS.RemoveCoins(coins, FS.PreDetectFolder);
-
-                updateLog(pge.MinorProgress + " % of Coins on Network " + NetworkNumber + " processed.");
-                //FS.WriteCoin(coins, FS.DetectedFolder);
-
-            }
-            catch (Exception ex)
-            {
-                System.out.println(ex.Message);
             }
 
+            pge.MinorProgress = 100;
+            System.out.println("Minor Progress- " + pge.MinorProgress);
+            raida.OnProgressChanged(pge);
+            ArrayList<CloudCoin> detectedCoins = FileSystem.LoadFolderCoins(FileSystem.DetectedFolder);
 
-        }
-        pge.MinorProgress = 100;
-        System.out.println("Minor Progress- " + pge.MinorProgress);
-        raida.OnProgressChanged(pge);
-        var detectedCoins = FS.LoadFolderCoins(FS.DetectedFolder);
-        //detectedCoins.ForEach(x => x.pown= "ppppppppppppppppppppppppp");
+            updateLog("Starting Sort.....");
+            detectedCoins.forEach(CloudCoin::SortToFolder); // Apply Sort to Folder to all detected coins at once.
+            updateLog("Ended Sort........");
 
-        // Apply Sort to Folder to all detected coins at once.
-        updateLog("Starting Sort.....");
-        detectedCoins.ForEach(x => x.SortToFolder());
-        updateLog("Ended Sort........");
+            ArrayList<CloudCoin> passedCoins = new ArrayList<>();
+            ArrayList<CloudCoin> frackedCoins = new ArrayList<>();
+            ArrayList<CloudCoin> failedCoins = new ArrayList<>();
+            ArrayList<CloudCoin> lostCoins = new ArrayList<>();
+            ArrayList<CloudCoin> suspectCoins = new ArrayList<>();
 
-        var passedCoins = (from x in detectedCoins
-        where x.folder == FS.BankFolder
-        select x).ToList();
+            for (CloudCoin coin : detectedCoins) {
+                if (coin.folder.equals(FileSystem.BankFolder)) passedCoins.add(coin);
+                else if (coin.folder.equals(FileSystem.FrackedFolder)) frackedCoins.add(coin);
+                else if (coin.folder.equals(FileSystem.CounterfeitFolder)) failedCoins.add(coin);
+                else if (coin.folder.equals(FileSystem.LostFolder)) lostCoins.add(coin);
+                else if (coin.folder.equals(FileSystem.SuspectFolder)) suspectCoins.add(coin);
+            }
+            /*ArrayList<CloudCoin> passedCoins = new ArrayList<>(Arrays.asList((CloudCoin[])
+                    Arrays.stream(detectedCoins.toArray(new CloudCoin[0]))
+                            .filter(x -> x.folder.equals(FileSystem.BankFolder)).toArray()));*/
 
-        var frackedCoins = (from x in detectedCoins
-        where x.folder == FS.FrackedFolder
-        select x).ToList();
+            System.out.println("Total Passed Coins - " + (passedCoins.size() + frackedCoins.size()));
+            System.out.println("Total Failed Coins - " + failedCoins.size());
+            updateLog("Coin Detection finished.");
+            updateLog("Total Passed Coins - " + (passedCoins.size() + frackedCoins.size()) + "");
+            updateLog("Total Failed Coins - " + failedCoins.size() + "");
+            updateLog("Total Lost Coins - " + lostCoins.size() + "");
+            updateLog("Total Suspect Coins - " + suspectCoins.size() + "");
 
-        var failedCoins = (from x in detectedCoins
-        where x.folder == FS.CounterfeitFolder
-        select x).ToList();
-        var lostCoins = (from x in detectedCoins
-        where x.folder == FS.LostFolder
-        select x).ToList();
-        var suspectCoins = (from x in detectedCoins
-        where x.folder == FS.SuspectFolder
-        select x).ToList();
+            // Move Coins to their respective folders after sort
+            FileSystem.MoveCoins(passedCoins, FileSystem.DetectedFolder, FileSystem.BankFolder);
+            FileSystem.MoveCoins(frackedCoins, FileSystem.DetectedFolder, FileSystem.FrackedFolder);
 
-        System.out.println("Total Passed Coins - " + (passedCoins.Count()+ frackedCoins.Count()));
-        System.out.println("Total Failed Coins - " + failedCoins.Count());
-        updateLog("Coin Detection finished.");
-        updateLog("Total Passed Coins - " + (passedCoins.Count() + frackedCoins.Count()) + "");
-        updateLog("Total Failed Coins - " + failedCoins.Count() + "");
-        updateLog("Total Lost Coins - " + lostCoins.Count() + "");
-        updateLog("Total Suspect Coins - " + suspectCoins.Count() + "");
+            //FileSystem.WriteCoin(failedCoins, FileSystem.CounterfeitFolder, true);
+            FileSystem.MoveCoins(lostCoins, FileSystem.DetectedFolder, FileSystem.LostFolder);
+            FileSystem.MoveCoins(suspectCoins, FileSystem.DetectedFolder, FileSystem.SuspectFolder);
 
-        // Move Coins to their respective folders after sort
-        FS.MoveCoins(passedCoins, FS.DetectedFolder, FS.BankFolder);
-        FS.MoveCoins(frackedCoins, FS.DetectedFolder, FS.FrackedFolder);
+            // Clean up Detected Folder
+            FileSystem.RemoveCoins(failedCoins, FileSystem.DetectedFolder);
+            FileSystem.RemoveCoins(lostCoins, FileSystem.DetectedFolder);
+            FileSystem.RemoveCoins(suspectCoins, FileSystem.DetectedFolder);
 
-        //FS.WriteCoin(failedCoins, FS.CounterfeitFolder, true);
-        FS.MoveCoins(lostCoins, FS.DetectedFolder, FS.LostFolder);
-        FS.MoveCoins(suspectCoins, FS.DetectedFolder, FS.SuspectFolder);
+            FileSystem.MoveImportedFiles();
 
-        // Clean up Detected Folder
-        FS.RemoveCoins(failedCoins, FS.DetectedFolder);
-        FS.RemoveCoins(lostCoins, FS.DetectedFolder);
-        FS.RemoveCoins(suspectCoins, FS.DetectedFolder);
+            pge.MinorProgress = 100;
+            System.out.println("Minor Progress- " + pge.MinorProgress);
 
-        FS.MoveImportedFiles();
-
-        //after = DateTime.Now;
-        //ts = after.Subtract(before);
-
-        //System.out.println("Detection Completed in - " + ts.TotalMilliseconds / 1000);
-        //updateLog("Detection Completed in - " + ts.TotalMilliseconds / 1000);
-
-
-        pge.MinorProgress = 100;
-        System.out.println("Minor Progress- " + pge.MinorProgress);
+            return null;
+        });
     }
 
-    public ArrayList<CompletableFuture<Object>> GetMultiDetectTasks(ArrayList<CloudCoin> coins, int milliSecondsToTimeOut) {
+    public ArrayList<CompletableFuture<Node.MultiDetectResponse>> GetMultiDetectTasks(ArrayList<CloudCoin> coins, int milliSecondsToTimeOut) {
         return GetMultiDetectTasks(coins, milliSecondsToTimeOut, true);
     }
 
-    public ArrayList<CompletableFuture<Object>> GetMultiDetectTasks(ArrayList<CloudCoin> coins, int milliSecondsToTimeOut, boolean changeANs) {
+    public ArrayList<CompletableFuture<Node.MultiDetectResponse>> GetMultiDetectTasks(ArrayList<CloudCoin> coins, int milliSecondsToTimeOut, boolean changeANs) {
         this.coins = coins;
 
         int[] nns = new int[coins.size()];
@@ -240,7 +254,7 @@ public class RAIDA {
         String[][] pans = new String[Config.NodeCount][];
 
         int[] dens = new int[coins.size()]; // Denominations
-        ArrayList<Runnable> detectTasks = new ArrayList<>(); // Stripe the coins
+        ArrayList<CompletableFuture<Node.MultiDetectResponse>> detectTasks = new ArrayList<>(); // Stripe the coins
 
         for (int i = 0; i < coins.size(); i++) {
             if (changeANs)
@@ -269,7 +283,6 @@ public class RAIDA {
             multiRequest.d = dens;
         }
 
-
         for (int nodeNumber = 0; nodeNumber < Config.NodeCount; nodeNumber++) {
             detectTasks.add(nodes[nodeNumber].MultiDetect());
         }
@@ -277,25 +290,39 @@ public class RAIDA {
         return detectTasks;
     }
 
-    public Event ProgressChanged;
-    public Event LoggerHandler;
-    public Event CoinDetected;
-
-    public int ReadyCount { get { return nodes.Where(x => x.RAIDANodeStatus == NodeStatus.Ready).Count(); } }
-    public int NotReadyCount { get { return nodes.Where(x => x.RAIDANodeStatus == NodeStatus.NotReady).Count(); } }
-
-    public void OnProgressChanged(ProgressChangedEventArgs e)
-    {
-        ProgressChanged.Invoke(this, e);
+    public int ReadyCount() {
+        int ReadyCount = 0;
+        for (Node node : nodes)
+            if (node.RAIDANodeStatus == Node.NodeStatus.Ready)
+                ReadyCount++;
+        return ReadyCount;
+        //return (int) Arrays.stream(nodes).filter(x -> x.RAIDANodeStatus == Node.NodeStatus.Ready).count();
     }
 
-    public void OnLogRecieved(ProgressChangedEventArgs e)
-    {
-        LoggerHandler.Invoke(this, e);
+    public int NotReadyCount() {
+        int NotReadyCount = 0;
+        for (Node node : nodes)
+            if (node.RAIDANodeStatus == Node.NodeStatus.NotReady)
+                NotReadyCount++;
+        return NotReadyCount;
+        //return (int) Arrays.stream(nodes).filter(x -> x.RAIDANodeStatus == Node.NodeStatus.NotReady).count();
     }
 
-    protected void OnCoinDetected(DetectEventArgs e)
-    {
-        CoinDetected.Invoke(this, e);
+    public void OnProgressChanged(ProgressChangedEventArgs e) {
+        //ProgressChanged.Invoke(this, e);
+    }
+
+    public void OnLogRecieved(ProgressChangedEventArgs e) {
+        //LoggerHandler.Invoke(this, e);
+    }
+
+    protected void OnCoinDetected(DetectEventArgs e) {
+        //CoinDetected.Invoke(this, e);
+    }
+
+
+    public static void updateLog(String message) {
+        System.out.println(message);
+        logger.Info(message);
     }
 }

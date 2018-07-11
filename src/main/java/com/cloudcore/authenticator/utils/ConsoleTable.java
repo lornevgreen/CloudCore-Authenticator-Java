@@ -1,6 +1,9 @@
 package com.cloudcore.authenticator.utils;
 
+import org.graalvm.compiler.api.replacements.Snippet;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import static com.cloudcore.authenticator.utils.ConsoleTable.Format.*;
 import static javafx.scene.input.KeyCode.T;
@@ -16,99 +19,94 @@ public class ConsoleTable
     }
 
     public ArrayList<Object> Columns ;
-    public ArrayList<Object[]> Rows { get; protected set; }
+    protected ArrayList<Object[]> Rows;
+    public ArrayList<Object[]> getRows() { return Rows; }
 
-    public ConsoleTableOptions Options { get; protected set; }
+    protected ConsoleTableOptions Options;
+    public ConsoleTableOptions getOptions() { return Options; }
 
-    public ConsoleTable(params String[] columns)
-            : this(new ConsoleTableOptions { Columns = new ArrayList<String>(columns) })
-    {
+    public ConsoleTable(String[] columns) {
+        Columns = new ArrayList<>(Arrays.asList(columns));
     }
 
-    public ConsoleTable(ConsoleTableOptions options)
-    {
-        Options = options ?? throw new ArgumentNullException("options");
-        Rows = new ArrayList<Object[]>();
-        Columns = new ArrayList<Object>(options.Columns);
+    public ConsoleTable(@Snippet.NonNullParameter ConsoleTableOptions options) {
+        Options = options;
+        Rows = new ArrayList<>();
+        Columns = new ArrayList<>(options.Columns);
     }
 
-    public ConsoleTable AddColumn(ArrayList<String> names)
-    {
-        foreach (var name in names)
-        Columns.Add(name);
+    public ConsoleTable AddColumn(ArrayList<String> names) {
+        Columns.addAll(names);
         return this;
     }
 
-    public ConsoleTable AddRow(params Object[] values)
-    {
-        if (values == null)
-            throw new ArgumentNullException(nameof(values));
-
-        if (!Columns.Any())
+    public ConsoleTable AddRow(@Snippet.NonNullParameter Object[] values) {
+        if (Columns.size() != 0)
             throw new Exception("Please set the columns first");
 
-        if (Columns.count != values.length)
+        if (Columns.size() != values.length)
             throw new Exception(
-                    $"The number columns in the row ({Columns.count}) does not match the values ({values.length}");
+                    "The number columns in the row ({Columns.size()}) does not match the values ({values.length}");
 
-        Rows.Add(values);
+        Rows.add(values);
         return this;
     }
 
     public static ConsoleTable From<T>(ArrayList<T> values)
     {
-        var table = new ConsoleTable();
+        ConsoleTable table = new ConsoleTable();
 
-        var columns = GetColumns<T>();
+        ArrayList<String> columns = GetColumns<T>();
 
-        table.AddColumn(columns);
+        table.addColumn(columns);
 
-        foreach (var propertyValues in values.Select(value => columns.Select(column => GetColumnValue<T>(value, column))))
-        table.AddRow(propertyValues.toArray());
+        for (var propertyValues : values.Select(value => columns.Select(column => GetColumnValue<T>(value, column))))
+        table.addRow(propertyValues.toArray());
 
         return table;
     }
 
-    public override String toString()
+    @Override
+    public String toString()
 {
-    var builder = new StringBuilder();
+    StringBuilder builder = new StringBuilder();
 
     // find the longest column by searching each row
-    var columnLengths = ColumnLengths();
+    ArrayList<Integer> columnLengths = ColumnLengths();
 
     // create the String format with padding
-    var format = Enumerable.Range(0, Columns.count)
+    var format = Enumerable.Range(0, Columns.size())
             .Select(i => " | {" + i + ",-" + columnLengths[i] + "}")
                 .Aggregate((s, a) => s + a) + " |";
 
     // find the longest formatted line
-    var maxRowLength = Math.Max(0, Rows.Any() ? Rows.Max(row => StringFormat(format, row).length) : 0);
-    var columnHeaders = StringFormat(format, Columns.toArray());
+    int maxRowLength = Math.max(0, Rows.size() != 0 ? Rows.Max(row => String.format(format, row).length) : 0);
+    var columnHeaders = String.format(format, Columns.toArray());
 
     // longest line is greater of formatted columnHeader and longest row
-    var longestLine = Math.Max(maxRowLength, columnHeaders.length);
+    int longestLine = Math.max(maxRowLength, columnHeaders.length);
 
     // add each row
-    var results = Rows.Select(row => StringFormat(format, row)).ToList();
+    var results = Rows.Select(row => String.format(format, row)).ToList();
 
     // create the divider
-    var divider = " " + String.Join("", Enumerable.Repeat("-", longestLine - 1)) + " ";
+    String divider = " " + String.Join("", Enumerable.Repeat("-", longestLine - 1)) + " ";
 
-    builder.AppendLine(divider);
-    builder.AppendLine(columnHeaders);
+    builder.append(divider + System.lineSeparator());
+    builder.append(columnHeaders + System.lineSeparator());
 
-    foreach (var row in results)
+    for (String row : results)
     {
-        builder.AppendLine(divider);
-        builder.AppendLine(row);
+        builder.append(divider + System.lineSeparator());
+        builder.append(row + System.lineSeparator());
     }
 
-    builder.AppendLine(divider);
+    builder.append(divider + System.lineSeparator());
 
     if (Options.EnableCount)
     {
-        builder.AppendLine("");
-        builder.AppendFormat(" Count: {0}", Rows.count);
+        builder.append("" + System.lineSeparator());
+        builder.AppendFormat(" Count: {0}", Rows.size());
     }
 
     return builder.toString();
@@ -121,26 +119,26 @@ public class ConsoleTable
 
     private String ToMarkDownString(char delimiter)
     {
-        var builder = new StringBuilder();
+        StringBuilder builder = new StringBuilder();
 
         // find the longest column by searching each row
-        var columnLengths = ColumnLengths();
+        ArrayList<Integer> columnLengths = ColumnLengths();
 
         // create the String format with padding
-        var format = Format(columnLengths, delimiter);
+        String format = Format(columnLengths, delimiter);
 
         // find the longest formatted line
-        var columnHeaders = StringFormat(format, Columns.toArray());
+        var columnHeaders = String.format(format, Columns.toArray());
 
         // add each row
-        var results = Rows.Select(row => StringFormat(format, row)).ToList();
+        var results = Rows.Select(row => String.format(format, row)).ToList();
 
         // create the divider
-        var divider = Regex.Replace(columnHeaders, @"[^|]", "-");
+        String divider = Regex.replace(columnHeaders, @"[^|]", "-");
 
-        builder.AppendLine(columnHeaders);
-        builder.AppendLine(divider);
-        results.ForEach(row => builder.AppendLine(row));
+        builder.append(columnHeaders + System.lineSeparator());
+        builder.append(divider + System.lineSeparator());
+        results.ForEach(row => builder.append(row + System.lineSeparator()));
 
         return builder.toString();
     }
@@ -152,46 +150,49 @@ public class ConsoleTable
 
     public String ToStringAlternative()
     {
-        var builder = new StringBuilder();
+        StringBuilder builder = new StringBuilder();
 
         // find the longest column by searching each row
-        var columnLengths = ColumnLengths();
+        ArrayList<Integer> columnLengths = ColumnLengths();
 
         // create the String format with padding
-        var format = Format(columnLengths);
+        String format = Format(columnLengths);
 
         // find the longest formatted line
-        var columnHeaders = StringFormat(format, Columns.toArray());
+        var columnHeaders = String.format(format, Columns.toArray());
 
         // add each row
-        var results = Rows.Select(row => StringFormat(format, row)).ToList();
+        var results = Rows.Select(row => String.format(format, row)).ToList();
 
         // create the divider
-        var divider = Regex.Replace(columnHeaders, @"[^|]", "-");
-        var dividerPlus = divider.Replace("|", "+");
+        String divider = Regex.replace(columnHeaders, @"[^|]", "-");
+        String dividerPlus = divider.replace("|", "+");
 
-        builder.AppendLine(dividerPlus);
-        builder.AppendLine(columnHeaders);
+        builder.append(dividerPlus + System.lineSeparator());
+        builder.append(columnHeaders + System.lineSeparator());
 
         for (var row : results) {
-            builder.AppendLine(dividerPlus);
-            builder.AppendLine(row);
+            builder.append(dividerPlus + System.lineSeparator());
+            builder.append(row + System.lineSeparator());
         }
-        builder.AppendLine(dividerPlus);
+        builder.append(dividerPlus + System.lineSeparator());
 
         return builder.toString();
     }
 
-    private String Format(List<int> columnLengths, char delimiter = '|')
-    {
-        var delimiterStr = delimiter == char.MinValue ? String.Empty : delimiter.toString();
-        var format = (Enumerable.Range(0, Columns.count)
+
+    private String Format(ArrayList<Integer> columnLengths) {
+        return Format(columnLengths, '|');
+    }
+    private String Format(ArrayList<Integer> columnLengths, char delimiter) {
+        String delimiterStr = delimiter == char.MinValue ? "" : delimiter.toString();
+        String format = (Enumerable.Range(0, Columns.size())
                 .Select(i => " " + delimiterStr + " {" + i + ",-" + columnLengths[i] + "}")
                 .Aggregate((s, a) => s + a) + " " + delimiterStr).Trim();
         return format;
     }
 
-    private ArrayList<int> ColumnLengths()
+    private ArrayList<Integer> ColumnLengths()
     {
         var columnLengths = Columns
                 .Select((t, i) => Rows.Select(x => x[i])
@@ -202,7 +203,11 @@ public class ConsoleTable
         return columnLengths;
     }
 
-    public void Write(Format format = Default)
+    public void Write()
+    {
+        Write(Default);
+    }
+    public void Write(Format format)
     {
         switch (format)
         {

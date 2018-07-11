@@ -5,6 +5,7 @@ import com.google.gson.annotations.SerializedName;
 import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 import static java.time.temporal.ChronoUnit.DAYS;
 
@@ -172,7 +173,7 @@ public class CloudCoin {
         //The coin is considered a threat if it has any of the patersns that would allow the last user to take control.
         //There are four of these patterns: One for each corner.
 
-        //  Console.Out.WriteLine( cc.getSn() + " char count f =" + charCount(cc.pown, 'f'));
+        //  System.out.println( cc.getSn() + " char count f =" + charCount(cc.pown, 'f'));
         if ((charCount(pown, 'f') + charCount(pown, 'n')) > 5) {
             String doublePown = pown + pown;//double it so we see patters that happen on the ends.
 
@@ -193,9 +194,9 @@ public class CloudCoin {
         boolean returnTruth = false;
         if ((charCount(pown, 'p') < 6 && (charCount(pown, 'f') > 13))) {
             returnTruth = true;
-            //   Console.Out.WriteLine("isCounterfeit");
+            //   System.out.println("isCounterfeit");
         } else {
-            // Console.Out.WriteLine("Not isCounterfeit");
+            // System.out.println("Not isCounterfeit");
         }
         return returnTruth;
     }
@@ -252,10 +253,8 @@ public class CloudCoin {
         return nom;
     }
 
-    /* TODO: re-enable these
-    public ArrayList<Task> detectTaskList = new ArrayList<Task>();
-    public ArrayList<Task> GetDetectTasks()
-    {
+    public ArrayList<CompletableFuture> detectTaskList = new ArrayList<>();
+    public ArrayList<CompletableFuture> GetDetectTasks() {
         RAIDA raida = RAIDA.GetInstance();
 
         CloudCoin cc = this;
@@ -263,12 +262,15 @@ public class CloudCoin {
 
         for (int j = 0; j < Config.NodeCount; j++)
         {
-            Task t = Task.Factory.StartNew(() => raida.nodes[i].Detect(cc));
-            detectTaskList.add(t);
+            CompletableFuture future = CompletableFuture.supplyAsync(() -> {
+                raida.nodes[i].Detect(cc);
+               return null;
+            });
+            detectTaskList.add(future);
         }
 
         return detectTaskList;
-    }*/
+    }
     public void GeneratePAN() {
         for (int i = 0; i < Config.NodeCount; i++) {
             an.set(i, this.generatePan());
@@ -281,7 +283,7 @@ public class CloudCoin {
         String origPown = pown;
         pown = pown.replace('d', 'e').replace('n', 'e').replace('u', 'e');
         boolean canFix = false;
-        // Console.Out.WriteLine(cc.getSn() + " char count p =" + charCount(cc.pown, 'p'));
+        // System.out.println(cc.getSn() + " char count p =" + charCount(cc.pown, 'p'));
         if (charCount(pown, 'p') > 5) {
             String doublePown = pown + pown;//double it so we see patters that happen on the ends.
 
@@ -308,14 +310,14 @@ public class CloudCoin {
             if (UP_LEFT || UP_RIGHT || DOWN_LEFT || DOWN_RIGHT || UP_LEFT_n || UP_RIGHT_n || DOWN_LEFT_n || DOWN_RIGHT_n
                     || UP_LEFT_e || UP_RIGHT_e || DOWN_LEFT_e || DOWN_RIGHT_e || UP_LEFT_u || UP_RIGHT_u || DOWN_LEFT_u || DOWN_RIGHT_u) {
                 canFix = true;
-                //Console.Out.WriteLine("isFixable");
+                //System.out.println("isFixable");
             } else {
                 canFix = false;
-                //Console.Out.WriteLine("Not isFixable");
+                //System.out.println("Not isFixable");
             }
         } else {
             canFix = false;
-//                Console.Out.WriteLine("Not isFixable");
+//                System.out.println("Not isFixable");
         }
         pown = origPown;
         return canFix;
@@ -439,9 +441,9 @@ public class CloudCoin {
 
     public void SortToFolder() {
         //figures out which folder to put it in.
-        //pown = pown.Replace('d', 'e').Replace('n', 'e').Replace('u', 'e');
-        //pown = pown.Replace('n','e');
-        //pown = pown.Replace('u', 'e');
+        //pown = pown.replace('d', 'e').replace('n', 'e').replace('u', 'e');
+        //pown = pown.replace('n','e');
+        //pown = pown.replace('u', 'e');
         if (isPerfect()) {
             folder = RAIDA.ActiveRAIDA.FS.BankFolder;
             //folder = Folder.Bank;
@@ -511,9 +513,9 @@ public class CloudCoin {
         boolean returnTruth = false;
         if (charCount(pown, 'f') + charCount(pown, 'p') > 16 && isFixable()) {
             returnTruth = true;
-            //Console.Out.WriteLine("isGradable");
+            //System.out.println("isGradable");
         } else {
-            //Console.Out.WriteLine("Not isGradable");
+            //System.out.println("Not isGradable");
         }
         return returnTruth;
     }

@@ -209,20 +209,20 @@ public abstract class IFileSystem {
 
         CloudCoin coin = new CloudCoin();
 
-        foreach(var line in lines)
+        for(var line : lines)
         {
-            cloudCoins.Add( CloudCoin.FromCSV(line));
+            cloudCoins.add( CloudCoin.FromCSV(line));
         }
         return cloudCoins;
     }
     private CloudCoin importJPEG(String fileName)//Move one jpeg to suspect folder. 
     {
         // boolean isSuccessful = false;
-        // Console.Out.WriteLine("Trying to load: " + this.fileUtils.importFolder + fileName );
+        // System.out.println("Trying to load: " + this.fileUtils.importFolder + fileName );
         System.out.println("Trying to load: " + ImportFolder + fileName);
         try
         {
-            //  Console.Out.WriteLine("Loading coin: " + fileUtils.importFolder + fileName);
+            //  System.out.println("Loading coin: " + fileUtils.importFolder + fileName);
             //CloudCoin tempCoin = this.fileUtils.loadOneCloudCoinFromJPEGFile( fileUtils.importFolder + fileName );
 
             /*Begin import from jpeg*/
@@ -230,7 +230,7 @@ public abstract class IFileSystem {
             /* GET the first 455 bytes of he jpeg where the coin is located */
             String wholeString = "";
             byte[] jpegHeader = new byte[455];
-            // Console.Out.WriteLine("Load file path " + fileUtils.importFolder + fileName);
+            // System.out.println("Load file path " + fileUtils.importFolder + fileName);
             FileStream fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read);
             try
             {
@@ -249,25 +249,25 @@ public abstract class IFileSystem {
             wholeString = bytesToHexString(jpegHeader);
 
             CloudCoin tempCoin = parseJpeg(wholeString);
-            // Console.Out.WriteLine("From FileUtils returnCC.fileName " + tempCoin.fileName);
+            // System.out.println("From FileUtils returnCC.fileName " + tempCoin.fileName);
 
             /*end import from jpeg file */
 
 
 
-            //   Console.Out.WriteLine("Loaded coin filename: " + tempCoin.fileName);
+            //   System.out.println("Loaded coin filename: " + tempCoin.fileName);
 
             writeTo(SuspectFolder, tempCoin);
             return tempCoin;
         }
         catch (FileNotFoundException ex)
         {
-            Console.Out.WriteLine("File not found: " + fileName + ex);
+            System.out.println("File not found: " + fileName + ex);
             //CoreLogger.Log("File not found: " + fileName + ex);
         }
         catch (IOException ioex)
         {
-            Console.Out.WriteLine("IO Exception:" + fileName + ioex);
+            System.out.println("IO Exception:" + fileName + ioex);
             //CoreLogger.Log("IO Exception:" + fileName + ioex);
         }// end try catch
         return null;
@@ -296,13 +296,13 @@ public abstract class IFileSystem {
         var files = Directory
                 .GetFiles(folder)
                 .ToList();
-        foreach (var item in files)
+        for (var item : files)
         {
-            fileInfos.Add(new FileInfo(item));
+            fileInfos.add(new FileInfo(item));
             System.out.println("Read File-" + item);
         }
 
-        System.out.println("Total " + files.count + " items read");
+        System.out.println("Total " + files.size() + " items read");
 
         return fileInfos;
     }
@@ -314,13 +314,13 @@ public abstract class IFileSystem {
                 .GetFiles(folder)
                 .Where(file => allowedExtensions.Any(file.toLowerCase().EndsWith))
                 .ToList();
-        foreach (var item in files)
+        for (var item : files)
         {
-            fileInfos.Add(new FileInfo(item));
+            fileInfos.add(new FileInfo(item));
             //System.out.println(item);
         }
 
-        //System.out.println("Total " + files.count + " items read");
+        //System.out.println("Total " + files.size() + " items read");
 
         return fileInfos;
     }
@@ -341,7 +341,7 @@ public abstract class IFileSystem {
         int firstCloseCurlyBracket = ordinalIndexOf(incomeJson, "}", 0) - secondCurlyBracket;
         // incomeJson = incomeJson.substring(secondCurlyBracket, firstCloseCurlyBracket);
         incomeJson = incomeJson.substring(secondCurlyBracket, firstCloseCurlyBracket + 1);
-        // Console.Out.WriteLine(incomeJson);
+        // System.out.println(incomeJson);
         //Deserial JSON
 
         try
@@ -370,7 +370,7 @@ public abstract class IFileSystem {
             File.Move(SourcePath, TargetPath);
         else
         {
-            if (options == FileMoveOptions.Replace)
+            if (options == FileMoveOptions.replace)
             {
                 File.Delete(TargetPath);
                 File.Move(SourcePath, TargetPath);
@@ -379,7 +379,7 @@ public abstract class IFileSystem {
             {
                 String targetFileName = Path.GetFileNameWithoutExtension(SourcePath);
                 targetFileName += Utils.RandomString(8).toLowerCase() + ".stack";
-                String targetPath = Path.GetDirectoryName(TargetPath) + Path.DirectorySeparatorChar + targetFileName;
+                String targetPath = Path.GetDirectoryName(TargetPath) + File.pathSeparator + targetFileName;
                 File.Move(SourcePath, targetPath);
 
             }
@@ -415,7 +415,7 @@ public abstract class IFileSystem {
         {
             // Let the user know what went wrong.
             System.out.println("The file " + jsonfile + " could not be read:");
-            System.out.println(e.Message);
+            System.out.println(e.getMessage());
         }
         return jsonData;
     }//end importJSON
@@ -425,16 +425,16 @@ public abstract class IFileSystem {
     {
             final String quote = "\"";
             final String tab = "\t";
-        String json = (tab + tab + "{ " + Environment.NewLine);// {
-        json += tab + tab + quote + "nn" + quote + ":" + quote + cc.nn + quote + ", " + Environment.NewLine;// "nn":"1",
-        json += tab + tab + quote + "sn" + quote + ":" + quote + cc.getSn() + quote + ", " + Environment.NewLine;// "sn":"367544",
+        String json = (tab + tab + "{ " + System.lineSeparator());// {
+        json += tab + tab + quote + "nn" + quote + ":" + quote + cc.nn + quote + ", " + System.lineSeparator();// "nn":"1",
+        json += tab + tab + quote + "sn" + quote + ":" + quote + cc.getSn() + quote + ", " + System.lineSeparator();// "sn":"367544",
         json += tab + tab + quote + "an" + quote + ": [" + quote;// "an": ["
         for (int i = 0; (i < 25); i++)
         {
             json += cc.an[i];// 8551995a45457754aaaa44
             if (i == 4 || i == 9 || i == 14 || i == 19)
             {
-                json += quote + "," + Environment.NewLine + tab + tab + tab + quote; //", 
+                json += quote + "," + System.lineSeparator() + tab + tab + tab + quote; //",
             }
             else if (i == 24)
             {
@@ -448,16 +448,16 @@ public abstract class IFileSystem {
             // end else
         }// end for 25 ans
 
-        json += quote + "]," + Environment.NewLine;//"],
+        json += quote + "]," + System.lineSeparator();//"],
         // End of ans
         //CoinUtils cu = new CoinUtils(cc);
         //cu.calcExpirationDate();
         cc.CalcExpirationDate();
-        json += tab + tab + quote + "ed" + quote + ":" + quote + cc.ed + quote + "," + Environment.NewLine; // "ed":"9-2016",
+        json += tab + tab + quote + "ed" + quote + ":" + quote + cc.ed + quote + "," + System.lineSeparator(); // "ed":"9-2016",
         if (String.IsNullOrEmpty(cc.pown)) { cc.pown = "uuuuuuuuuuuuuuuuuuuuuuuuu"; }//Set pown to unknow if it is not set. 
-        json += tab + tab + quote + "pown" + quote + ":" + quote + cc.pown + quote + "," + Environment.NewLine;// "pown":"uuupppppffpppppfuuf",
-        json += tab + tab + quote + "aoid" + quote + ": []" + Environment.NewLine;
-        json += tab + tab + "}" + Environment.NewLine;
+        json += tab + tab + quote + "pown" + quote + ":" + quote + cc.pown + quote + "," + System.lineSeparator();// "pown":"uuupppppffpppppfuuf",
+        json += tab + tab + quote + "aoid" + quote + ": []" + System.lineSeparator();
+        json += tab + tab + "}" + System.lineSeparator();
         // Keep expiration date when saving (not a truley accurate but good enought )
         return json;
     }
@@ -542,10 +542,10 @@ public abstract class IFileSystem {
             fileName += suffix.toLowerCase();
         }
         JsonSerializer serializer = new JsonSerializer();
-        serializer.Converters.Add(new JavaScriptDateTimeConverter());
+        serializer.Converters.add(new JavaScriptDateTimeConverter());
         serializer.NullValueHandling = NullValueHandling.Ignore;
         Stack stack = new Stack(coin);
-        using (StreamWriter sw = new StreamWriter(folder + Path.DirectorySeparatorChar + fileName + ".stack"))
+        using (StreamWriter sw = new StreamWriter(folder + File.pathSeparator + fileName + ".stack"))
         using (JsonWriter writer = new JsonTextWriter(sw))
         {
             serializer.Serialize(writer, stack);
@@ -557,7 +557,7 @@ public abstract class IFileSystem {
 
 
         JsonSerializer serializer = new JsonSerializer();
-        serializer.Converters.Add(new JavaScriptDateTimeConverter());
+        serializer.Converters.add(new JavaScriptDateTimeConverter());
         serializer.NullValueHandling = NullValueHandling.Ignore;
         Stack stack = new Stack(coin);
         using (StreamWriter sw = new StreamWriter(filename))
@@ -585,7 +585,7 @@ public abstract class IFileSystem {
 
         var folderCoins = LoadFolderCoins(folder);
 
-        foreach (var coin in coins)
+        for (var coin : coins)
         {
             String fileName = coin.FileName;
             int coinExists = (from x in folderCoins
@@ -597,7 +597,7 @@ public abstract class IFileSystem {
                 fileName += suffix.toLowerCase();
             }
             JsonSerializer serializer = new JsonSerializer();
-            serializer.Converters.Add(new JavaScriptDateTimeConverter());
+            serializer.Converters.add(new JavaScriptDateTimeConverter());
             serializer.NullValueHandling = NullValueHandling.Ignore;
             Stack stack = new Stack(coin);
             using (StreamWriter sw = new StreamWriter(folder + fileName + ".stack"))
@@ -622,10 +622,10 @@ public abstract class IFileSystem {
             fileName += suffix.toLowerCase();
         }
         JsonSerializer serializer = new JsonSerializer();
-        serializer.Converters.Add(new JavaScriptDateTimeConverter());
+        serializer.Converters.add(new JavaScriptDateTimeConverter());
         serializer.NullValueHandling = NullValueHandling.Ignore;
         Stack stack = new Stack(coin);
-        using (StreamWriter sw = new StreamWriter(folder + Path.DirectorySeparatorChar + fileName + extension))
+        using (StreamWriter sw = new StreamWriter(folder + File.pathSeparator + fileName + extension))
         using (JsonWriter writer = new JsonTextWriter(sw))
         {
             serializer.Serialize(writer, stack);
@@ -633,9 +633,9 @@ public abstract class IFileSystem {
     }
     public int ordinalIndexOf(String str, String substr, int n)
     {
-        int pos = str.IndexOf(substr);
+        int pos = str.indexOf(substr);
         while (--n > 0 && pos != -1)
-            pos = str.IndexOf(substr, pos + 1);
+            pos = str.indexOf(substr, pos + 1);
         return pos;
     }
 
@@ -648,7 +648,7 @@ public abstract class IFileSystem {
 
         try
         {
-            json.Replace("\\", "");
+            json.replace("\\", "");
             QRCodeData qrCodeData = qrGenerator.CreateQrCode(cc.GetCSV(), QRCodeGenerator.ECCLevel.Q);
             QRCode qrCode = new QRCode(qrCodeData);
             System.Drawing.Bitmap qrCodeImage = qrCode.GetGraphic(20);
@@ -659,7 +659,7 @@ public abstract class IFileSystem {
         }
         catch(Exception e)
         {
-            System.out.println(e.Message);
+            System.out.println(e.getMessage());
             return false;
         }
     }
@@ -682,7 +682,7 @@ public abstract class IFileSystem {
         //}
         //catch (Exception e)
         //{
-        //    System.out.println(e.Message);
+        //    System.out.println(e.getMessage());
         //    return false;
         //}
         return true;
@@ -724,7 +724,7 @@ public abstract class IFileSystem {
     }
     public boolean writeJpeg(CloudCoin cc, String tag)
     {
-        // Console.Out.WriteLine("Writing jpeg " + cc.getSn());
+        // System.out.println("Writing jpeg " + cc.getSn());
 
         //  CoinUtils cu = new CoinUtils(cc);
 
@@ -799,8 +799,8 @@ public abstract class IFileSystem {
         };
         //PointF drawPointAddress = new PointF(30.0F, 25.0F);
 
-        canvas.DrawText(StringFormat("{0:N0}", cc.getSn()) + " of 16,777,216 on Network: 1", 30, 40, textPaint);
-        //graphics.DrawString(StringFormat("{0:N0}", cc.getSn()) + " of 16,777,216 on Network: 1", new Font("Arial", 10), Brushes.White, drawPointAddress);
+        canvas.DrawText(String.format("{0:N0}", cc.getSn()) + " of 16,777,216 on Network: 1", 30, 40, textPaint);
+        //graphics.DrawString(String.format("{0:N0}", cc.getSn()) + " of 16,777,216 on Network: 1", new Font("Arial", 10), Brushes.White, drawPointAddress);
 
         //ImageConverter converter = new ImageConverter();
         //byte[] snBytes = (byte[])converter.ConvertTo(bitmapimage, typeof(byte[]));
@@ -821,17 +821,17 @@ public abstract class IFileSystem {
 
         String fileName = ExportFolder + cc.FileName() + tag + ".jpg";
         File.WriteAllBytes(fileName, b1.toArray());
-        Console.Out.WriteLine("Writing to " + fileName);
+        System.out.println("Writing to " + fileName);
         //CoreLogger.Log("Writing to " + fileName);
         return fileSavedSuccessfully;
     }//end write JPEG
 
     public boolean writeJpeg(CloudCoin cc, String tag,String filePath)
     {
-        // Console.Out.WriteLine("Writing jpeg " + cc.getSn());
+        // System.out.println("Writing jpeg " + cc.getSn());
 
         //  CoinUtils cu = new CoinUtils(cc);
-        filePath = filePath.Replace("\\\\","\\");
+        filePath = filePath.replace("\\\\","\\");
         boolean fileSavedSuccessfully = true;
 
         /* BUILD THE CLOUDCOIN String */
@@ -897,8 +897,8 @@ public abstract class IFileSystem {
         };
         //PointF drawPointAddress = new PointF(30.0F, 25.0F);
 
-        canvas.DrawText(StringFormat("{0:N0}", cc.getSn()) + " of 16,777,216 on Network: 1", 30, 40, textPaint);
-        //graphics.DrawString(StringFormat("{0:N0}", cc.getSn()) + " of 16,777,216 on Network: 1", new Font("Arial", 10), Brushes.White, drawPointAddress);
+        canvas.DrawText(String.format("{0:N0}", cc.getSn()) + " of 16,777,216 on Network: 1", 30, 40, textPaint);
+        //graphics.DrawString(String.format("{0:N0}", cc.getSn()) + " of 16,777,216 on Network: 1", new Font("Arial", 10), Brushes.White, drawPointAddress);
 
         //ImageConverter converter = new ImageConverter();
         //byte[] snBytes = (byte[])converter.ConvertTo(bitmapimage, typeof(byte[]));
@@ -919,17 +919,17 @@ public abstract class IFileSystem {
 
         String fileName = ExportFolder + cc.FileName()  + ".jpg";
         File.WriteAllBytes(fileName, b1.toArray());
-        Console.Out.WriteLine("Writing to " + fileName);
+        System.out.println("Writing to " + fileName);
         //CoreLogger.Log("Writing to " + fileName);
         return fileSavedSuccessfully;
     }//end write JPEG
 
     public boolean writeJpeg(CloudCoin cc, String tag, String filePath,String targetPath)
     {
-        // Console.Out.WriteLine("Writing jpeg " + cc.getSn());
+        // System.out.println("Writing jpeg " + cc.getSn());
 
         //  CoinUtils cu = new CoinUtils(cc);
-        filePath = filePath.Replace("\\\\", "\\");
+        filePath = filePath.replace("\\\\", "\\");
         boolean fileSavedSuccessfully = true;
 
         /* BUILD THE CLOUDCOIN String */
@@ -995,8 +995,8 @@ public abstract class IFileSystem {
         };
         //PointF drawPointAddress = new PointF(30.0F, 25.0F);
 
-        canvas.DrawText(StringFormat("{0:N0}", cc.getSn()) + " of 16,777,216 on Network: 1", 30, 40, textPaint);
-        //graphics.DrawString(StringFormat("{0:N0}", cc.getSn()) + " of 16,777,216 on Network: 1", new Font("Arial", 10), Brushes.White, drawPointAddress);
+        canvas.DrawText(String.format("{0:N0}", cc.getSn()) + " of 16,777,216 on Network: 1", 30, 40, textPaint);
+        //graphics.DrawString(String.format("{0:N0}", cc.getSn()) + " of 16,777,216 on Network: 1", new Font("Arial", 10), Brushes.White, drawPointAddress);
 
         //ImageConverter converter = new ImageConverter();
         //byte[] snBytes = (byte[])converter.ConvertTo(bitmapimage, typeof(byte[]));
@@ -1017,17 +1017,17 @@ public abstract class IFileSystem {
 
         String fileName = targetPath;
         File.WriteAllBytes(fileName, b1.toArray());
-        Console.Out.WriteLine("Writing to " + fileName);
+        System.out.println("Writing to " + fileName);
         //CoreLogger.Log("Writing to " + fileName);
         return fileSavedSuccessfully;
     }//end write JPEG
 
     public boolean writeJpeg(CloudCoin cc, String tag, String filePath, String targetPath,String printMessage)
     {
-        // Console.Out.WriteLine("Writing jpeg " + cc.getSn());
+        // System.out.println("Writing jpeg " + cc.getSn());
 
         //  CoinUtils cu = new CoinUtils(cc);
-        filePath = filePath.Replace("\\\\", "\\");
+        filePath = filePath.replace("\\\\", "\\");
         boolean fileSavedSuccessfully = true;
 
         /* BUILD THE CLOUDCOIN String */
@@ -1094,7 +1094,7 @@ public abstract class IFileSystem {
         //PointF drawPointAddress = new PointF(30.0F, 25.0F);
 
         canvas.DrawText(printMessage, 30, 40, textPaint);
-        //graphics.DrawString(StringFormat("{0:N0}", cc.getSn()) + " of 16,777,216 on Network: 1", new Font("Arial", 10), Brushes.White, drawPointAddress);
+        //graphics.DrawString(String.format("{0:N0}", cc.getSn()) + " of 16,777,216 on Network: 1", new Font("Arial", 10), Brushes.White, drawPointAddress);
 
         //ImageConverter converter = new ImageConverter();
         //byte[] snBytes = (byte[])converter.ConvertTo(bitmapimage, typeof(byte[]));
@@ -1115,7 +1115,7 @@ public abstract class IFileSystem {
 
         String fileName = targetPath;
         File.WriteAllBytes(fileName, b1.toArray());
-        Console.Out.WriteLine("Writing to " + fileName);
+        System.out.println("Writing to " + fileName);
         //CoreLogger.Log("Writing to " + fileName);
         return fileSavedSuccessfully;
     }//end write JPEG
@@ -1167,25 +1167,25 @@ public abstract class IFileSystem {
         //CoinUtils cu = new CoinUtils(cc);
             final String quote = "\"";
             final String tab = "\t";
-        String wholeJson = "{" + Environment.NewLine; //{
+        String wholeJson = "{" + System.lineSeparator(); //{
         boolean alreadyExists = true;
         String json = this.setJSON(cc);
         if (!File.Exists(folder + cc.FileName() + ".stack"))
         {
-            wholeJson += tab + quote + "cloudcoin" + quote + ": [" + Environment.NewLine; // "cloudcoin" : [
+            wholeJson += tab + quote + "cloudcoin" + quote + ": [" + System.lineSeparator(); // "cloudcoin" : [
             wholeJson += json;
-            wholeJson += Environment.NewLine + tab + "]" + Environment.NewLine + "}";
+            wholeJson += System.lineSeparator() + tab + "]" + System.lineSeparator() + "}";
             File.WriteAllText(folder + cc.FileName() + ".stack", wholeJson);
         }
         else
         {
-            if (folder.Contains("Counterfeit") || folder.Contains("Trash"))
+            if (folder.contains("Counterfeit") || folder.contains("Trash"))
             {
                 //Let the program delete it
                 alreadyExists = false;
                 return alreadyExists;
             }
-            else if (folder.Contains("Imported"))
+            else if (folder.contains("Imported"))
             {
                 File.Delete(folder + cc.FileName() + ".stack");
                 File.WriteAllText(folder + cc.FileName() + ".stack", wholeJson);
@@ -1212,12 +1212,12 @@ public abstract class IFileSystem {
         //CoinUtils cu = new CoinUtils(cc);
             final String quote = "\"";
             final String tab = "\t";
-        String wholeJson = "{" + Environment.NewLine; //{
+        String wholeJson = "{" + System.lineSeparator(); //{
         String json = this.setJSON(cc);
 
-        wholeJson += tab + quote + "cloudcoin" + quote + ": [" + Environment.NewLine; // "cloudcoin" : [
+        wholeJson += tab + quote + "cloudcoin" + quote + ": [" + System.lineSeparator(); // "cloudcoin" : [
         wholeJson += json;
-        wholeJson += Environment.NewLine + tab + "]" + Environment.NewLine + "}";
+        wholeJson += System.lineSeparator() + tab + "]" + System.lineSeparator() + "}";
 
         File.WriteAllText(folder + cc.FileName() + ".stack", wholeJson);
     }//End Overwrite
@@ -1227,7 +1227,7 @@ public abstract class IFileSystem {
         /* GET the first 455 bytes of he jpeg where the coin is located */
         String wholeString = "";
         byte[] jpegHeader = new byte[455];
-        Console.Out.WriteLine("Load file path " + loadFilePath);
+        System.out.println("Load file path " + loadFilePath);
         using (FileStream fileStream = new FileStream(loadFilePath, FileMode.Open, FileAccess.Read))
         {
             try
@@ -1243,7 +1243,7 @@ public abstract class IFileSystem {
         }
         wholeString = bytesToHexString(jpegHeader);
         CloudCoin returnCC = this.parseJpeg(wholeString);
-        // Console.Out.WriteLine("From FileUtils returnCC.fileName " + returnCC.fileName);
+        // System.out.println("From FileUtils returnCC.fileName " + returnCC.fileName);
         return returnCC;
     }//end load one CloudCoin from JSON
 
@@ -1254,9 +1254,9 @@ public abstract class IFileSystem {
         int startAn = 40;
         for (int i = 0; i < 25; i++)
         {
-            cc.an.Add(wholeString.substring(startAn, 32));
+            cc.an.add(wholeString.substring(startAn, 32));
             //ccan.set(i, wholeString.substring(startAn, 32));
-            // Console.Out.WriteLine(i +": " + cc.an[i]);
+            // System.out.println(i +": " + cc.an[i]);
             startAn += 32;
         }
 
@@ -1269,7 +1269,7 @@ public abstract class IFileSystem {
         cc.nn = Convert.ToInt32(wholeString.substring(902, 2), 16);
         cc.getSn() = Convert.ToInt32(wholeString.substring(904, 6), 16);
         cc.pown = "uuuuuuuuuuuuuuuuuuuuuuuuu";
-        //  Console.Out.WriteLine("parseJpeg cc.fileName " + cc.fileName);
+        //  System.out.println("parseJpeg cc.fileName " + cc.fileName);
         return cc;
     }// end parse Jpeg
 

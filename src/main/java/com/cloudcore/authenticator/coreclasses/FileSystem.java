@@ -47,9 +47,9 @@ public class FileSystem extends IFileSystem {
         {
             /* TODO: see if this is necessary
             String[] fileNames = Assembly.GetExecutingAssembly().GetManifestResourceNames();
-            foreach (String fileName in fileNames)
+            for (String fileName : fileNames)
             {
-                if (fileName.Contains("jpeg") || fileName.Contains("jpg"))
+                if (fileName.contains("jpeg") || fileName.contains("jpg"))
                 {
 
                 }
@@ -127,9 +127,10 @@ public class FileSystem extends IFileSystem {
         }
 
 
-        public override void DetectPreProcessing()
+    @Override
+        public void DetectPreProcessing()
         {
-            foreach (var coin in importCoins)
+            for (var coin : importCoins)
             {
                 String fileName = GetCoinName(coin.FileName);
                 int coinExists = (from x in predetectCoins
@@ -141,7 +142,7 @@ public class FileSystem extends IFileSystem {
                 //    fileName += suffix.toLowerCase();
                 //}
                 JsonSerializer serializer = new JsonSerializer();
-                serializer.Converters.Add(new JavaScriptDateTimeConverter());
+                serializer.Converters.add(new JavaScriptDateTimeConverter());
                 serializer.NullValueHandling = NullValueHandling.Ignore;
                 Stack stack = new Stack(coin);
                 using (StreamWriter sw = new StreamWriter(PreDetectFolder + fileName + ".stack"))
@@ -152,13 +153,14 @@ public class FileSystem extends IFileSystem {
             }
         }
 
-        public override void ProcessCoins(ArrayList<CloudCoin> coins)
+    @Override
+        public void ProcessCoins(ArrayList<CloudCoin> coins)
         {
 
             var detectedCoins = LoadFolderCoins(DetectedFolder);
 
 
-            foreach (var coin in detectedCoins)
+            for (var coin : detectedCoins)
             {
                 if (coin.PassCount >= Config.PassCount)
                 {
@@ -179,13 +181,13 @@ public class FileSystem extends IFileSystem {
         {
             var folderCoins = LoadFolderCoins(targetFolder);
 
-            foreach (var coin in coins)
+            for (var coin : coins)
             {
                 String fileName = GetCoinName(coin.FileName);
                 try
                 {
                     JsonSerializer serializer = new JsonSerializer();
-                    serializer.Converters.Add(new JavaScriptDateTimeConverter());
+                    serializer.Converters.add(new JavaScriptDateTimeConverter());
                     serializer.NullValueHandling = NullValueHandling.Ignore;
                     Stack stack = new Stack(coin);
                     using (StreamWriter sw = new StreamWriter(targetFolder + fileName + extension))
@@ -197,7 +199,7 @@ public class FileSystem extends IFileSystem {
                 }
                 catch (Exception e)
                 {
-                    System.out.println(e.Message);
+                    System.out.println(e.getMessage());
                 }
 
 
@@ -207,7 +209,8 @@ public class FileSystem extends IFileSystem {
 
 
 
-        public override void ClearCoins(String FolderName)
+    @Override
+        public void ClearCoins(String FolderName)
         {
 
             var fii = GetFiles(FolderName, Config.allowedExtensions);
@@ -215,7 +218,7 @@ public class FileSystem extends IFileSystem {
             DirectoryInfo di = new DirectoryInfo(FolderName);
 
 
-            foreach (FileInfo file in fii)
+            for (FileInfo file : fii)
             try
             {
                 file.Attributes = FileAttributes.Normal;
@@ -223,7 +226,7 @@ public class FileSystem extends IFileSystem {
             }
             catch (Exception e)
             {
-                System.out.println(e.Message);
+                System.out.println(e.getMessage());
             }
 
         }
@@ -239,7 +242,7 @@ public class FileSystem extends IFileSystem {
             }
             catch(Exception e)
             {
-                // MainWindow.logger.Error(e.Message);
+                // MainWindow.logger.Error(e.getMessage());
                 return false;
             }
             return true;
@@ -247,13 +250,14 @@ public class FileSystem extends IFileSystem {
         public ArrayList<FileInfo> GetFiles(String path, params String[] extensions)
         {
             ArrayList<FileInfo> list = new ArrayList<FileInfo>();
-            foreach (String ext in extensions)
-            list.AddRange(new DirectoryInfo(path).GetFiles("*" + ext).Where(p =>
+            for (String ext : extensions)
+            list.addRange(new DirectoryInfo(path).GetFiles("*" + ext).Where(p =>
                     p.Extension.Equals(ext, StringComparison.CurrentCultureIgnoreCase))
                     .toArray());
             return list;
         }
-        public override void MoveImportedFiles()
+    @Override
+        public void MoveImportedFiles()
         {
             var files = Directory
                     .GetFiles(ImportFolder)
@@ -289,9 +293,10 @@ public class FileSystem extends IFileSystem {
             }
         }
 
-        public override boolean WriteCoinToJpeg(CloudCoin cloudCoin, String TemplateFile, String OutputFile, String tag)
+    @Override
+        public boolean WriteCoinToJpeg(CloudCoin cloudCoin, String TemplateFile, String OutputFile, String tag)
         {
-            OutputFile = OutputFile.Replace("\\\\", "\\");
+            OutputFile = OutputFile.replace("\\\\", "\\");
             boolean fileSavedSuccessfully = true;
 
             /* BUILD THE CLOUDCOIN STRING */
@@ -353,7 +358,7 @@ public class FileSystem extends IFileSystem {
             graphics.SmoothingMode = SmoothingMode.AntiAlias;
             graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
             PointF drawPointAddress = new PointF(30.0F, 25.0F);
-            graphics.DrawString(StringFormat("{0:N0}", cloudCoin.getSn()) + " of 16,777,216 on Network: 1", new Font("Arial", 10), Brushes.White, drawPointAddress);
+            graphics.DrawString(String.format("{0:N0}", cloudCoin.getSn()) + " of 16,777,216 on Network: 1", new Font("Arial", 10), Brushes.White, drawPointAddress);
 
             ImageConverter converter = new ImageConverter();
             byte[] snBytes = (byte[])converter.ConvertTo(bitmapimage, typeof(byte[]));
@@ -373,13 +378,14 @@ public class FileSystem extends IFileSystem {
 
             String fileName = ExportFolder + cloudCoin.FileName + ".jpg";
             File.WriteAllBytes(OutputFile, b1.toArray());
-            //Console.Out.WriteLine("Writing to " + fileName);
+            //System.out.println("Writing to " + fileName);
             //CoreLogger.Log("Writing to " + fileName);
 
             return fileSavedSuccessfully;
         }
 
-        public override boolean WriteCoinToQRCode(CloudCoin cloudCoin, String OutputFile, String tag)
+    @Override
+        public boolean WriteCoinToQRCode(CloudCoin cloudCoin, String OutputFile, String tag)
         {
             var width = 250; // width of the Qr Code
             var height = 250; // height of the Qr Code
@@ -420,7 +426,8 @@ public class FileSystem extends IFileSystem {
             return true;
         }
 
-        public override boolean WriteCoinToBARCode(CloudCoin cloudCoin, String OutputFile, String tag)
+    @Override
+        public boolean WriteCoinToBARCode(CloudCoin cloudCoin, String OutputFile, String tag)
         {
             var writer = new BarcodeWriter
             {

@@ -1,5 +1,8 @@
 package com.cloudcore.authenticator.coreclasses;
 
+import com.cloudcore.authenticator.core.Node;
+import com.cloudcore.authenticator.core.RAIDA;
+
 class FixitHelper
 {
     //  instance variables
@@ -54,7 +57,7 @@ class FixitHelper
     private Node[] getTrustedServers(int raidaNumber)
     {
         Node[] result = new Node[8];
-        var i = raidaNumber;
+        int i = raidaNumber;
         return result = new Node[]
                 {
                         RAIDA.GetInstance().nodes[(i+19)%25],

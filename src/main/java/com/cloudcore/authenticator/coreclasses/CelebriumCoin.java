@@ -1,14 +1,11 @@
 package com.cloudcore.authenticator.coreclasses;
 
-class CelebriumCoin :CloudCoin
-        {
+import com.cloudcore.authenticator.core.CloudCoin;
 
-        [JsonIgnore]
-public new String FileName
-        {
-        get
-        {
-        return this.getDenomination()+".Celebrium."+nn+"."+sn+".";
-        }
-        }
-        }
+class CelebriumCoin extends CloudCoin {
+
+    @Override
+    public String FileName() {
+        return this.getDenomination() + ".Celebrium." + nn + "." + getSn() + ".";
+    }
+}

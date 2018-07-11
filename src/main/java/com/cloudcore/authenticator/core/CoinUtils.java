@@ -464,7 +464,7 @@ public class CoinUtils {
         //  System.out.println("Finished detecting coin index " + j);
         // PRINT OUT ALL COIN'S RAIDA STATUS AND SET AN TO NEW PAN
         char[] pownArray = cc.pown.toCharArray();
-        String report = "   Authenticity Report SN #" + StringFormat("{0,8}", cc.getSn()) + ", Denomination: " + StringFormat("{0,3}", this.getDenomination()) + "  ";
+        String report = "   Authenticity Report SN #" + String.format("{0,8}", cc.getSn()) + ", Denomination: " + String.format("{0,3}", this.getDenomination()) + "  ";
 
         return pownArray;
 

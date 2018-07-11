@@ -1,5 +1,10 @@
 package com.cloudcore.authenticator.coreclasses;
 
+import java.util.Dictionary;
+import java.util.HashMap;
+
+import static com.cloudcore.authenticator.coreclasses.TrustedTradeSocket.PacketType.*;
+
 class TrustedTradeSocket
 {
     public enum Status {NONE, STATUS_CONNECTED, STATUS_ERROR, STATUS_DISCONNECTED, STATUS_SENDING, STATUS_DONE, STATUS_REQUEST_RECIPIENT, STATUS_WAITING_RECIPIENT }
@@ -70,7 +75,7 @@ class TrustedTradeSocket
     {
         WebSocketReceiveResult rcvResult =
                 await ws.ReceiveAsync(rcvBuffer, cts.Token);
-        byte[] msgBytes = rcvBuffer.Skip(rcvBuffer.Offset).Take(rcvResult.count).toArray();
+        byte[] msgBytes = rcvBuffer.Skip(rcvBuffer.Offset).Take(rcvResult.size()).toArray();
         String rcvMsg = Encoding.UTF8.GetString(msgBytes);
         OnMessage(rcvMsg);
         //System.out.println("Received: {0}", rcvMsg);
@@ -80,7 +85,7 @@ class TrustedTradeSocket
 
     void OnMessage(String message)
     {
-        Console.Out.WriteLine("");
+        System.out.println("");
         var data = JsonConvert.DeserializeObject<Dictionary<String, String>>(message);
         if(data["result"] != "success")
         {
@@ -90,20 +95,20 @@ class TrustedTradeSocket
         PacketType packet = (PacketType)int.Parse(data["type"]);
         switch (packet)
         {
-            case PacketType.PACKET_TYPE_WORD:
+            case PACKET_TYPE_WORD:
                 OnWord?.Invoke(data["data"]);
                 break;
-            case PacketType.PACKET_TYPE_PROGRESS:
+            case PACKET_TYPE_PROGRESS:
                 OnProgress?.Invoke(data["data"]);
                 break;
-            case PacketType.PACKET_TYPE_DONE:
+            case PACKET_TYPE_DONE:
                 SetStatus(Status.STATUS_DONE);
                 break;
-            case PacketType.PACKET_TYPE_OK:
+            case PACKET_TYPE_OK:
                 if(status == Status.STATUS_REQUEST_RECIPIENT)
                     SetStatus(Status.STATUS_WAITING_RECIPIENT);
                 break;
-            case PacketType.PACKET_TYPE_RECIPIENT_REPLY:
+            case PACKET_TYPE_RECIPIENT_REPLY:
                 if(status != Status.STATUS_WAITING_RECIPIENT)
                 {
                     SetError("Protocol Error");
@@ -111,7 +116,7 @@ class TrustedTradeSocket
                 }
                 System.out.println("recipient replied:" + data["data"]);
                 break;
-            case PacketType.PACKET_TYPE_HASH:
+            case PACKET_TYPE_HASH:
                 System.out.println("Received CloudCoins");
                 System.out.println("h=" + data["data"]);
                 OnReceive?.Invoke(data["data"]);
@@ -128,20 +133,20 @@ class TrustedTradeSocket
         return errorMsg;
     }
 
-    public String GetStatus()
-    {
-        Dictionary<Status, String> r = new Dictionary<Status, String>
-        {
-                [Status.STATUS_DISCONNECTED] = "Disconnected",
-                [Status.STATUS_ERROR] = "Error",
-                [Status.STATUS_CONNECTED] = "Connected",
-                [Status.STATUS_SENDING] = "Sending Coins",
-                [Status.STATUS_DONE] = "Coins sent",
-                [Status.STATUS_REQUEST_RECIPIENT] = "Waiting for recipient",
-                [Status.STATUS_WAITING_RECIPIENT] = "Waiting for recipient",
+    public String GetStatus() {
+        HashMap<Status, String> r = new HashMap<Status, String>() {
+            {
+                put(Status.STATUS_DISCONNECTED, "Disconnected");
+                put(Status.STATUS_ERROR, "Error");
+                put(Status.STATUS_CONNECTED, "Connected");
+                put(Status.STATUS_SENDING, "Sending Coins");
+                put(Status.STATUS_DONE, "Coins sent");
+                put(Status.STATUS_REQUEST_RECIPIENT, "Waiting for recipient");
+                put(Status.STATUS_WAITING_RECIPIENT, "Waiting for recipient");
+            }
         };
 
-        return r[status];
+        return r.get(status);
     }
 
     public void SetStatus(Status newStatus)
@@ -156,7 +161,7 @@ class TrustedTradeSocket
         SetStatus(Status.STATUS_ERROR);
     }
 
-    public async Task SendCoins(String sh, String stack)
+    public /*async*/ Task SendCoins(String sh, String stack)
 {
     Dictionary<String, String> json = new Dictionary<String, String> { ["type"] = "3", ["word"] = sh, ["stack"] = stack};
     String message = JsonConvert.SerializeObject(json);
@@ -164,7 +169,7 @@ class TrustedTradeSocket
     SetStatus(Status.STATUS_REQUEST_RECIPIENT);//Status.STATUS_SENDING
 }
 
-    public async Task Send(String message)
+    public /*async*/ Task Send(String message)
 {
     byte[] sendBytes = Encoding.UTF8.GetBytes(message);
     var sendBuffer = new ArraySegment<byte>(sendBytes);

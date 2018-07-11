@@ -1,5 +1,9 @@
 package com.cloudcore.authenticator.core;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
 public class CoreLogger {
 
 
@@ -7,19 +11,8 @@ public class CoreLogger {
 
 
     //Fields
-    static String basedir = assemblyFile + Path.DirectorySeparatorChar;
-    static String logFolder = basedir + "Logs" + Path.DirectorySeparatorChar;
-
-
-    //static String coinutilsLogFile = logFolder + "coinutils.log";
-    //static String detectionagentLogFile = logFolder + "detectionagent.log";
-    //static String detectorLogFile = logFolder + "detector.log";
-    //static String dumperLogFile = logFolder + "dumper.log";
-    //static String exporterLogFile = logFolder + "exporter.log";
-    //static String fileutilsLogFile = logFolder + "fileutils.log";
-    //static String frack_fixerLogFile = logFolder + "frack_fixer.log";
-    //static String importerLogFile = logFolder + "importer.log";
-    //static String raidaLogFile = logFolder + "raida.log";
+    static String basedir = assemblyFile + File.pathSeparator;
+    static String logFolder = basedir + "Logs" + File.pathSeparator;
 
 
     //Constructors
@@ -27,14 +20,12 @@ public class CoreLogger {
 
     static void createDir() {
         try {
-            if (Directory.Exists(logFolder) == false) {
-                Directory.CreateDirectory(logFolder);
+            if (!Files.exists(Paths.get(logFolder))) {
+                Files.createDirectory(Paths.get(logFolder));
             }
         } catch (Exception e) {
-            System.out.println(e.Message);
+            System.out.println(e.getMessage());
         }
-
-
     }
 
 
@@ -53,11 +44,7 @@ public class CoreLogger {
 
             }
         } catch (Exception e) {
-            System.out.println(e.Message);
+            System.out.println(e.getMessage());
         }
-
-
     }
-
-
 }

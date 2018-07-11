@@ -2,6 +2,11 @@ package com.cloudcore.authenticator.core;
 
 import com.google.gson.Gson;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -24,24 +29,24 @@ public class Utils {
     public static StringBuilder CoinsToCSV(ArrayList<CloudCoin> coins) {
         StringBuilder csv = new StringBuilder();
 
-        var headerLine = StringFormat("sn,denomination,nn,");
+        String headerLine = String.format("sn,denomination,nn,");
         String headeranString = "";
         for (int i = 0; i < Config.NodeCount; i++) {
             headeranString += "an" + (i + 1) + ",";
         }
 
         // Write the Header Record
-        csv.AppendLine(headerLine + headeranString);
+        csv.append(headerLine + headeranString + System.lineSeparator());
 
         // Write the Coin Serial Numbers
         for (CloudCoin coin : coins) {
-            csv.AppendLine(coin.GetCSV());
+            csv.append(coin.GetCSV() + System.lineSeparator());
         }
         return csv;
     }
 
     public static String WriteObjecttoString() {
-        MemoryStream ms = new MemoryStream();
+        // TODO: Never Implemented: MemoryStream ms = new MemoryStream();
 
         // Serializer the User Object to the stream.
         return "";
@@ -68,31 +73,35 @@ public class Utils {
      * @return The index of the nth number
      */
     public static int ordinalIndexOf(String str, String substr, int n) {
-        int pos = str.IndexOf(substr);
+        int pos = str.indexOf(substr);
         while (--n > 0 && pos != -1) {
-            pos = str.IndexOf(substr, (pos + 1));
+            pos = str.indexOf(substr, (pos + 1));
         }
         return pos;
     }//end ordinal Index of
 
 
-    public static async Task
-
-    <String> GetHtmlFromURL(String urlAddress) {
-
+    public static String GetHtmlFromURL(String urlAddress) {
         String data = "";
+
         try {
-            using(var cli = new HttpClient())
-            {
-                HttpResponseMessage response = await cli.GetAsync(urlAddress);
-                if (response.IsSuccessStatusCode)
-                    data = await response.Content.ReadAsStringAsync();
-                //System.out.println(data);
-            }
-        } catch (Exception ex) {
-            return ex.Message;
+            URL url = new URL(urlAddress);
+            HttpURLConnection connect = (HttpURLConnection) url.openConnection();
+            if (200 != connect.getResponseCode())
+                return data;
+
+            BufferedReader in = new BufferedReader(new InputStreamReader(connect.getInputStream()));
+
+            StringBuilder builder = new StringBuilder();
+            while ((data = in.readLine()) != null)
+                builder.append(data);
+            in.close();
+            data = builder.toString();
+        } catch (IOException e) {
+            e.printStackTrace();
+            data = "";
         }
+
         return data;
     }//end get HTML
-
 }

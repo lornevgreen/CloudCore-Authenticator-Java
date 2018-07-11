@@ -27,7 +27,7 @@ public class Frack_Fixer {
 
         /*1. WILL THE BROKEN RAIDA FIX? check to see if it has problems echo, detect, or fix. */
         if (raida.nodes[raida_ID].FailsFix || raida.nodes[raida_ID].FailsEcho || raida.nodes[raida_ID].FailsEcho) {
-            Console.Out.WriteLine("RAIDA Fails Echo or Fix. Try again when RAIDA online.");
+            System.out.println("RAIDA Fails Echo or Fix. Try again when RAIDA online.");
             pge.MajorProgressMessage = ("RAIDA Fails Echo or Fix. Try again when RAIDA online.");
             raida.OnLogRecieved(pge);
             return "RAIDA Fails Echo or Fix. Try again when RAIDA online.";
@@ -51,34 +51,34 @@ public class Frack_Fixer {
                     /*6. DID THE FIX WORK?*/
                     if (fixResponse.success) {
                         Console.ForegroundColor = ConsoleColor.Green;
-                        Console.Out.WriteLine("");
-                        Console.Out.WriteLine("RAIDA" + raida_ID + " unfracked successfully.");
+                        System.out.println("");
+                        System.out.println("RAIDA" + raida_ID + " unfracked successfully.");
                         pge.MajorProgressMessage = "RAIDA" + raida_ID + " unfracked successfully.";
                         raida.OnLogRecieved(pge);
                         //CoreLogger.Log("RAIDA" + raida_ID + " unfracked successfully.");
-                        Console.Out.WriteLine("");
+                        System.out.println("");
                         Console.ForegroundColor = ConsoleColor.White;
                         return "RAIDA" + raida_ID + " unfracked successfully.";
 
                     } else {
                         Console.ForegroundColor = ConsoleColor.Red;
-                        Console.Out.WriteLine("");
-                        Console.Out.WriteLine("RAIDA failed to accept tickets on corner " + corner);
+                        System.out.println("");
+                        System.out.println("RAIDA failed to accept tickets on corner " + corner);
                         pge.MajorProgressMessage = "RAIDA failed to accept tickets on corner " + corner;
                         raida.OnLogRecieved(pge);
                         //CoreLogger.Log("RAIDA failed to accept tickets on corner " + corner);
-                        Console.Out.WriteLine("");
+                        System.out.println("");
                         Console.ForegroundColor = ConsoleColor.White;
                         return "RAIDA failed to accept tickets on corner " + corner;
                     }//end if fix respons was success or fail
                 } else {
                     Console.ForegroundColor = ConsoleColor.Red;
-                    Console.Out.WriteLine("");
-                    Console.Out.WriteLine("Trusted servers failed to provide tickets for corner " + corner);
+                    System.out.println("");
+                    System.out.println("Trusted servers failed to provide tickets for corner " + corner);
                     pge.MajorProgressMessage = "Trusted servers failed to provide tickets for corner " + corner;
                     raida.OnLogRecieved(pge);
                     //CoreLogger.Log("Trusted servers failed to provide tickets for corner " + corner);
-                    Console.Out.WriteLine("");
+                    System.out.println("");
                     Console.ForegroundColor = ConsoleColor.White;
 
                     return "Trusted servers failed to provide tickets for corner " + corner;//no three good tickets
@@ -86,13 +86,13 @@ public class Frack_Fixer {
             }//end if trused triad will echo and detect (Detect is used to get ticket)
 
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.Out.WriteLine("");
-            Console.Out.WriteLine("One or more of the trusted triad will not echo and detect.So not trying.");
+            System.out.println("");
+            System.out.println("One or more of the trusted triad will not echo and detect.So not trying.");
             pge.MajorProgressMessage = "One or more of the trusted triad will not echo and detect.So not trying.";
             raida.OnLogRecieved(pge);
 
             //CoreLogger.Log("One or more of the trusted triad will not echo and detect.So not trying.");
-            Console.Out.WriteLine("");
+            System.out.println("");
             Console.ForegroundColor = ConsoleColor.White;
             return "One or more of the trusted triad will not echo and detect. So not trying.";
         }//end if RAIDA fails to fix.
@@ -118,7 +118,7 @@ public class Frack_Fixer {
         //CoinUtils cu = new CoinUtils(frackedCC);
         if (frackedFileNames.length < 0) {
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.Out.WriteLine("You have no fracked coins.");
+            System.out.println("You have no fracked coins.");
             //CoreLogger.Log("You have no fracked coins.");
             Console.ForegroundColor = ConsoleColor.White;
         }//no coins to unfrack
@@ -244,7 +244,7 @@ public class Frack_Fixer {
         //RAIDA_Status.newCoin();
 
         cu.setAnsToPans();// Make sure we set the RAIDA to the cc ans and not new pans.
-        DateTime before = DateTime.Now;
+        long before = System.currentTimeMillis();
 
         String fix_result = "";
         FixitHelper fixer;
@@ -264,12 +264,12 @@ public class Frack_Fixer {
             {
 
                 Console.ForegroundColor = ConsoleColor.Cyan;
-                Console.Out.WriteLine("");
+                System.out.println("");
                 Console.Write("Attempting to fix RAIDA " + raida_ID);
                 pge.MajorProgressMessage = "Attempting to fix RAIDA " + raida_ID;
                 raida.OnLogRecieved(pge);
                 // CoreLogger.Log("Attempting to fix RAIDA " + raida_ID);
-                Console.Out.WriteLine("");
+                System.out.println("");
                 Console.ForegroundColor = ConsoleColor.White;
 
                 fixer = new FixitHelper(raida_ID, brokeCoin.an.toArray());
@@ -288,7 +288,7 @@ public class Frack_Fixer {
                     //   CoreLogger.Log(" Using corner " + corner);
                     fix_result = fixOneGuidCorner(raida_ID, brokeCoin, corner, fixer.currentTriad);
                     // System.out.println(" fix_result: " + fix_result + " for corner " + corner);
-                    if (fix_result.Contains("success")) {
+                    if (fix_result.contains("success")) {
                         //Fixed. Do the fixed stuff
                         cu.setPastStatus("pass", raida_ID);
                         fixer.finished = true;
@@ -312,12 +312,12 @@ public class Frack_Fixer {
             {
 
                 Console.ForegroundColor = ConsoleColor.Cyan;
-                Console.Out.WriteLine("");
+                System.out.println("");
                 System.out.println("Attempting to fix RAIDA " + raida_ID);
                 pge.MajorProgressMessage = "Attempting to fix RAIDA " + raida_ID;
                 raida.OnLogRecieved(pge);
                 //  CoreLogger.Log("Attempting to fix RAIDA " + raida_ID);
-                Console.Out.WriteLine("");
+                System.out.println("");
                 Console.ForegroundColor = ConsoleColor.White;
 
                 fixer = new FixitHelper(raida_ID, brokeCoin.an.toArray());
@@ -331,7 +331,7 @@ public class Frack_Fixer {
                     //CoreLogger.Log(" Using corner " + corner);
                     fix_result = fixOneGuidCorner(raida_ID, brokeCoin, corner, fixer.currentTriad);
                     // System.out.println(" fix_result: " + fix_result + " for corner " + corner);
-                    if (fix_result.Contains("success")) {
+                    if (fix_result.contains("success")) {
                         //Fixed. Do the fixed stuff
                         cu.setPastStatus("pass", raida_ID);
                         fixer.finished = true;
@@ -344,8 +344,8 @@ public class Frack_Fixer {
                 }//End whild fixer not finnished
             }//end if RAIDA past status is passed and does not need to be fixed
         }//end for each AN
-        DateTime after = DateTime.Now;
-        TimeSpan ts = after.Subtract(before);
+        long after = System.currentTimeMillis();
+        long ts = after - before;
         System.out.println("Time spent fixing RAIDA in milliseconds: " + ts.Milliseconds);
         pge.MajorProgressMessage = "Time spent fixing RAIDA in milliseconds: " + ts.Milliseconds;
         raida.OnLogRecieved(pge);

@@ -1,5 +1,7 @@
 package com.cloudcore.authenticator.coreclasses;
 
+import java.util.ArrayList;
+
 public class Exporter
 {
     /* INSTANCE VARIABLES */
@@ -36,10 +38,10 @@ public class Exporter
         String[] frackedFileNames = new DirectoryInfo(this.fileSystem.FrackedFolder).GetFiles().Select(o => o.Name).toArray(); // list all file names with bank extension
         String[] partialFileNames = new DirectoryInfo(this.fileSystem.PartialFolder).GetFiles().Select(o => o.Name).toArray();
 
-        var list = new ArrayList<String>();
-        list.AddRange(bankedFileNames);
-        list.AddRange(frackedFileNames);
-        list.AddRange(partialFileNames);
+        ArrayList<String> list = new ArrayList<>();
+        list.addRange(bankedFileNames);
+        list.addRange(frackedFileNames);
+        list.addRange(partialFileNames);
 
         bankedFileNames = list.toArray(); // Add the two arrays together
 
@@ -99,12 +101,12 @@ public class Exporter
             }
             catch (FileNotFoundException ex)
             {
-                Console.Out.WriteLine(ex);
+                System.out.println(ex);
                 //CoreLogger.Log(ex.toString());
             }
             catch (IOException ioex)
             {
-                Console.Out.WriteLine(ioex);
+                System.out.println(ioex);
                 //CoreLogger.Log(ioex.toString());
             }//end catch
         }// for each 1 note
@@ -119,10 +121,10 @@ public class Exporter
         String[] frackedFileNames = new DirectoryInfo(this.fileSystem.FrackedFolder).GetFiles().Select(o => o.Name).toArray(); // list all file names with bank extension
         String[] partialFileNames = new DirectoryInfo(this.fileSystem.PartialFolder).GetFiles().Select(o => o.Name).toArray();
 
-        var list = new ArrayList<String>();
-        list.AddRange(bankedFileNames);
-        list.AddRange(frackedFileNames);
-        list.AddRange(partialFileNames);
+        ArrayList<String> list = new ArrayList<>();
+        list.addRange(bankedFileNames);
+        list.addRange(frackedFileNames);
+        list.addRange(partialFileNames);
 
         bankedFileNames = list.toArray(); // Add the two arrays together
 
@@ -182,12 +184,12 @@ public class Exporter
             }
             catch (FileNotFoundException ex)
             {
-                Console.Out.WriteLine(ex);
+                System.out.println(ex);
                 //CoreLogger.Log(ex.toString());
             }
             catch (IOException ioex)
             {
-                Console.Out.WriteLine(ioex);
+                System.out.println(ioex);
                 //CoreLogger.Log(ioex.toString());
             }//end catch
         }// for each 1 note
@@ -202,10 +204,10 @@ public class Exporter
         String[] frackedFileNames = new DirectoryInfo(this.fileSystem.FrackedFolder).GetFiles().Select(o => o.Name).toArray(); // list all file names with bank extension
         String[] partialFileNames = new DirectoryInfo(this.fileSystem.PartialFolder).GetFiles().Select(o => o.Name).toArray();
 
-        var list = new ArrayList<String>();
-        list.AddRange(bankedFileNames);
-        list.AddRange(frackedFileNames);
-        list.AddRange(partialFileNames);
+        ArrayList<String> list = new ArrayList<>();
+        list.addRange(bankedFileNames);
+        list.addRange(frackedFileNames);
+        list.addRange(partialFileNames);
 
         bankedFileNames = list.toArray(); // Add the two arrays together
 
@@ -265,12 +267,12 @@ public class Exporter
             }
             catch (FileNotFoundException ex)
             {
-                Console.Out.WriteLine(ex);
+                System.out.println(ex);
                 //CoreLogger.Log(ex.toString());
             }
             catch (IOException ioex)
             {
-                Console.Out.WriteLine(ioex);
+                System.out.println(ioex);
                 //CoreLogger.Log(ioex.toString());
             }//end catch
         }// for each 1 note
@@ -288,10 +290,10 @@ public class Exporter
         String[] frackedFileNames = new DirectoryInfo(this.fileSystem.FrackedFolder).GetFiles().Select(o => o.Name).toArray(); ;
         String[] partialFileNames = new DirectoryInfo(this.fileSystem.PartialFolder).GetFiles().Select(o => o.Name).toArray();
         // Add the two arrays together
-        var list = new ArrayList<String>();
-        list.AddRange(bankedFileNames);
-        list.AddRange(frackedFileNames);
-        list.AddRange(partialFileNames);
+        ArrayList<String> list = new ArrayList<>();
+        list.addRange(bankedFileNames);
+        list.addRange(frackedFileNames);
+        list.addRange(partialFileNames);
 
         // Program will spend fracked files like perfect files
         bankedFileNames = list.toArray();
@@ -300,9 +302,9 @@ public class Exporter
         // Check to see the denomination by looking at the file start
         int c = 0;
         // c= counter
-        String json = "{" + Environment.NewLine;
-        json = json + "\t\"cloudcoin\": " + Environment.NewLine;
-        json = json + "\t[" + Environment.NewLine;
+        String json = "{" + System.lineSeparator();
+        json = json + "\t\"cloudcoin\": " + System.lineSeparator();
+        json = json + "\t[" + System.lineSeparator();
         String bankFileName;
         String frackedFileName;
         String partialFileName;
@@ -501,25 +503,25 @@ public class Exporter
         }// end for each coin needed
 
         /*WRITE JSON TO FILE*/
-        json = json + "\t] " + Environment.NewLine;
+        json = json + "\t] " + System.lineSeparator();
         json += "}";
-        String filename = (this.fileSystem.ExportFolder + Path.DirectorySeparatorChar + totalSaved + ".CloudCoins." + tag + ".stack");
+        String filename = (this.fileSystem.ExportFolder + File.pathSeparator + totalSaved + ".CloudCoins." + tag + ".stack");
         if (File.Exists(filename))
         {
             // tack on a random number if a file already exists with the same tag
             Random rnd = new Random();
             int tagrand = rnd.Next(999);
-            filename = (this.fileSystem.ExportFolder + Path.DirectorySeparatorChar + totalSaved + ".CloudCoins." + tag + tagrand + ".stack");
+            filename = (this.fileSystem.ExportFolder + File.pathSeparator + totalSaved + ".CloudCoins." + tag + tagrand + ".stack");
         }//end if file exists
 
         File.WriteAllText(filename, json);
-        Console.Out.WriteLine("Writing to : ");
+        System.out.println("Writing to : ");
         //CoreLogger.Log("Writing to : " + filename);
-        Console.Out.WriteLine(filename);
+        System.out.println(filename);
         /*DELETE FILES THAT HAVE BEEN EXPORTED*/
         for (int cc = 0; cc < coinsToDelete.length; cc++)
         {
-            // Console.Out.WriteLine("Deleting " + coinsToDelete[cc]);
+            // System.out.println("Deleting " + coinsToDelete[cc]);
             if (coinsToDelete[cc] != null) { File.Delete(coinsToDelete[cc]); }
         }//end for all coins to delete
 
@@ -538,10 +540,10 @@ public class Exporter
         String[] frackedFileNames = new DirectoryInfo(this.fileSystem.FrackedFolder).GetFiles().Select(o => o.Name).toArray(); ;
         String[] partialFileNames = new DirectoryInfo(this.fileSystem.PartialFolder).GetFiles().Select(o => o.Name).toArray();
         // Add the two arrays together
-        var list = new ArrayList<String>();
-        list.AddRange(bankedFileNames);
-        list.AddRange(frackedFileNames);
-        list.AddRange(partialFileNames);
+        ArrayList<String> list = new ArrayList<>();
+        list.addRange(bankedFileNames);
+        list.addRange(frackedFileNames);
+        list.addRange(partialFileNames);
 
         // Program will spend fracked files like perfect files
         bankedFileNames = list.toArray();
@@ -550,9 +552,9 @@ public class Exporter
         // Check to see the denomination by looking at the file start
         int c = 0;
         // c= counter
-        String json = "{" + Environment.NewLine;
-        json = json + "\t\"cloudcoin\": " + Environment.NewLine;
-        json = json + "\t[" + Environment.NewLine;
+        String json = "{" + System.lineSeparator();
+        json = json + "\t\"cloudcoin\": " + System.lineSeparator();
+        json = json + "\t[" + System.lineSeparator();
         String bankFileName;
         String frackedFileName;
         String partialFileName;
@@ -745,36 +747,36 @@ public class Exporter
             {
                 break;
             } // Break if all the coins have been called for.
-            String status = StringFormat("exported %d of %d coin.", i, bankedFileNames.length);
+            String status = String.format("exported %d of %d coin.", i, bankedFileNames.length);
             int percentCompleted = (i + 1) * 100 / bankedFileNames.length;
         }// end for each coin needed
 
         /*WRITE JSON TO FILE*/
-        json = json + "\t] " + Environment.NewLine;
+        json = json + "\t] " + System.lineSeparator();
         json += "}";
-        String filename = (this.fileSystem.ExportFolder + Path.DirectorySeparatorChar + totalSaved + ".CloudCoins." + tag + ".stack");
+        String filename = (this.fileSystem.ExportFolder + File.pathSeparator + totalSaved + ".CloudCoins." + tag + ".stack");
 
         if (mode == 1)
         {
-            filename = (backupDir + Path.DirectorySeparatorChar + totalSaved + ".CloudCoins." + tag + ".stack");
+            filename = (backupDir + File.pathSeparator + totalSaved + ".CloudCoins." + tag + ".stack");
         }
         if (File.Exists(filename))
         {
             // tack on a random number if a file already exists with the same tag
             Random rnd = new Random();
             int tagrand = rnd.Next(999);
-            filename = (this.fileSystem.ExportFolder + Path.DirectorySeparatorChar + totalSaved + ".CloudCoins." + tag + tagrand + ".stack");
+            filename = (this.fileSystem.ExportFolder + File.pathSeparator + totalSaved + ".CloudCoins." + tag + tagrand + ".stack");
         }//end if file exists
 
         File.WriteAllText(filename, json);
-        Console.Out.WriteLine("Writing to : ");
+        System.out.println("Writing to : ");
         //CoreLogger.Log("Writing to : " + filename);
-        Console.Out.WriteLine(filename);
+        System.out.println(filename);
         /*DELETE FILES THAT HAVE BEEN EXPORTED*/
         if (mode == 0)
             for (int cc = 0; cc < coinsToDelete.length; cc++)
             {
-                // Console.Out.WriteLine("Deleting " + coinsToDelete[cc]);
+                // System.out.println("Deleting " + coinsToDelete[cc]);
                 if (coinsToDelete[cc] != null) { File.Delete(coinsToDelete[cc]); }
             }//end for all coins to delete
 

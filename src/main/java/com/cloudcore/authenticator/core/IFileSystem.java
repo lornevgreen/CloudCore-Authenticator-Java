@@ -1,6 +1,6 @@
 package com.cloudcore.authenticator.core;
 
-import com.cloudcore.authenticator.Formats;
+import com.cloudcore.authenticatorFormats;
 import com.cloudcore.authenticator.utils.FileUtils;
 import com.google.gson.Gson;
 
@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.cloudcore.authenticator.Formats.BarCode;
+import static com.cloudcore.authenticatorFormats.BarCode;
 
 public abstract class IFileSystem {
 
@@ -140,7 +140,7 @@ public abstract class IFileSystem {
                         folderCoins.add(coin);
                         break;
                     case "csv":
-                        List<String> lines = null;
+                        ArrayList<String> lines = null;
                         try {
                             ArrayList<CloudCoin> csvCoins = new ArrayList<>();
                             lines = Files.readAllLines(Paths.get(fileName));
@@ -169,7 +169,7 @@ public abstract class IFileSystem {
             Bitmap bitmap = new Bitmap(fileName);
             BarcodeReader reader = new BarcodeReader { AutoRotate = true, TryInverted = true };
             //Result result = reader.Decode(bitmap);
-            String decoded = result.ToString().Trim();
+            String decoded = result.toString().Trim();
 
             CloudCoin cloudCoin = JsonConvert.DeserializeObject<CloudCoin>(decoded);
             return cloudCoin;
@@ -190,7 +190,7 @@ public abstract class IFileSystem {
             Bitmap bitmap = new Bitmap(fileName);
 
             var barcodeResult = barcodeReader.Decode(bitmap);
-            String decoded = barcodeResult.ToString().Trim();
+            String decoded = barcodeResult.toString().Trim();
 
             CloudCoin cloudCoin = JsonConvert.DeserializeObject<CloudCoin>(decoded);
             return cloudCoin;
@@ -205,7 +205,7 @@ public abstract class IFileSystem {
     {
         ArrayList<CloudCoin> cloudCoins = new ArrayList<CloudCoin>();
         var lines = File.ReadAllLines(fileName);
-        //var lines = File.ReadAllLines(fileName).Select(a => a.Split(','));
+        //var lines = File.ReadAllLines(fileName).Select(a => a.split(","));
 
         CloudCoin coin = new CloudCoin();
 
@@ -278,15 +278,15 @@ public abstract class IFileSystem {
     {
         var coins = Utils.LoadJson(fileName);
 
-        if (coins != null && coins.Length > 0)
+        if (coins != null && coins.length > 0)
             return coins[0];
         return null;
     }
-    public IEnumerable<CloudCoin> LoadCoins(String fileName)
+    public ArrayList<CloudCoin> LoadCoins(String fileName)
     {
         var coins = Utils.LoadJson(fileName);
 
-        if (coins != null && coins.Length > 0)
+        if (coins != null && coins.length > 0)
             return coins;
         return null;
     }
@@ -302,7 +302,7 @@ public abstract class IFileSystem {
             System.out.println("Read File-" + item);
         }
 
-        System.out.println("Total " + files.Count + " items read");
+        System.out.println("Total " + files.count + " items read");
 
         return fileInfos;
     }
@@ -312,7 +312,7 @@ public abstract class IFileSystem {
         ArrayList<FileInfo> fileInfos = new ArrayList<FileInfo>();
         var files = Directory
                 .GetFiles(folder)
-                .Where(file => allowedExtensions.Any(file.ToLower().EndsWith))
+                .Where(file => allowedExtensions.Any(file.toLowerCase().EndsWith))
                 .ToList();
         foreach (var item in files)
         {
@@ -320,12 +320,12 @@ public abstract class IFileSystem {
             //System.out.println(item);
         }
 
-        //System.out.println("Total " + files.Count + " items read");
+        //System.out.println("Total " + files.count + " items read");
 
         return fileInfos;
     }
 
-    public abstract void ProcessCoins(IEnumerable<CloudCoin> coins);
+    public abstract void ProcessCoins(ArrayList<CloudCoin> coins);
     public abstract void DetectPreProcessing();
 
 
@@ -339,8 +339,8 @@ public abstract class IFileSystem {
         //STRIP UNESSARY test
         int secondCurlyBracket = ordinalIndexOf(incomeJson, "{", 2) - 1;
         int firstCloseCurlyBracket = ordinalIndexOf(incomeJson, "}", 0) - secondCurlyBracket;
-        // incomeJson = incomeJson.SubString(secondCurlyBracket, firstCloseCurlyBracket);
-        incomeJson = incomeJson.SubString(secondCurlyBracket, firstCloseCurlyBracket + 1);
+        // incomeJson = incomeJson.substring(secondCurlyBracket, firstCloseCurlyBracket);
+        incomeJson = incomeJson.substring(secondCurlyBracket, firstCloseCurlyBracket + 1);
         // Console.Out.WriteLine(incomeJson);
         //Deserial JSON
 
@@ -378,7 +378,7 @@ public abstract class IFileSystem {
             if (options == FileMoveOptions.Rename)
             {
                 String targetFileName = Path.GetFileNameWithoutExtension(SourcePath);
-                targetFileName += Utils.RandomString(8).ToLower() + ".stack";
+                targetFileName += Utils.RandomString(8).toLowerCase() + ".stack";
                 String targetPath = Path.GetDirectoryName(TargetPath) + Path.DirectorySeparatorChar + targetFileName;
                 File.Move(SourcePath, targetPath);
 
@@ -423,11 +423,11 @@ public abstract class IFileSystem {
     // en d json test
     public String setJSON(CloudCoin cc)
     {
-            const String quote = "\"";
-            const String tab = "\t";
+            final String quote = "\"";
+            final String tab = "\t";
         String json = (tab + tab + "{ " + Environment.NewLine);// {
         json += tab + tab + quote + "nn" + quote + ":" + quote + cc.nn + quote + ", " + Environment.NewLine;// "nn":"1",
-        json += tab + tab + quote + "sn" + quote + ":" + quote + cc.sn + quote + ", " + Environment.NewLine;// "sn":"367544",
+        json += tab + tab + quote + "sn" + quote + ":" + quote + cc.getSn() + quote + ", " + Environment.NewLine;// "sn":"367544",
         json += tab + tab + quote + "an" + quote + ": [" + quote;// "an": ["
         for (int i = 0; (i < 25); i++)
         {
@@ -534,12 +534,12 @@ public abstract class IFileSystem {
         var folderCoins = LoadFolderCoins(folder);
         String fileName = (coin.FileName());
         int coinExists = (from x in folderCoins
-        where x.sn == coin.sn
-        select x).Count();
+        where x.getSn() == coin.getSn()
+        select x).count();
         if (coinExists > 0)
         {
             String suffix = Utils.RandomString(16);
-            fileName += suffix.ToLower();
+            fileName += suffix.toLowerCase();
         }
         JsonSerializer serializer = new JsonSerializer();
         serializer.Converters.Add(new JavaScriptDateTimeConverter());
@@ -589,12 +589,12 @@ public abstract class IFileSystem {
         {
             String fileName = coin.FileName;
             int coinExists = (from x in folderCoins
-            where x.sn == coin.sn
-            select x).Count();
+            where x.getSn() == coin.getSn()
+            select x).count();
             if (coinExists > 0)
             {
                 String suffix = Utils.RandomString(16);
-                fileName += suffix.ToLower();
+                fileName += suffix.toLowerCase();
             }
             JsonSerializer serializer = new JsonSerializer();
             serializer.Converters.Add(new JavaScriptDateTimeConverter());
@@ -614,12 +614,12 @@ public abstract class IFileSystem {
         var folderCoins = LoadFolderCoins(folder);
         String fileName = (coin.FileName());
         int coinExists = (from x in folderCoins
-        where x.sn == coin.sn
-        select x).Count();
+        where x.getSn() == coin.getSn()
+        select x).count();
         if (coinExists > 0)
         {
             String suffix = Utils.RandomString(16);
-            fileName += suffix.ToLower();
+            fileName += suffix.toLowerCase();
         }
         JsonSerializer serializer = new JsonSerializer();
         serializer.Converters.Add(new JavaScriptDateTimeConverter());
@@ -724,7 +724,7 @@ public abstract class IFileSystem {
     }
     public boolean writeJpeg(CloudCoin cc, String tag)
     {
-        // Console.Out.WriteLine("Writing jpeg " + cc.sn);
+        // Console.Out.WriteLine("Writing jpeg " + cc.getSn());
 
         //  CoinUtils cu = new CoinUtils(cc);
 
@@ -748,9 +748,9 @@ public abstract class IFileSystem {
         cc.CalcExpirationDate();
         cloudCoinStr += cc.edHex; // 01;//Expiration date Sep 2016 (one month after zero month)
         cloudCoinStr += "01";//  cc.nn;//network number
-        String hexSN = cc.sn.ToString("X6");
+        String hexSN = cc.getSn().ToString("X6");
         String fullHexSN = "";
-        switch (hexSN.Length)
+        switch (hexSN.length)
         {
             case 1: fullHexSN = ("00000" + hexSN); break;
             case 2: fullHexSN = ("0000" + hexSN); break;
@@ -799,14 +799,14 @@ public abstract class IFileSystem {
         };
         //PointF drawPointAddress = new PointF(30.0F, 25.0F);
 
-        canvas.DrawText(String.Format("{0:N0}", cc.sn) + " of 16,777,216 on Network: 1", 30, 40, textPaint);
-        //graphics.DrawString(String.Format("{0:N0}", cc.sn) + " of 16,777,216 on Network: 1", new Font("Arial", 10), Brushes.White, drawPointAddress);
+        canvas.DrawText(StringFormat("{0:N0}", cc.getSn()) + " of 16,777,216 on Network: 1", 30, 40, textPaint);
+        //graphics.DrawString(StringFormat("{0:N0}", cc.getSn()) + " of 16,777,216 on Network: 1", new Font("Arial", 10), Brushes.White, drawPointAddress);
 
         //ImageConverter converter = new ImageConverter();
         //byte[] snBytes = (byte[])converter.ConvertTo(bitmapimage, typeof(byte[]));
         SKImage image = SKImage.FromBitmap(bitmapimage);
         SKData data = image.Encode(SKEncodedImageFormat.Jpeg, 100);
-        byte[] snBytes = data.ToArray();
+        byte[] snBytes = data.toArray();
 
         ArrayList<byte> b1 = new ArrayList<byte>(snBytes);
         ArrayList<byte> b2 = new ArrayList<byte>(ccArray);
@@ -816,11 +816,11 @@ public abstract class IFileSystem {
         {
             Random r = new Random();
             int rInt = r.Next(100000, 1000000); //for ints
-            tag = rInt.ToString();
+            tag = rInt.toString();
         }
 
         String fileName = ExportFolder + cc.FileName() + tag + ".jpg";
-        File.WriteAllBytes(fileName, b1.ToArray());
+        File.WriteAllBytes(fileName, b1.toArray());
         Console.Out.WriteLine("Writing to " + fileName);
         //CoreLogger.Log("Writing to " + fileName);
         return fileSavedSuccessfully;
@@ -828,7 +828,7 @@ public abstract class IFileSystem {
 
     public boolean writeJpeg(CloudCoin cc, String tag,String filePath)
     {
-        // Console.Out.WriteLine("Writing jpeg " + cc.sn);
+        // Console.Out.WriteLine("Writing jpeg " + cc.getSn());
 
         //  CoinUtils cu = new CoinUtils(cc);
         filePath = filePath.Replace("\\\\","\\");
@@ -852,9 +852,9 @@ public abstract class IFileSystem {
         cc.CalcExpirationDate();
         cloudCoinStr += cc.edHex; // 01;//Expiration date Sep 2016 (one month after zero month)
         cloudCoinStr += "01";//  cc.nn;//network number
-        String hexSN = cc.sn.ToString("X6");
+        String hexSN = cc.getSn().ToString("X6");
         String fullHexSN = "";
-        switch (hexSN.Length)
+        switch (hexSN.length)
         {
             case 1: fullHexSN = ("00000" + hexSN); break;
             case 2: fullHexSN = ("0000" + hexSN); break;
@@ -897,14 +897,14 @@ public abstract class IFileSystem {
         };
         //PointF drawPointAddress = new PointF(30.0F, 25.0F);
 
-        canvas.DrawText(String.Format("{0:N0}", cc.sn) + " of 16,777,216 on Network: 1", 30, 40, textPaint);
-        //graphics.DrawString(String.Format("{0:N0}", cc.sn) + " of 16,777,216 on Network: 1", new Font("Arial", 10), Brushes.White, drawPointAddress);
+        canvas.DrawText(StringFormat("{0:N0}", cc.getSn()) + " of 16,777,216 on Network: 1", 30, 40, textPaint);
+        //graphics.DrawString(StringFormat("{0:N0}", cc.getSn()) + " of 16,777,216 on Network: 1", new Font("Arial", 10), Brushes.White, drawPointAddress);
 
         //ImageConverter converter = new ImageConverter();
         //byte[] snBytes = (byte[])converter.ConvertTo(bitmapimage, typeof(byte[]));
         SKImage image = SKImage.FromBitmap(bitmapimage);
         SKData data = image.Encode(SKEncodedImageFormat.Jpeg, 100);
-        byte[] snBytes = data.ToArray();
+        byte[] snBytes = data.toArray();
 
         ArrayList<byte> b1 = new ArrayList<byte>(snBytes);
         ArrayList<byte> b2 = new ArrayList<byte>(ccArray);
@@ -914,11 +914,11 @@ public abstract class IFileSystem {
         {
             Random r = new Random();
             int rInt = r.Next(100000, 1000000); //for ints
-            tag = rInt.ToString();
+            tag = rInt.toString();
         }
 
         String fileName = ExportFolder + cc.FileName()  + ".jpg";
-        File.WriteAllBytes(fileName, b1.ToArray());
+        File.WriteAllBytes(fileName, b1.toArray());
         Console.Out.WriteLine("Writing to " + fileName);
         //CoreLogger.Log("Writing to " + fileName);
         return fileSavedSuccessfully;
@@ -926,7 +926,7 @@ public abstract class IFileSystem {
 
     public boolean writeJpeg(CloudCoin cc, String tag, String filePath,String targetPath)
     {
-        // Console.Out.WriteLine("Writing jpeg " + cc.sn);
+        // Console.Out.WriteLine("Writing jpeg " + cc.getSn());
 
         //  CoinUtils cu = new CoinUtils(cc);
         filePath = filePath.Replace("\\\\", "\\");
@@ -950,9 +950,9 @@ public abstract class IFileSystem {
         cc.CalcExpirationDate();
         cloudCoinStr += cc.edHex; // 01;//Expiration date Sep 2016 (one month after zero month)
         cloudCoinStr += "01";//  cc.nn;//network number
-        String hexSN = cc.sn.ToString("X6");
+        String hexSN = cc.getSn().ToString("X6");
         String fullHexSN = "";
-        switch (hexSN.Length)
+        switch (hexSN.length)
         {
             case 1: fullHexSN = ("00000" + hexSN); break;
             case 2: fullHexSN = ("0000" + hexSN); break;
@@ -995,14 +995,14 @@ public abstract class IFileSystem {
         };
         //PointF drawPointAddress = new PointF(30.0F, 25.0F);
 
-        canvas.DrawText(String.Format("{0:N0}", cc.sn) + " of 16,777,216 on Network: 1", 30, 40, textPaint);
-        //graphics.DrawString(String.Format("{0:N0}", cc.sn) + " of 16,777,216 on Network: 1", new Font("Arial", 10), Brushes.White, drawPointAddress);
+        canvas.DrawText(StringFormat("{0:N0}", cc.getSn()) + " of 16,777,216 on Network: 1", 30, 40, textPaint);
+        //graphics.DrawString(StringFormat("{0:N0}", cc.getSn()) + " of 16,777,216 on Network: 1", new Font("Arial", 10), Brushes.White, drawPointAddress);
 
         //ImageConverter converter = new ImageConverter();
         //byte[] snBytes = (byte[])converter.ConvertTo(bitmapimage, typeof(byte[]));
         SKImage image = SKImage.FromBitmap(bitmapimage);
         SKData data = image.Encode(SKEncodedImageFormat.Jpeg, 100);
-        byte[] snBytes = data.ToArray();
+        byte[] snBytes = data.toArray();
 
         ArrayList<byte> b1 = new ArrayList<byte>(snBytes);
         ArrayList<byte> b2 = new ArrayList<byte>(ccArray);
@@ -1012,11 +1012,11 @@ public abstract class IFileSystem {
         {
             Random r = new Random();
             int rInt = r.Next(100000, 1000000); //for ints
-            tag = rInt.ToString();
+            tag = rInt.toString();
         }
 
         String fileName = targetPath;
-        File.WriteAllBytes(fileName, b1.ToArray());
+        File.WriteAllBytes(fileName, b1.toArray());
         Console.Out.WriteLine("Writing to " + fileName);
         //CoreLogger.Log("Writing to " + fileName);
         return fileSavedSuccessfully;
@@ -1024,7 +1024,7 @@ public abstract class IFileSystem {
 
     public boolean writeJpeg(CloudCoin cc, String tag, String filePath, String targetPath,String printMessage)
     {
-        // Console.Out.WriteLine("Writing jpeg " + cc.sn);
+        // Console.Out.WriteLine("Writing jpeg " + cc.getSn());
 
         //  CoinUtils cu = new CoinUtils(cc);
         filePath = filePath.Replace("\\\\", "\\");
@@ -1048,9 +1048,9 @@ public abstract class IFileSystem {
         cc.CalcExpirationDate();
         cloudCoinStr += cc.edHex; // 01;//Expiration date Sep 2016 (one month after zero month)
         cloudCoinStr += "01";//  cc.nn;//network number
-        String hexSN = cc.sn.ToString("X6");
+        String hexSN = cc.getSn().ToString("X6");
         String fullHexSN = "";
-        switch (hexSN.Length)
+        switch (hexSN.length)
         {
             case 1: fullHexSN = ("00000" + hexSN); break;
             case 2: fullHexSN = ("0000" + hexSN); break;
@@ -1094,13 +1094,13 @@ public abstract class IFileSystem {
         //PointF drawPointAddress = new PointF(30.0F, 25.0F);
 
         canvas.DrawText(printMessage, 30, 40, textPaint);
-        //graphics.DrawString(String.Format("{0:N0}", cc.sn) + " of 16,777,216 on Network: 1", new Font("Arial", 10), Brushes.White, drawPointAddress);
+        //graphics.DrawString(StringFormat("{0:N0}", cc.getSn()) + " of 16,777,216 on Network: 1", new Font("Arial", 10), Brushes.White, drawPointAddress);
 
         //ImageConverter converter = new ImageConverter();
         //byte[] snBytes = (byte[])converter.ConvertTo(bitmapimage, typeof(byte[]));
         SKImage image = SKImage.FromBitmap(bitmapimage);
         SKData data = image.Encode(SKEncodedImageFormat.Jpeg, 100);
-        byte[] snBytes = data.ToArray();
+        byte[] snBytes = data.toArray();
 
         ArrayList<byte> b1 = new ArrayList<byte>(snBytes);
         ArrayList<byte> b2 = new ArrayList<byte>(ccArray);
@@ -1110,11 +1110,11 @@ public abstract class IFileSystem {
         {
             Random r = new Random();
             int rInt = r.Next(100000, 1000000); //for ints
-            tag = rInt.ToString();
+            tag = rInt.toString();
         }
 
         String fileName = targetPath;
-        File.WriteAllBytes(fileName, b1.ToArray());
+        File.WriteAllBytes(fileName, b1.toArray());
         Console.Out.WriteLine("Writing to " + fileName);
         //CoreLogger.Log("Writing to " + fileName);
         return fileSavedSuccessfully;
@@ -1126,7 +1126,7 @@ public abstract class IFileSystem {
             throw new ArgumentNullException("data");
         }
 
-        int length = data.Length;
+        int length = data.length;
         char[] hex = new char[length * 2];
         int num1 = 0;
         for (int index = 0; index < length * 2; index += 2)
@@ -1155,8 +1155,8 @@ public abstract class IFileSystem {
         byte[] buffer = null;
         using (FileStream fs = new FileStream(fileName, FileMode.Open, FileAccess.Read))
         {
-            buffer = new byte[fs.Length];
-            int fileLength = Convert.ToInt32(fs.Length);
+            buffer = new byte[fs.length];
+            int fileLength = Convert.ToInt32(fs.length);
             fs.Read(buffer, 0, fileLength);
         }
         return buffer;
@@ -1165,8 +1165,8 @@ public abstract class IFileSystem {
     public boolean writeTo(String folder, CloudCoin cc)
     {
         //CoinUtils cu = new CoinUtils(cc);
-            const String quote = "\"";
-            const String tab = "\t";
+            final String quote = "\"";
+            final String tab = "\t";
         String wholeJson = "{" + Environment.NewLine; //{
         boolean alreadyExists = true;
         String json = this.setJSON(cc);
@@ -1210,8 +1210,8 @@ public abstract class IFileSystem {
     public void overWrite(String folder, CloudCoin cc)
     {
         //CoinUtils cu = new CoinUtils(cc);
-            const String quote = "\"";
-            const String tab = "\t";
+            final String quote = "\"";
+            final String tab = "\t";
         String wholeJson = "{" + Environment.NewLine; //{
         String json = this.setJSON(cc);
 
@@ -1254,20 +1254,20 @@ public abstract class IFileSystem {
         int startAn = 40;
         for (int i = 0; i < 25; i++)
         {
-            cc.an.Add(wholeString.SubString(startAn, 32));
-            //cc.an[i] = wholeString.SubString(startAn, 32);
+            cc.an.Add(wholeString.substring(startAn, 32));
+            //ccan.set(i, wholeString.substring(startAn, 32));
             // Console.Out.WriteLine(i +": " + cc.an[i]);
             startAn += 32;
         }
 
         // end for
         cc.aoid = null;
-        // wholeString.subString( 840, 895 );
+        // wholeString.substring( 840, 895 );
         //cc.hp = 25;
-        // Integer.parseInt(wholeString.subString( 896, 896 ), 16);
-        cc.ed = wholeString.SubString(898, 4);
-        cc.nn = Convert.ToInt32(wholeString.SubString(902, 2), 16);
-        cc.sn = Convert.ToInt32(wholeString.SubString(904, 6), 16);
+        // Integer.parseInt(wholeString.substring( 896, 896 ), 16);
+        cc.ed = wholeString.substring(898, 4);
+        cc.nn = Convert.ToInt32(wholeString.substring(902, 2), 16);
+        cc.getSn() = Convert.ToInt32(wholeString.substring(904, 6), 16);
         cc.pown = "uuuuuuuuuuuuuuuuuuuuuuuuu";
         //  Console.Out.WriteLine("parseJpeg cc.fileName " + cc.fileName);
         return cc;
@@ -1276,11 +1276,11 @@ public abstract class IFileSystem {
     // en d json test
     public byte[] hexStringToByteArray(String HexString)
     {
-        int NumberChars = HexString.Length;
+        int NumberChars = HexString.length;
         byte[] bytes = new byte[NumberChars / 2];
         for (int i = 0; i < NumberChars; i += 2)
         {
-            bytes[i / 2] = Convert.ToByte(HexString.SubString(i, 2), 16);
+            bytes[i / 2] = Convert.ToByte(HexString.substring(i, 2), 16);
         }
         return bytes;
     }//End hex String to byte array

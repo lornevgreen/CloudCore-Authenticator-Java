@@ -1,7 +1,7 @@
 package com.cloudcore.authenticator.coreclasses;
 
-import com.cloudcore.authenticator.Config;
-import com.cloudcore.authenticator.Formats;
+import com.cloudcore.authenticator.core.Config;
+import com.cloudcore.authenticatorFormats;
 import com.cloudcore.authenticator.core.IFileSystem;
 
 import java.io.File;
@@ -108,7 +108,7 @@ public class FileSystem extends IFileSystem {
             importCoins =  importCoins.Concat(BarCodeCoins);
             importCoins = importCoins.Concat(qrCoins);
 
-            System.out.println("Count -" + importCoins.Count());
+            System.out.println("Count -" + importCoins.count());
 
             //exportCoins = LoadFolderCoins(ExportFolder);
             bankCoins = LoadFolderCoins(BankFolder);
@@ -133,12 +133,12 @@ public class FileSystem extends IFileSystem {
             {
                 String fileName = GetCoinName(coin.FileName);
                 int coinExists = (from x in predetectCoins
-                where x.sn == coin.sn
-                select x).Count();
+                where x.getSn() == coin.getSn()
+                select x).count();
                 //if (coinExists > 0)
                 //{
                 //    String suffix = Utils.RandomString(16);
-                //    fileName += suffix.ToLower();
+                //    fileName += suffix.toLowerCase();
                 //}
                 JsonSerializer serializer = new JsonSerializer();
                 serializer.Converters.Add(new JavaScriptDateTimeConverter());
@@ -152,7 +152,7 @@ public class FileSystem extends IFileSystem {
             }
         }
 
-        public override void ProcessCoins(IEnumerable<CloudCoin> coins)
+        public override void ProcessCoins(ArrayList<CloudCoin> coins)
         {
 
             var detectedCoins = LoadFolderCoins(DetectedFolder);
@@ -160,7 +160,7 @@ public class FileSystem extends IFileSystem {
 
             foreach (var coin in detectedCoins)
             {
-                if (coin.PassCount >= CloudCoinCore.Config.PassCount)
+                if (coin.PassCount >= Config.PassCount)
                 {
                     WriteCoin(coin, BankFolder);
                 }
@@ -175,7 +175,7 @@ public class FileSystem extends IFileSystem {
         {
             return CoinName;
         }
-        public void TransferCoins(IEnumerable<CloudCoin> coins, String sourceFolder, String targetFolder,String extension = ".stack")
+        public void TransferCoins(ArrayList<CloudCoin> coins, String sourceFolder, String targetFolder,String extension = ".stack")
         {
             var folderCoins = LoadFolderCoins(targetFolder);
 
@@ -197,7 +197,7 @@ public class FileSystem extends IFileSystem {
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.Message);
+                    System.out.println(e.Message);
                 }
 
 
@@ -210,7 +210,7 @@ public class FileSystem extends IFileSystem {
         public override void ClearCoins(String FolderName)
         {
 
-            var fii = GetFiles(FolderName, CloudCoinCore.Config.allowedExtensions);
+            var fii = GetFiles(FolderName, Config.allowedExtensions);
 
             DirectoryInfo di = new DirectoryInfo(FolderName);
 
@@ -223,7 +223,7 @@ public class FileSystem extends IFileSystem {
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                System.out.println(e.Message);
             }
 
         }
@@ -244,46 +244,46 @@ public class FileSystem extends IFileSystem {
             }
             return true;
         }
-        public List<FileInfo> GetFiles(String path, params String[] extensions)
+        public ArrayList<FileInfo> GetFiles(String path, params String[] extensions)
         {
-            List<FileInfo> list = new List<FileInfo>();
+            ArrayList<FileInfo> list = new ArrayList<FileInfo>();
             foreach (String ext in extensions)
             list.AddRange(new DirectoryInfo(path).GetFiles("*" + ext).Where(p =>
                     p.Extension.Equals(ext, StringComparison.CurrentCultureIgnoreCase))
-                    .ToArray());
+                    .toArray());
             return list;
         }
         public override void MoveImportedFiles()
         {
             var files = Directory
                     .GetFiles(ImportFolder)
-                    .Where(file => CloudCoinCore.Config.allowedExtensions.Any(file.ToLower().EndsWith))
+                    .Where(file => Config.allowedExtensions.Any(file.toLowerCase().EndsWith))
               .ToList();
 
-            String[] fnames = new String[files.Count()];
-            for (int i = 0; i < files.Count(); i++)
+            String[] fnames = new String[files.count()];
+            for (int i = 0; i < files.count(); i++)
             {
                 MoveFile(files[i], ImportedFolder + File.pathSeparator + Path.GetFileName(files[i]), FileMoveOptions.Rename);
             }
 
             var filesqr = Directory
                     .GetFiles(ImportFolder + File.pathSeparator + "QrCodes")
-                    .Where(file => CloudCoinCore.Config.allowedExtensions.Any(file.ToLower().EndsWith))
+                    .Where(file => Config.allowedExtensions.Any(file.toLowerCase().EndsWith))
               .ToList();
 
-            String[] fnamesqr = new String[filesqr.Count()];
-            for (int i = 0; i < filesqr.Count(); i++)
+            String[] fnamesqr = new String[filesqr.count()];
+            for (int i = 0; i < filesqr.count(); i++)
             {
                 MoveFile(filesqr[i], ImportedFolder + File.pathSeparator + Path.GetFileName(filesqr[i]), FileMoveOptions.Rename);
             }
 
             var filesbar = Directory
                     .GetFiles(ImportFolder + File.pathSeparator + "Barcodes")
-                    .Where(file => CloudCoinCore.Config.allowedExtensions.Any(file.ToLower().EndsWith))
+                    .Where(file => Config.allowedExtensions.Any(file.toLowerCase().EndsWith))
               .ToList();
 
-            String[] fnamesbar = new String[filesbar.Count()];
-            for (int i = 0; i < filesbar.Count(); i++)
+            String[] fnamesbar = new String[filesbar.count()];
+            for (int i = 0; i < filesbar.count(); i++)
             {
                 MoveFile(filesbar[i], ImportedFolder + File.pathSeparator + Path.GetFileName(filesbar[i]), FileMoveOptions.Rename);
             }
@@ -312,9 +312,9 @@ public class FileSystem extends IFileSystem {
             cloudCoin.CalcExpirationDate();
             cloudCoinStr += cloudCoin.edHex; // 01;//Expiration date Sep 2016 (one month after zero month)
             cloudCoinStr += "01";//  cc.nn;//network number
-            String hexSN = cloudCoin.sn.ToString("X6");
+            String hexSN = cloudCoin.getSn().ToString("X6");
             String fullHexSN = "";
-            switch (hexSN.Length)
+            switch (hexSN.length)
             {
                 case 1: fullHexSN = ("00000" + hexSN); break;
                 case 2: fullHexSN = ("0000" + hexSN); break;
@@ -353,26 +353,26 @@ public class FileSystem extends IFileSystem {
             graphics.SmoothingMode = SmoothingMode.AntiAlias;
             graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
             PointF drawPointAddress = new PointF(30.0F, 25.0F);
-            graphics.DrawString(String.Format("{0:N0}", cloudCoin.sn) + " of 16,777,216 on Network: 1", new Font("Arial", 10), Brushes.White, drawPointAddress);
+            graphics.DrawString(StringFormat("{0:N0}", cloudCoin.getSn()) + " of 16,777,216 on Network: 1", new Font("Arial", 10), Brushes.White, drawPointAddress);
 
             ImageConverter converter = new ImageConverter();
             byte[] snBytes = (byte[])converter.ConvertTo(bitmapimage, typeof(byte[]));
 
-            List<byte> b1 = new List<byte>(snBytes);
-            List<byte> b2 = new List<byte>(ccArray);
+            ArrayList<byte> b1 = new ArrayList<byte>(snBytes);
+            ArrayList<byte> b2 = new ArrayList<byte>(ccArray);
             b1.InsertRange(4, b2);
 
             if (tag == "random")
             {
                 Random r = new Random();
                 int rInt = r.Next(100000, 1000000); //for ints
-                tag = rInt.ToString();
+                tag = rInt.toString();
             }
 
             //String fileName = targetPath;
 
             String fileName = ExportFolder + cloudCoin.FileName + ".jpg";
-            File.WriteAllBytes(OutputFile, b1.ToArray());
+            File.WriteAllBytes(OutputFile, b1.toArray());
             //Console.Out.WriteLine("Writing to " + fileName);
             //CoreLogger.Log("Writing to " + fileName);
 
@@ -398,14 +398,14 @@ public class FileSystem extends IFileSystem {
             var pixelData = qrCodeWriter.Write(coinJson);
             // creating a bitmap from the raw pixel data; if only black and white colors are used it makes no difference
             // that the pixel data ist BGRA oriented and the bitmap is initialized with RGB
-            using (var bitmap = new System.Drawing.Bitmap(pixelData.Width, pixelData.Height, System.Drawing.Imaging.PixelFormat.Format32bppRgb))
+            using (var bitmap = new System.Drawing.Bitmap(pixelData.Width, pixelData.Height, System.Drawing.Imaging.PixelFormatFormat32bppRgb))
             using (var ms = new MemoryStream())
             {
-                var bitmapData = bitmap.LockBits(new System.Drawing.Rectangle(0, 0, pixelData.Width, pixelData.Height), System.Drawing.Imaging.ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format32bppRgb);
+                var bitmapData = bitmap.LockBits(new System.Drawing.Rectangle(0, 0, pixelData.Width, pixelData.Height), System.Drawing.Imaging.ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormatFormat32bppRgb);
                 try
                 {
                     // we assume that the row stride of the bitmap is aligned to 4 byte multiplied by the width of the image
-                    System.Runtime.InteropServices.Marshal.Copy(pixelData.Pixels, 0, bitmapData.Scan0, pixelData.Pixels.Length);
+                    System.Runtime.InteropServices.Marshal.Copy(pixelData.Pixels, 0, bitmapData.Scan0, pixelData.Pixels.length);
                 }
                 finally
                 {
@@ -433,7 +433,7 @@ public class FileSystem extends IFileSystem {
             using (var stream = new MemoryStream())
             {
                 imgBitmap.Save(stream, ImageFormat.Png);
-                stream.ToArray();
+                stream.toArray();
                 imgBitmap.Save(OutputFile);
             }
             return true;

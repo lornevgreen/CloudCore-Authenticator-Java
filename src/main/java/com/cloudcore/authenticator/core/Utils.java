@@ -1,6 +1,5 @@
 package com.cloudcore.authenticator.core;
 
-import com.cloudcore.authenticator.Config;
 import com.google.gson.Gson;
 
 import java.nio.file.Files;
@@ -25,7 +24,7 @@ public class Utils {
     public static StringBuilder CoinsToCSV(ArrayList<CloudCoin> coins) {
         StringBuilder csv = new StringBuilder();
 
-        var headerLine = String.Format("sn,denomination,nn,");
+        var headerLine = StringFormat("sn,denomination,nn,");
         String headeranString = "";
         for (int i = 0; i < Config.NodeCount; i++) {
             headeranString += "an" + (i + 1) + ",";
@@ -41,10 +40,10 @@ public class Utils {
         return csv;
     }
 
-    public static String WriteObjectToString() {
+    public static String WriteObjecttoString() {
         MemoryStream ms = new MemoryStream();
 
-        // Serializer the User object to the stream.  
+        // Serializer the User Object to the stream.
         return "";
     }
 
@@ -88,7 +87,7 @@ public class Utils {
                 HttpResponseMessage response = await cli.GetAsync(urlAddress);
                 if (response.IsSuccessStatusCode)
                     data = await response.Content.ReadAsStringAsync();
-                //Debug.WriteLine(data);
+                //System.out.println(data);
             }
         } catch (Exception ex) {
             return ex.Message;

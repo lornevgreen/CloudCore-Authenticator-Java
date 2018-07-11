@@ -1,17 +1,13 @@
-package com.cloudcore.authenticator;
+package com.cloudcore.authenticator.core;
 
-import com.cloudcore.authenticator.core.*;
+import com.cloudcore.authenticator.Event;
 import com.cloudcore.authenticator.utils.SimpleLogger;
-import com.sun.deploy.jcp.controller.Network;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 public class RAIDA {
 
@@ -37,6 +33,130 @@ public class RAIDA {
     public Event CoinDetected;
 
     static DateTimeFormatter datetimeFormat = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+
+    // Singleton Pattern implemented using private constructor
+    // This allows only one instance of RAIDA per application
+
+    private RAIDA() {
+        FS = RAIDA.FileSystem;
+        for (int i = 0; i < Config.NodeCount; i++) {
+            nodes[i] = new Node(i + 1);
+        }
+    }
+
+    private RAIDA(Network network) {
+        nodes = new Node[network.raida.length];
+        this.NetworkNumber = network.nn;
+        this.network = network;
+        for (int i = 0; i < nodes.length; i++) {
+            nodes[i] = new Node(i + 1, network.raida[i]);
+        }
+    }
+
+    // This method was introduced breaking the previously used Singleton pattern.
+    // This was done in order to support multiple networks concurrently.
+    // We can now have multiple RAIDA objects each containing different networks
+    // RAIDA details are read from Directory URL first.
+    // In case of failure, it falls back to a file on the file system
+    public static ArrayList<RAIDA> Instantiate()
+    {
+        String nodesJson = "";
+        networks.clear();
+        using (WebClient client = new WebClient())
+        {
+            try
+            {
+                nodesJson = client.DownloadString(Config.URL_DIRECTORY);
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                if(System.IO.File.Exists("directory.json"))
+                {
+                    nodesJson = System.IO.File.ReadAllText(Environment.CurrentDirectory + @"\directory.json");
+                }
+                else
+                {
+                    Exception raidaException = new Exception("RAIDA instantiation failed. No Directory found on server or local path");
+                    throw raidaException;
+                }
+            }
+        }
+
+        try
+        {
+            RAIDADirectory dir = JsonConvert.DeserializeObject<RAIDADirectory>(nodesJson);
+
+            foreach (var network in dir.networks)
+            {
+                networks.Add(RAIDA.GetInstance(network));
+            }
+        }
+        catch(Exception e)
+        {
+            Exception raidaException = new Exception("RAIDA instantiation failed. No Directory found on server or local path");
+            throw raidaException;
+        }
+        if(networks == null )
+        {
+            Exception raidaException = new Exception("RAIDA instantiation failed. No Directory found on server or local path");
+            throw raidaException;
+        }
+        if(networks.count ==0)
+        {
+            Exception raidaException = new Exception("RAIDA instantiation failed. No Directory found on server or local path");
+            throw raidaException;
+        }
+        return networks;
+    }
+
+    // Return Main RAIDA Network populated with default Nodes Addresses(Network 1)
+    public static RAIDA GetInstance()
+    {
+        if (MainNetwork != null)
+            return MainNetwork;
+        else
+        {
+            MainNetwork = new RAIDA();
+            return MainNetwork;
+        }
+    }
+
+    public static RAIDA GetInstance(Network network)
+    {
+        RAIDA raida = new RAIDA(network);
+        raida.FS = FileSystem;
+        return raida;
+    }
+
+    public ArrayList<Func<Task>> GetEchoTasks()
+    {
+        var echoTasks = new ArrayList<Func<Task>>
+        {
+
+        };
+        for (int i = 0; i < nodes.Length; i++)
+        {
+            echoTasks.Add(nodes[i].Echo);
+        }
+        return echoTasks;
+    }
+
+    public ArrayList<Func<Task>> GetDetectTasks(CloudCoin coin)
+    {
+        this.coin = coin;
+
+        var detectTasks = new ArrayList<Func<Task>>
+        {
+
+        };
+        for (int i = 0; i < nodes.Length; i++)
+        {
+            detectTasks.Add(nodes[i].Detect);
+        }
+        return detectTasks;
+    }
 
     public static CompletableFuture ProcessCoins() {
         return CompletableFuture.supplyAsync(() -> {
@@ -276,8 +396,8 @@ public class RAIDA {
                 ans[nodeNumber][i] = coins.get(i).an.get(nodeNumber);
                 pans[nodeNumber][i] = coins.get(i).pan[nodeNumber];
             }
-            multiRequest.an[nodeNumber] = ans[nodeNumber];
-            multiRequest.pan[nodeNumber] = pans[nodeNumber];
+            multiRequestan.set(nodeNumber, ans[nodeNumber]);
+            multiRequest.an.set(nodeNumber, pans[nodeNumber]);
             multiRequest.nn = nns;
             multiRequest.sn = sns;
             multiRequest.d = dens;
@@ -290,20 +410,76 @@ public class RAIDA {
         return detectTasks;
     }
 
+    public Response[] responseArray = new Response[25];
+
+    public void GetTickets(int[] triad, String[] ans, int nn, int sn, int denomination, int milliSecondsToTimeOut)
+    {
+        //Console.WriteLine("Get Tickets called. ");
+        var t00 = GetTicket(0, triad[00], nn, sn, ans[00], denomination);
+        var t01 = GetTicket(1, triad[01], nn, sn, ans[01], denomination);
+        var t02 = GetTicket(2, triad[02], nn, sn, ans[02], denomination);
+
+        var taskList = new List<Task> { t00, t01, t02 };
+        Task.WaitAll(taskList.ToArray(), milliSecondsToTimeOut);
+        try
+        {
+            //  CoreLogger.Log(sn + " get ticket:" + triad[00] + " " + responseArray[triad[00]].fullResponse);
+            // CoreLogger.Log(sn + " get ticket:" + triad[01] + " " + responseArray[triad[01]].fullResponse);
+            //  CoreLogger.Log(sn + " get ticket:" + triad[02] + " " + responseArray[triad[02]].fullResponse);
+        }
+        catch { }
+        //Get data from the detection agents
+    }//end detect coin
+
+    public async Task GetTicket(int i, int raidaID, int nn, int sn, String an, int d)
+    {
+        responseArray[raidaID] = await nodes[raidaID].GetTicket(nn, sn, an, d);
+    }//end get ticket
+
+    public async Task DetectCoin(CloudCoin coin, int milliSecondsToTimeOut)
+    {
+        //Task.WaitAll(coin.detectTaskList.ToArray(),Config.milliSecondsToTimeOut);
+        //Get data from the detection agents
+        //Task.WaitAll(coin.detectTaskList.ToArray(), milliSecondsToTimeOut);
+        // TODO: reenable line: await Task.WhenAll(coin.detectTaskList);
+        for (int i = 0; i < Config.NodeCount; i++)
+        {
+            var resp = coin.response;
+
+        }//end for each detection agent
+
+        var counts = coin.response
+                .GroupBy(item => item.outcome== "pass")
+                .Select(grp => new { Number = grp.Key, Count = grp.count() });
+
+        var countsf = coin.response
+                .GroupBy(item => item.outcome == "fail")
+                    .Select(grp => new { Number = grp.Key, Count = grp.count() });
+
+        System.out.println("Pass Count -" +counts.count());
+        System.out.println("Fail Count -" + countsf.count());
+
+        coin.SetAnsToPansIfPassed();
+        coin.CalculateHP();
+
+        coin.CalcExpirationDate();
+        coin.grade();
+        coin.SortToFolder();
+        DetectEventArgs de = new DetectEventArgs(coin);
+        OnCoinDetected(de);
+
+    }//end detect coin
+
     public int ReadyCount() {
         int ReadyCount = 0;
-        for (Node node : nodes)
-            if (node.RAIDANodeStatus == Node.NodeStatus.Ready)
-                ReadyCount++;
+        for (Node node : nodes) if (node.RAIDANodeStatus == Node.NodeStatus.Ready) ReadyCount++;
         return ReadyCount;
         //return (int) Arrays.stream(nodes).filter(x -> x.RAIDANodeStatus == Node.NodeStatus.Ready).count();
     }
 
     public int NotReadyCount() {
         int NotReadyCount = 0;
-        for (Node node : nodes)
-            if (node.RAIDANodeStatus == Node.NodeStatus.NotReady)
-                NotReadyCount++;
+        for (Node node : nodes) if (node.RAIDANodeStatus == Node.NodeStatus.NotReady) NotReadyCount++;
         return NotReadyCount;
         //return (int) Arrays.stream(nodes).filter(x -> x.RAIDANodeStatus == Node.NodeStatus.NotReady).count();
     }

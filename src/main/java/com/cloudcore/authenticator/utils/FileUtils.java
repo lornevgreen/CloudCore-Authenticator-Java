@@ -15,7 +15,7 @@ import java.util.Collection;
 public class FileUtils {
 
     /**
-     * Attempts to read a JSON object from a file.
+     * Attempts to read a JSON Object from a file.
      *
      * @param jsonFilePath the filepath pointing to the JSON file
      * @return String
@@ -102,7 +102,7 @@ public class FileUtils {
     /**
      * Converts a JSONArray to a String array
      *
-     * @param jsonArray a JSONArray object
+     * @param jsonArray a JSONArray Object
      * @return String[]
      */
     public static String[] toStringArray(JSONArray jsonArray) {

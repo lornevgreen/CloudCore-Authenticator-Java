@@ -1,4 +1,4 @@
-package com.cloudcore.authenticator;
+package com.cloudcore.authenticator.core;
 
 public class MultiDetectRequest {
     public int[] nn ;

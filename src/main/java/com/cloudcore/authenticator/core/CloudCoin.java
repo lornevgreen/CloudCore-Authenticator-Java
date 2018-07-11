@@ -1,7 +1,5 @@
 package com.cloudcore.authenticator.core;
 
-import com.cloudcore.authenticator.Config;
-import com.cloudcore.authenticator.RAIDA;
 import com.google.gson.annotations.SerializedName;
 
 import java.security.SecureRandom;
@@ -9,7 +7,6 @@ import java.time.LocalDate;
 import java.util.*;
 
 import static java.time.temporal.ChronoUnit.DAYS;
-import static java.time.temporal.ChronoUnit.MONTHS;
 
 public class CloudCoin {
 
@@ -32,16 +29,18 @@ public class CloudCoin {
 
     @SerializedName("sn")
     private int sn;
+
     public int getSn() {
         return pSN;
     }
+
     public void setSn(int sn) {
         this.sn = sn;
         denomination = getDenomination();
     }
 
     @SerializedName("an")
-    public List<String> an;
+    public ArrayList<String> an;
 
     @SerializedName("ed")
     public String ed;
@@ -50,7 +49,7 @@ public class CloudCoin {
     public String pown;
 
     @SerializedName("aoid")
-    public List<String> aoid;
+    public ArrayList<String> aoid;
 
 
     public String pastPown = "uuuuuuuuuuuuuuuuuuuuuuuuu";//Used to see if there are any improvments in defracking
@@ -78,29 +77,32 @@ public class CloudCoin {
     public int getPassCount() {
         return passCount;
     }
+
     public void setPassCount(int passCount) {
         this.passCount = passCount;
-        DetectionResult = (passCount >= Config.PassCount) ? "Pass" :  "Fail";
+        DetectionResult = (passCount >= Config.PassCount) ? "Pass" : "Fail";
     }
 
     public int getFailCount() {
         return failCount;
     }
+
     public void setFailCount(int failCount) {
         this.failCount = failCount;
-        DetectionResult = (passCount >= Config.PassCount) ? "Pass" :  "Fail";
+        DetectionResult = (passCount >= Config.PassCount) ? "Pass" : "Fail";
     }
 
-    public enum Folder { Suspect, Counterfeit, Fracked, Bank, Trash };
+    public enum Folder {Suspect, Counterfeit, Fracked, Bank, Trash}
+
+    ;
 
 
     int pSN;
-    
-    
+
+
     //Constructors
-    
-    public CloudCoin()
-    {
+
+    public CloudCoin() {
         an = new ArrayList<>();
     }
 
@@ -114,11 +116,10 @@ public class CloudCoin {
     public CloudCoin(int nn, int sn, String[] ans) {
         this.nn = nn;
         this.sn = sn;
-        this.an = Arrays.asList(ans);
+        this.an = new ArrayList<>(Arrays.asList(ans));
     }
 
-    public CloudCoin(int nn, int sn, List<String> an, String ed, String pown, List<String> aoid)
-    {
+    public CloudCoin(int nn, int sn, ArrayList<String> an, String ed, String pown, ArrayList<String> aoid) {
         this.nn = nn;
         this.sn = sn;
         this.an = an;
@@ -128,28 +129,22 @@ public class CloudCoin {
 
     }
 
-    public CloudCoin(String fileName)
-    {
+    public CloudCoin(String fileName) {
 
     }
 
-    public static CloudCoin FromJson(String csvLine)
-    {
-        try
-        {
+    public static CloudCoin FromJson(String csvLine) {
+        try {
 
-        }
-        catch(Exception e)
-        {
+        } catch (Exception e) {
 
         }
         return null;
 
     }
-    public static CloudCoin FromCSV(String csvLine)
-    {
-        try
-        {
+
+    public static CloudCoin FromCSV(String csvLine) {
+        try {
             CloudCoin coin = new CloudCoin();
             String[] values = csvLine.split(",");
             System.out.println(values[0]);
@@ -157,16 +152,13 @@ public class CloudCoin {
             coin.nn = Integer.parseInt(values[1]);
             coin.denomination = Integer.parseInt(values[1]);
             coin.an = new ArrayList<>();
-            for (int i = 0; i < Config.NodeCount; i++)
-            {
+            for (int i = 0; i < Config.NodeCount; i++) {
                 coin.an.add(values[i + 3]);
             }
 
             return coin;
 
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
 
         }
         return null;
@@ -180,7 +172,7 @@ public class CloudCoin {
         //The coin is considered a threat if it has any of the patersns that would allow the last user to take control.
         //There are four of these patterns: One for each corner.
 
-        //  Console.Out.WriteLine( cc.sn + " char count f =" + charCount(cc.pown, 'f'));
+        //  Console.Out.WriteLine( cc.getSn() + " char count f =" + charCount(cc.pown, 'f'));
         if ((charCount(pown, 'f') + charCount(pown, 'n')) > 5) {
             String doublePown = pown + pown;//double it so we see patters that happen on the ends.
 
@@ -199,94 +191,72 @@ public class CloudCoin {
     public boolean isCounterfeit() {
         //The coin is considered counterfeit if it has so many fails it cannot be fixed
         boolean returnTruth = false;
-        if ((charCount(pown, 'p') < 6 && (charCount(pown, 'f') > 13)))
-        {
+        if ((charCount(pown, 'p') < 6 && (charCount(pown, 'f') > 13))) {
             returnTruth = true;
             //   Console.Out.WriteLine("isCounterfeit");
-        }
-        else
-        {
+        } else {
             // Console.Out.WriteLine("Not isCounterfeit");
         }
         return returnTruth;
     }
 
-    public int charCount(String pown, char character)
-    {
+    public int charCount(String pown, char character) {
         return pown.length() - pown.replace(Character.toString(character), "").length();
     }
 
-    public String GetCSV()
-    {
-        String csv = this.sn + "," + this.nn + ",";
+    public String GetCSV() {
+        String csv = this.getSn() + "," + this.nn + ",";
 
 
-        for (int i = 0; i < Config.NodeCount; i++)
-        {
+        for (int i = 0; i < Config.NodeCount; i++) {
             csv += an.get(i) + ",";
         }
 
         return csv.substring(0, csv.length() - 1);
     }
-    public boolean isFracked()
-    {
+
+    public boolean isFracked() {
         //The coin is considered fracked if it has any fails
         boolean returnTruth = false;
-        if (charCount(pown, 'f') > 0 || charCount(pown, 'n') > 0)
-        {
+        if (charCount(pown, 'f') > 0 || charCount(pown, 'n') > 0) {
             returnTruth = true;
         }
         return returnTruth;
     }
 
-    public boolean isPerfect()
-    {
+    public boolean isPerfect() {
         boolean returnTruth = false;
-        if (pown == "ppppppppppppppppppppppppp")
-        {
+        if (pown == "ppppppppppppppppppppppppp") {
             returnTruth = true;
         }
         return returnTruth;
     }
-    public int getDenomination()
-    {
-        int nom = 0;
+
+    public int getDenomination() {
+        int nom;
         if ((sn < 1))
-        {
             nom = 0;
-        }
         else if ((sn < 2097153))
-        {
             nom = 1;
-        }
         else if ((sn < 4194305))
-        {
             nom = 5;
-        }
         else if ((sn < 6291457))
-        {
             nom = 25;
-        }
         else if ((sn < 14680065))
-        {
             nom = 100;
-        }
         else if ((sn < 16777217))
-        {
             nom = 250;
-        }
         else
-        {
-            nom = '0';
-        }
+            nom = 0;
 
         return nom;
     }
 
-    public List<Task> detectTaskList = new List<Task>();
-    public List<Task> GetDetectTasks()
+    /* TODO: re-enable these
+    public ArrayList<Task> detectTaskList = new ArrayList<Task>();
+    public ArrayList<Task> GetDetectTasks()
     {
-        var raida = RAIDA.GetInstance();
+        RAIDA raida = RAIDA.GetInstance();
 
         CloudCoin cc = this;
         int i = 0;
@@ -298,25 +268,21 @@ public class CloudCoin {
         }
 
         return detectTaskList;
-    }
-    public void GeneratePAN()
-    {
-        for (int i = 0; i < Config.NodeCount; i++)
-        {
-            pan[i] = this.generatePan();
+    }*/
+    public void GeneratePAN() {
+        for (int i = 0; i < Config.NodeCount; i++) {
+            an.set(i, this.generatePan());
         }
     }
 
-    public boolean isFixable()
-    {
+    public boolean isFixable() {
         //The coin is considered fixable if it has any of the patersns that would allow the new owner to fix fracked.
-        //There are four of these patterns: One for each corner. 
+        //There are four of these patterns: One for each corner.
         String origPown = pown;
         pown = pown.replace('d', 'e').replace('n', 'e').replace('u', 'e');
         boolean canFix = false;
-        // Console.Out.WriteLine(cc.sn + " char count p =" + charCount(cc.pown, 'p'));
-        if (charCount(pown, 'p') > 5)
-        {
+        // Console.Out.WriteLine(cc.getSn() + " char count p =" + charCount(cc.pown, 'p'));
+        if (charCount(pown, 'p') > 5) {
             String doublePown = pown + pown;//double it so we see patters that happen on the ends.
 
             boolean UP_LEFT = doublePown.matches("(?i)pp[a-z][a-z][a-z]pf");
@@ -343,13 +309,11 @@ public class CloudCoin {
                     || UP_LEFT_e || UP_RIGHT_e || DOWN_LEFT_e || DOWN_RIGHT_e || UP_LEFT_u || UP_RIGHT_u || DOWN_LEFT_u || DOWN_RIGHT_u) {
                 canFix = true;
                 //Console.Out.WriteLine("isFixable");
-            }
-            else {
+            } else {
                 canFix = false;
                 //Console.Out.WriteLine("Not isFixable");
             }
-        }
-        else {
+        } else {
             canFix = false;
 //                Console.Out.WriteLine("Not isFixable");
         }
@@ -358,94 +322,101 @@ public class CloudCoin {
     }
 
 
-    public void SetAnsToPans()
-    {
-        for (int i = 0; (i < Config.NodeCount); i++)
-        {
-            this.pan[i] = an.get(i);
+    public void SetAnsToPans() {
+        for (int i = 0; (i < Config.NodeCount); i++) {
+            this.an.set(i, an.get(i));
         }
     }
 
-    public void SetAnsToPansIfPassed(boolean partial = false)
-    {
+    public void SetAnsToPansIfPassed() {
+        SetAnsToPansIfPassed(false);
+    }
+
+    public void SetAnsToPansIfPassed(boolean partial) {
         // now set all ans that passed to the new pans
         char[] pownArray = pown.toCharArray();
 
-        for (int i = 0; (i < Config.NodeCount); i++)
-        {
+        for (int i = 0; (i < Config.NodeCount); i++) {
             if (pownArray[i] == 'p')//1 means pass
             {
-                an[i] = pan[i];
-            }
-            else if (pownArray[i] == 'u' && !(RAIDA.GetInstance().nodes[i].RAIDANodeStatus == Node.NodeStatus.NotReady) && partial == false)//Timed out but there server echoed. So it probably changed the PAN just too slow of a response
+                an.set(i, pan[i]);
+            } else if (pownArray[i] == 'u' && !(RAIDA.GetInstance().nodes[i].RAIDANodeStatus == Node.NodeStatus.NotReady) && partial == false)//Timed out but there server echoed. So it probably changed the PAN just too slow of a response
             {
-                an[i] = pan[i];
-            }
-            else
-            {
-                // Just keep the ans and do not change. Hopefully they are not fracked. 
+                an.set(i, pan[i]);
+            } else {
+                // Just keep the ans and do not change. Hopefully they are not fracked.
             }
         }// for each guid in coin
     }
 
-    public void CalculateHP()
-    {
+    public void CalculateHP() {
         hp = Config.NodeCount;
         char[] pownArray = pown.toCharArray();
-        for (int i = 0; (i < Config.NodeCount); i++)
-        {
-            if (pownArray[i] == 'f')
-            {
+        for (int i = 0; (i < Config.NodeCount); i++) {
+            if (pownArray[i] == 'f') {
                 this.hp--;
             }
         }
     }
 
 
-    public boolean setPastStatus(String status, int raida_id)
-    {
+    public boolean setPastStatus(String status, int raida_id) {
         char[] pownArray = this.pown.toCharArray();
-        switch (status)
-        {
-            case "error": pownArray[raida_id] = 'e'; break;
-            case "fail": pownArray[raida_id] = 'f'; break;
-            case "pass": pownArray[raida_id] = 'p'; break;
-            case "undetected": pownArray[raida_id] = 'u'; break;
-            case "noresponse": pownArray[raida_id] = 'n'; break;
+        switch (status) {
+            case "error":
+                pownArray[raida_id] = 'e';
+                break;
+            case "fail":
+                pownArray[raida_id] = 'f';
+                break;
+            case "pass":
+                pownArray[raida_id] = 'p';
+                break;
+            case "undetected":
+                pownArray[raida_id] = 'u';
+                break;
+            case "noresponse":
+                pownArray[raida_id] = 'n';
+                break;
         }
         this.pown = new String(pownArray);
         return true;
     }
 
-    public void doPostProcessing()
-    {
+    public void doPostProcessing() {
         setPastStatus();
         SetAnsToPansIfPassed();
         CalculateHP();
         CalcExpirationDate();
         //grade();
     }
-    public boolean setPastStatus()
-    {
+
+    public boolean setPastStatus() {
         char[] pownArray = pown.toCharArray();
-        for (int i = 0; i < Config.NodeCount; i++)
-        {
-            if (response[i] != null)
-            {
+        for (int i = 0; i < Config.NodeCount; i++) {
+            if (response[i] != null) {
                 String status = response[i].outcome;
-                switch (status)
-                {
-                    case "error": pownArray[i] = 'e'; break;
-                    case "fail": pownArray[i] = 'f'; break;
-                    case "pass": pownArray[i] = 'p'; break;
-                    case "undetected": pownArray[i] = 'u'; break;
-                    case "noresponse": pownArray[i] = 'n'; break;
+                switch (status) {
+                    case "error":
+                        pownArray[i] = 'e';
+                        break;
+                    case "fail":
+                        pownArray[i] = 'f';
+                        break;
+                    case "pass":
+                        pownArray[i] = 'p';
+                        break;
+                    case "undetected":
+                        pownArray[i] = 'u';
+                        break;
+                    case "noresponse":
+                        pownArray[i] = 'n';
+                        break;
                 }
-            }
-            else
-            {
+            } else {
                 pownArray[i] = 'u';
-            };// should be pass, fail, error or undetected. 
+            }
+            ;// should be pass, fail, error or undetected.
         }
 
 
@@ -461,27 +432,23 @@ public class CloudCoin {
         return String.format("%32s", pan).replace(' ', '0');
     }
 
-    public void recordPown()
-    {
+    public void recordPown() {
         //records the last pown so we can see if there are improvments
         pastPown = pown;
     }
 
-    public void SortToFolder()
-    {
-        //figures out which folder to put it in. 
+    public void SortToFolder() {
+        //figures out which folder to put it in.
         //pown = pown.Replace('d', 'e').Replace('n', 'e').Replace('u', 'e');
         //pown = pown.Replace('n','e');
         //pown = pown.Replace('u', 'e');
-        if (isPerfect())
-        {
-            folder =  RAIDA.ActiveRAIDA.FS.BankFolder;
+        if (isPerfect()) {
+            folder = RAIDA.ActiveRAIDA.FS.BankFolder;
             //folder = Folder.Bank;
             return;
         }//if is perfect
 
-        if (isCounterfeit())
-        {
+        if (isCounterfeit()) {
             folder = RAIDA.ActiveRAIDA.FS.CounterfeitFolder;
             //folder = Folder.Counterfeit;
             return;
@@ -490,107 +457,79 @@ public class CloudCoin {
         //--------------------------------------
         /*Now look  at fracked coins*/
 
-        if (isGradablePass())
-        {
-            if (!isFracked())
-            {
+        if (isGradablePass()) {
+            if (!isFracked()) {
                 folder = RAIDA.ActiveRAIDA.FS.BankFolder;
                 return;
-            }
-            else
-            {
-                if (isDangerous())
-                {
-                    if (isFixable())
-                    {
+            } else {
+                if (isDangerous()) {
+                    if (isFixable()) {
                         recordPown();
                         folder = RAIDA.ActiveRAIDA.FS.DangerousFolder;
                         return;
 
-                    }
-                    else
-                    {
+                    } else {
                         folder = RAIDA.ActiveRAIDA.FS.CounterfeitFolder;
                         return;
                     }
-                }
-                else
-                {
-                    if (!isFixable())
-                    {
+                } else {
+                    if (!isFixable()) {
                         folder = RAIDA.ActiveRAIDA.FS.CounterfeitFolder;
                         return;
-                    }
-                    else
-                    {
+                    } else {
                         folder = RAIDA.ActiveRAIDA.FS.FrackedFolder;
                         return;
                     }
                 }
             }
-        }
-        else
-        {
-            if (noResponses())
-            {
+        } else {
+            if (noResponses()) {
                 folder = RAIDA.ActiveRAIDA.FS.LostFolder;
                 //folder = Folder.Lost;
                 return;
-            }
-            else
-            {
+            } else {
                 folder = RAIDA.ActiveRAIDA.FS.SuspectFolder;
                 //folder = Folder.Lost;
                 return;
             }
         }
     }
-    public boolean noResponses()
-    {
+
+    public boolean noResponses() {
         //Does the coin have no-responses from the RIDA. This means the RAIDA may be using its PAN or AN
-        //These must be fixed in a special way using both.  
+        //These must be fixed in a special way using both.
         boolean returnTruth = false;
-        if (charCount(pown, 'n') > 0)
-        {
+        if (charCount(pown, 'n') > 0) {
             returnTruth = true;
         }
         return returnTruth;
     }
 
 
-    public boolean isGradablePass()
-    {
+    public boolean isGradablePass() {
         //The coin is considered ungradable if it does not get more than 19 RAIDA available
         boolean returnTruth = false;
-        if (charCount(pown, 'f') + charCount(pown, 'p') > 16 && isFixable())
-        {
+        if (charCount(pown, 'f') + charCount(pown, 'p') > 16 && isFixable()) {
             returnTruth = true;
             //Console.Out.WriteLine("isGradable");
-        }
-        else
-        {
+        } else {
             //Console.Out.WriteLine("Not isGradable");
         }
         return returnTruth;
     }
 
 
-    public String[] grade()
-    {
+    public String[] grade() {
         int total = Config.NodeCount;
 
-        int passed = response.Where(x => x.outcome == "pass").Count();
-        int failed = response.Where(x => x.outcome == "fail").Count();
+
+        int passed = 0;
+        int failed = 0;
+        for (Response r : response) if ("pass".equals(r.outcome)) passed++;
+        for (Response r : response) if ("fail".equals(r.outcome)) passed++;
         int other = total - passed - failed;
 
-        if (passed > Config.PassCount)
-        {
-            DetectResult = DetectionStatus.Passed;
-        }
-        else
-        {
-            DetectResult = DetectionStatus.Failed;
-        }
+        DetectResult = (passed > Config.PassCount) ? DetectionStatus.Passed : DetectionStatus.Failed;
 
         String passedDesc = "";
         String failedDesc = "";
@@ -598,60 +537,37 @@ public class CloudCoin {
 
         // for each status
         // Calculate passed
-        if (passed == 25)
-        {
+        if (passed == 25) {
             passedDesc = "100% Passed!";
-        }
-        else if (passed > 17)
-        {
+        } else if (passed > 17) {
             passedDesc = "Super Majority";
-        }
-        else if (passed > 13)
-        {
+        } else if (passed > 13) {
             passedDesc = "Majority";
-        }
-        else if (passed == 0)
-        {
+        } else if (passed == 0) {
             passedDesc = "None";
-        }
-        else if (passed < 5)
-        {
+        } else if (passed < 5) {
             passedDesc = "Super Minority";
-        }
-        else
-        {
+        } else {
             passedDesc = "Minority";
         }
 
         // Calculate failed
-        if (failed == 25)
-        {
+        if (failed == 25) {
             failedDesc = "100% Failed!";
-        }
-        else if (failed > 17)
-        {
+        } else if (failed > 17) {
             failedDesc = "Super Majority";
-        }
-        else if (failed > 13)
-        {
+        } else if (failed > 13) {
             failedDesc = "Majority";
-        }
-        else if (failed == 0)
-        {
+        } else if (failed == 0) {
             failedDesc = "None";
-        }
-        else if (failed < 5)
-        {
+        } else if (failed < 5) {
             failedDesc = "Super Minority";
-        }
-        else
-        {
+        } else {
             failedDesc = "Minority";
         }
 
-        // Calcualte Other RAIDA Servers did not help. 
-        switch (other)
-        {
+        // Calcualte Other RAIDA Servers did not help.
+        switch (other) {
             case 0:
                 otherDesc = "100% of RAIDA responded";
                 break;
@@ -694,25 +610,18 @@ public class CloudCoin {
                 otherDesc = "FAILED TO EVALUATE RAIDA HEALTH";
                 break;
         }
-        
+
         // Coin will go to bank, counterfeit or fracked
-        if (other > 12)
-        {
+        if (other > 12) {
             // not enough RAIDA to have a quorum
             folder = RAIDA.GetInstance().FS.SuspectFolder;
-        }
-        else if (failed > passed)
-        {
+        } else if (failed > passed) {
             // failed out numbers passed with a quorum: Counterfeit
             folder = RAIDA.GetInstance().FS.CounterfeitFolder;
-        }
-        else if (failed > 0)
-        {
-            // The quorum majority said the coin passed but some disagreed: fracked. 
+        } else if (failed > 0) {
+            // The quorum majority said the coin passed but some disagreed: fracked.
             folder = RAIDA.GetInstance().FS.FrackedFolder;
-        }
-        else
-        {
+        } else {
             // No fails, all passes: bank
             folder = RAIDA.GetInstance().FS.BankFolder;
 
@@ -733,11 +642,10 @@ public class CloudCoin {
         this.edHex = String.format("0x%08X", monthsAfterZero);
     }
 
-    public boolean  containsThreat()
-    {
+    public boolean containsThreat() {
         boolean threat = false;
         String doublePown = pown + pown;
-        //There are four threat patterns that would allow attackers to seize other 
+        //There are four threat patterns that would allow attackers to seize other
         //String UP_LEFT = "ff***f";
         //String UP_RIGHT = "ff***pf";
         //String DOWN_LEFT = "fp***ff";
@@ -748,7 +656,7 @@ public class CloudCoin {
         boolean DOWN_LEFT = doublePown.matches("(?i)fp[a-z][a-z][a-z]ff");
         boolean DOWN_RIGHT = doublePown.matches("(?i)pf[a-z][a-z][a-z]ff");
 
-        //Check if 
+        //Check if
         if (UP_LEFT || UP_RIGHT || DOWN_LEFT || DOWN_RIGHT) {
             threat = true;
         }
@@ -758,15 +666,13 @@ public class CloudCoin {
     }
 
 
-
-    public enum DetectionStatus
-    {
+    public enum DetectionStatus {
         Passed,
         Failed,
         Other
     }
-    public class DetectionResult
-    {
+
+    public class DetectionResult {
         public DetectionStatus Result;
         public int PassCount;
         public int FailCount;

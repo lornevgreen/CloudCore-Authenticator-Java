@@ -8,6 +8,8 @@ import com.cloudcore.authenticator.coreclasses.TrustedTradeSocket;
 import com.cloudcore.authenticator.utils.SimpleLogger;
 
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import static com.cloudcore.authenticator.core.RAIDA.updateLog;
 
@@ -18,14 +20,15 @@ public class Main {
     static FileSystem FS = new FileSystem(rootFolder);
     public static RAIDA raida;
     public static Frack_Fixer fixer;
-    public static SimpleLogger logger = new SimpleLogger(FS.LogsFolder + "logs" + DateTime.Now.ToString("yyyyMMdd").ToLower() + ".log", true);
+    public static SimpleLogger logger = new SimpleLogger(FS.LogsFolder + "logs" +
+            LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.fff")).toLowerCase() + ".log", true);
     static TrustedTradeSocket tts;
 
     public static int NetworkNumber = 1;
 
     public static void main(String[] args) {
         setup();
-        initConfig();
+
         updateLog("Loading Network Directory");
         SetupRAIDA();
         FS.LoadFileSystem();
@@ -43,26 +46,6 @@ public class Main {
         //Connect to Trusted Trade Socket
         //tts = new TrustedTradeSocket("wss://escrow.cloudcoin.digital/ws/", 10, OnWord, OnStatusChange, OnReceive, OnProgress);
         //tts.Connect().Wait();
-    }
-    public static void initConfig() {
-        var builder = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json");
-
-        Configuration = builder.Build();
-        String nn = Configuration["NetworkNumber"];
-
-        try
-        {
-            NetworkNumber = Integer.parseInt(nn);
-        }
-        catch(Exception e)
-        {
-            NetworkNumber = 1;
-            updateLog("Reading Network Number Config failed. Setting default to 1.");
-        }
-
-        //services.Configure<AppSettings>(appSettings);
     }
     public static void SetupRAIDA()
     {
@@ -84,7 +67,7 @@ public class Main {
         }
         else
         {
-            updateLog(RAIDA.networks.Count + " Networks found.");
+            updateLog(RAIDA.networks.size() + " Networks found.");
             RAIDA raida = RAIDA.networks.get(0);
             for (RAIDA r : RAIDA.networks)
                 if (NetworkNumber == r.NetworkNumber) {

@@ -239,6 +239,14 @@ public class FileSystem extends IFileSystem {
         });
     }
 
+    public static String[] GetFilesNamesArray(String path, String[] extensions) {
+        File[] files = GetFilesArray(path, extensions);
+        String[] filenames = new String[files.length];
+        for (int i = 0; i < files.length; i++)
+            filenames[i] = files[i].getName();
+        return filenames;
+    }
+
     public static ArrayList<File> GetFiles(String path, String[] extensions) {
         return new ArrayList<>(Arrays.asList(GetFilesArray(path, extensions)));
     }

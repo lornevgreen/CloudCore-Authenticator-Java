@@ -1,6 +1,19 @@
 package com.cloudcore.authenticator.coreclasses;
 
+import com.cloudcore.authenticator.core.CloudCoin;
+import com.cloudcore.authenticator.core.Config;
+import com.cloudcore.authenticator.core.IFileSystem;
+import com.cloudcore.authenticator.core.Stack;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Random;
 
 public class Exporter
 {
@@ -15,18 +28,6 @@ public class Exporter
         this.fileSystem = fileUtils;
     }
 
-    public delegate void StatusUpdateHandler(Object sender, ProgressEventArgs e);
-    public event StatusUpdateHandler OnUpdateStatus;
-
-    private void UpdateStatus(String status, int percentage = 0)
-    {
-        // Make sure someone is listening to event
-        if (OnUpdateStatus == null) return;
-
-        ProgressEventArgs args = new ProgressEventArgs(status, percentage);
-        OnUpdateStatus(this, args);
-    }
-
     /* PUBLIC METHODS */
 
     public void writeQRCodeFiles(int m1, int m5, int m25, int m100, int m250, String tag)
@@ -34,16 +35,16 @@ public class Exporter
         int totalSaved = m1 + (m5 * 5) + (m25 * 25) + (m100 * 100) + (m250 * 250);// Total value of all coins
         int coinCount = m1 + m5 + m25 + m100 + m250; // Total number of coins
         String[] coinsToDelete = new String[coinCount];
-        String[] bankedFileNames = new DirectoryInfo(this.fileSystem.BankFolder).GetFiles().Select(o => o.Name).toArray(); // list all file names with bank extension
-        String[] frackedFileNames = new DirectoryInfo(this.fileSystem.FrackedFolder).GetFiles().Select(o => o.Name).toArray(); // list all file names with bank extension
-        String[] partialFileNames = new DirectoryInfo(this.fileSystem.PartialFolder).GetFiles().Select(o => o.Name).toArray();
+        String[] bankedFileNames = FileSystem.GetFilesNamesArray(this.fileSystem.BankFolder, Config.allowedExtensions);
+        String[] frackedFileNames = FileSystem.GetFilesNamesArray(this.fileSystem.FrackedFolder, Config.allowedExtensions);
+        String[] partialFileNames = FileSystem.GetFilesNamesArray(this.fileSystem.PartialFolder, Config.allowedExtensions);
 
         ArrayList<String> list = new ArrayList<>();
-        list.addRange(bankedFileNames);
-        list.addRange(frackedFileNames);
-        list.addRange(partialFileNames);
+        list.addAll(Arrays.asList(bankedFileNames));
+        list.addAll(Arrays.asList(frackedFileNames));
+        list.addAll(Arrays.asList(partialFileNames));
 
-        bankedFileNames = list.toArray(); // Add the two arrays together
+        bankedFileNames = list.toArray(new String[0]); // Add the two arrays together
 
         String path = this.fileSystem.ExportFolder;//the word path is shorter than other stuff
 
@@ -99,16 +100,12 @@ public class Exporter
                     break;// Break if all the coins have been called for.
                 }
             }
-            catch (FileNotFoundException ex)
+            catch (Exception ex)
             {
                 System.out.println(ex);
+                ex.printStackTrace();
                 //CoreLogger.Log(ex.toString());
             }
-            catch (IOException ioex)
-            {
-                System.out.println(ioex);
-                //CoreLogger.Log(ioex.toString());
-            }//end catch
         }// for each 1 note
     }//end write all jpegs
 
@@ -117,16 +114,16 @@ public class Exporter
         int totalSaved = m1 + (m5 * 5) + (m25 * 25) + (m100 * 100) + (m250 * 250);// Total value of all coins
         int coinCount = m1 + m5 + m25 + m100 + m250; // Total number of coins
         String[] coinsToDelete = new String[coinCount];
-        String[] bankedFileNames = new DirectoryInfo(this.fileSystem.BankFolder).GetFiles().Select(o => o.Name).toArray(); // list all file names with bank extension
-        String[] frackedFileNames = new DirectoryInfo(this.fileSystem.FrackedFolder).GetFiles().Select(o => o.Name).toArray(); // list all file names with bank extension
-        String[] partialFileNames = new DirectoryInfo(this.fileSystem.PartialFolder).GetFiles().Select(o => o.Name).toArray();
+        String[] bankedFileNames = FileSystem.GetFilesNamesArray(this.fileSystem.BankFolder, Config.allowedExtensions);
+        String[] frackedFileNames = FileSystem.GetFilesNamesArray(this.fileSystem.FrackedFolder, Config.allowedExtensions);
+        String[] partialFileNames = FileSystem.GetFilesNamesArray(this.fileSystem.PartialFolder, Config.allowedExtensions);
 
         ArrayList<String> list = new ArrayList<>();
-        list.addRange(bankedFileNames);
-        list.addRange(frackedFileNames);
-        list.addRange(partialFileNames);
+        list.addAll(Arrays.asList(bankedFileNames));
+        list.addAll(Arrays.asList(frackedFileNames));
+        list.addAll(Arrays.asList(partialFileNames));
 
-        bankedFileNames = list.toArray(); // Add the two arrays together
+        bankedFileNames = list.toArray(new String[0]); // Add the two arrays together
 
         String path = this.fileSystem.ExportFolder;//the word path is shorter than other stuff
 
@@ -182,16 +179,12 @@ public class Exporter
                     break;// Break if all the coins have been called for.
                 }
             }
-            catch (FileNotFoundException ex)
+            catch (Exception ex)
             {
                 System.out.println(ex);
+                ex.printStackTrace();
                 //CoreLogger.Log(ex.toString());
             }
-            catch (IOException ioex)
-            {
-                System.out.println(ioex);
-                //CoreLogger.Log(ioex.toString());
-            }//end catch
         }// for each 1 note
     }//end write all jpegs
 
@@ -200,16 +193,16 @@ public class Exporter
         int totalSaved = m1 + (m5 * 5) + (m25 * 25) + (m100 * 100) + (m250 * 250);// Total value of all coins
         int coinCount = m1 + m5 + m25 + m100 + m250; // Total number of coins
         String[] coinsToDelete = new String[coinCount];
-        String[] bankedFileNames = new DirectoryInfo(this.fileSystem.BankFolder).GetFiles().Select(o => o.Name).toArray(); // list all file names with bank extension
-        String[] frackedFileNames = new DirectoryInfo(this.fileSystem.FrackedFolder).GetFiles().Select(o => o.Name).toArray(); // list all file names with bank extension
-        String[] partialFileNames = new DirectoryInfo(this.fileSystem.PartialFolder).GetFiles().Select(o => o.Name).toArray();
+        String[] bankedFileNames = FileSystem.GetFilesNamesArray(this.fileSystem.BankFolder, Config.allowedExtensions);
+        String[] frackedFileNames = FileSystem.GetFilesNamesArray(this.fileSystem.FrackedFolder, Config.allowedExtensions);
+        String[] partialFileNames = FileSystem.GetFilesNamesArray(this.fileSystem.PartialFolder, Config.allowedExtensions);
 
         ArrayList<String> list = new ArrayList<>();
-        list.addRange(bankedFileNames);
-        list.addRange(frackedFileNames);
-        list.addRange(partialFileNames);
+        list.addAll(Arrays.asList(bankedFileNames));
+        list.addAll(Arrays.asList(frackedFileNames));
+        list.addAll(Arrays.asList(partialFileNames));
 
-        bankedFileNames = list.toArray(); // Add the two arrays together
+        bankedFileNames = list.toArray(new String[0]); // Add the two arrays together
 
         String path = this.fileSystem.ExportFolder;//the word path is shorter than other stuff
 
@@ -265,16 +258,12 @@ public class Exporter
                     break;// Break if all the coins have been called for.
                 }
             }
-            catch (FileNotFoundException ex)
+            catch (Exception ex)
             {
                 System.out.println(ex);
+                ex.printStackTrace();
                 //CoreLogger.Log(ex.toString());
             }
-            catch (IOException ioex)
-            {
-                System.out.println(ioex);
-                //CoreLogger.Log(ioex.toString());
-            }//end catch
         }// for each 1 note
     }//end write all jpegs
 
@@ -286,17 +275,16 @@ public class Exporter
         // Track the total coins
         int coinCount = m1 + m5 + m25 + m100 + m250;
         String[] coinsToDelete = new String[coinCount];
-        String[] bankedFileNames = new DirectoryInfo(this.fileSystem.BankFolder).GetFiles().Select(o => o.Name).toArray();//Get all names in bank folder
-        String[] frackedFileNames = new DirectoryInfo(this.fileSystem.FrackedFolder).GetFiles().Select(o => o.Name).toArray(); ;
-        String[] partialFileNames = new DirectoryInfo(this.fileSystem.PartialFolder).GetFiles().Select(o => o.Name).toArray();
-        // Add the two arrays together
-        ArrayList<String> list = new ArrayList<>();
-        list.addRange(bankedFileNames);
-        list.addRange(frackedFileNames);
-        list.addRange(partialFileNames);
+        String[] bankedFileNames = FileSystem.GetFilesNamesArray(this.fileSystem.BankFolder, Config.allowedExtensions);
+        String[] frackedFileNames = FileSystem.GetFilesNamesArray(this.fileSystem.FrackedFolder, Config.allowedExtensions);
+        String[] partialFileNames = FileSystem.GetFilesNamesArray(this.fileSystem.PartialFolder, Config.allowedExtensions);
 
-        // Program will spend fracked files like perfect files
-        bankedFileNames = list.toArray();
+        ArrayList<String> list = new ArrayList<>();
+        list.addAll(Arrays.asList(bankedFileNames));
+        list.addAll(Arrays.asList(frackedFileNames));
+        list.addAll(Arrays.asList(partialFileNames));
+
+        bankedFileNames = list.toArray(new String[0]); // Add the two arrays together
 
 
         // Check to see the denomination by looking at the file start
@@ -325,7 +313,7 @@ public class Exporter
                     json += ",\n";
                 }
 
-                if (File.Exists(bankFileName)) // Is it a bank file
+                if (Files.exists(Paths.get(bankFileName))) // Is it a bank file
                 {
 
                     CloudCoin coinNote = fileSystem.LoadCoin(bankFileName);
@@ -334,7 +322,7 @@ public class Exporter
                     coinsToDelete[c] = bankFileName;
                     c++;
                 }
-                else if (File.Exists(partialFileName)) // Is it a partial file
+                else if (Files.exists(Paths.get(partialFileName))) // Is it a partial file
                 {
                     CloudCoin coinNote = fileSystem.LoadCoin(partialFileName);
                     //coinNote = fileSystem.loa
@@ -363,7 +351,7 @@ public class Exporter
                     json += ",\n";
                 }
 
-                if (File.Exists(bankFileName))
+                if (Files.exists(Paths.get(bankFileName)))
                 {
                     CloudCoin coinNote = this.fileSystem.LoadCoin(bankFileName);
                     coinNote.aoid = null;//Clear all owner data
@@ -371,7 +359,7 @@ public class Exporter
                     coinsToDelete[c] = bankFileName;
                     c++;
                 }
-                else if (File.Exists(partialFileName)) // Is it a partial file
+                else if (Files.exists(Paths.get(partialFileName))) // Is it a partial file
                 {
                     CloudCoin coinNote = fileSystem.LoadCoin(partialFileName);
                     coinNote.aoid = null;//Clear all owner data
@@ -398,7 +386,7 @@ public class Exporter
                     json += ",\n";
                 }
 
-                if (File.Exists(bankFileName))
+                if (Files.exists(Paths.get(bankFileName)))
                 {
                     CloudCoin coinNote = this.fileSystem.LoadCoin(bankFileName);
                     coinNote.aoid = null;//Clear all owner data
@@ -406,7 +394,7 @@ public class Exporter
                     coinsToDelete[c] = bankFileName;
                     c++;
                 }
-                else if (File.Exists(partialFileName)) // Is it a partial file
+                else if (Files.exists(Paths.get(partialFileName))) // Is it a partial file
                 {
                     CloudCoin coinNote = fileSystem.LoadCoin(partialFileName);
                     coinNote.aoid = null;//Clear all owner data
@@ -433,7 +421,7 @@ public class Exporter
                     json += ",\n";
                 }
 
-                if (File.Exists(bankFileName))
+                if (Files.exists(Paths.get(bankFileName)))
                 {
                     CloudCoin coinNote = this.fileSystem.LoadCoin(bankFileName);
                     coinNote.aoid = null;//Clear all owner data
@@ -441,7 +429,7 @@ public class Exporter
                     coinsToDelete[c] = bankFileName;
                     c++;
                 }
-                else if (File.Exists(partialFileName)) // Is it a partial file
+                else if (Files.exists(Paths.get(partialFileName))) // Is it a partial file
                 {
                     CloudCoin coinNote = fileSystem.LoadCoin(partialFileName);
                     coinNote.aoid = null;//Clear all owner data
@@ -468,7 +456,7 @@ public class Exporter
                     json += ",\n";
                 }
 
-                if (File.Exists(bankFileName))
+                if (Files.exists(Paths.get(bankFileName)))
                 {
                     CloudCoin coinNote = this.fileSystem.LoadCoin(bankFileName);
                     coinNote.aoid = null;//Clear all owner data
@@ -476,7 +464,7 @@ public class Exporter
                     coinsToDelete[c] = bankFileName;
                     c++;
                 }
-                else if (File.Exists(partialFileName)) // Is it a partial file
+                else if (Files.exists(Paths.get(partialFileName))) // Is it a partial file
                 {
                     CloudCoin coinNote = fileSystem.LoadCoin(partialFileName);
                     coinNote.aoid = null;//Clear all owner data
@@ -506,47 +494,51 @@ public class Exporter
         json = json + "\t] " + System.lineSeparator();
         json += "}";
         String filename = (this.fileSystem.ExportFolder + File.pathSeparator + totalSaved + ".CloudCoins." + tag + ".stack");
-        if (File.Exists(filename))
+        if (Files.exists(Paths.get(filename)))
         {
             // tack on a random number if a file already exists with the same tag
             Random rnd = new Random();
-            int tagrand = rnd.Next(999);
+            int tagrand = rnd.nextInt(999);
             filename = (this.fileSystem.ExportFolder + File.pathSeparator + totalSaved + ".CloudCoins." + tag + tagrand + ".stack");
         }//end if file exists
 
-        File.WriteAllText(filename, json);
-        System.out.println("Writing to : ");
-        //CoreLogger.Log("Writing to : " + filename);
-        System.out.println(filename);
-        /*DELETE FILES THAT HAVE BEEN EXPORTED*/
-        for (int cc = 0; cc < coinsToDelete.length; cc++)
-        {
-            // System.out.println("Deleting " + coinsToDelete[cc]);
-            if (coinsToDelete[cc] != null) { File.Delete(coinsToDelete[cc]); }
-        }//end for all coins to delete
+        try {
+            Files.write(Paths.get(filename), json.getBytes(StandardCharsets.UTF_8));
+            System.out.println("Writing to : ");
+            //CoreLogger.Log("Writing to : " + filename);
+            System.out.println(filename);
+            /*DELETE FILES THAT HAVE BEEN EXPORTED*/
+            for (int cc = 0; cc < coinsToDelete.length; cc++) {
+                // System.out.println("Deleting " + coinsToDelete[cc]);
+                if (coinsToDelete[cc] != null) {
+                    Files.delete(Paths.get(coinsToDelete[cc]));
+                }
+            }//end for all coins to delete
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         // end if write was good
         return jsonExported;
     }//end write json to file
 
-    public boolean writeJSONFile(int m1, int m5, int m25, int m100, int m250, String tag, int mode = 0, String backupDir = "")
+    public boolean writeJSONFile(int m1, int m5, int m25, int m100, int m250, String tag, int mode, String backupDir)
     {
         boolean jsonExported = true;
         int totalSaved = m1 + (m5 * 5) + (m25 * 25) + (m100 * 100) + (m250 * 250);
         // Track the total coins
         int coinCount = m1 + m5 + m25 + m100 + m250;
         String[] coinsToDelete = new String[coinCount];
-        String[] bankedFileNames = new DirectoryInfo(this.fileSystem.BankFolder).GetFiles().Select(o => o.Name).toArray();//Get all names in bank folder
-        String[] frackedFileNames = new DirectoryInfo(this.fileSystem.FrackedFolder).GetFiles().Select(o => o.Name).toArray(); ;
-        String[] partialFileNames = new DirectoryInfo(this.fileSystem.PartialFolder).GetFiles().Select(o => o.Name).toArray();
-        // Add the two arrays together
-        ArrayList<String> list = new ArrayList<>();
-        list.addRange(bankedFileNames);
-        list.addRange(frackedFileNames);
-        list.addRange(partialFileNames);
+        String[] bankedFileNames = FileSystem.GetFilesNamesArray(this.fileSystem.BankFolder, Config.allowedExtensions);
+        String[] frackedFileNames = FileSystem.GetFilesNamesArray(this.fileSystem.FrackedFolder, Config.allowedExtensions);
+        String[] partialFileNames = FileSystem.GetFilesNamesArray(this.fileSystem.PartialFolder, Config.allowedExtensions);
 
-        // Program will spend fracked files like perfect files
-        bankedFileNames = list.toArray();
+        ArrayList<String> list = new ArrayList<>();
+        list.addAll(Arrays.asList(bankedFileNames));
+        list.addAll(Arrays.asList(frackedFileNames));
+        list.addAll(Arrays.asList(partialFileNames));
+
+        bankedFileNames = list.toArray(new String[0]); // Add the two arrays together
 
 
         // Check to see the denomination by looking at the file start
@@ -574,7 +566,7 @@ public class Exporter
                     json += ",\n";
                 }
 
-                if (File.Exists(bankFileName)) // Is it a bank file
+                if (Files.exists(Paths.get(bankFileName))) // Is it a bank file
                 {
                     CloudCoin coinNote = fileSystem.loadOneCloudCoinFromJsonFile(bankFileName);
                     coinNote.aoid = null;//Clear all owner data
@@ -582,7 +574,7 @@ public class Exporter
                     coinsToDelete[c] = bankFileName;
                     c++;
                 }
-                else if (File.Exists(partialFileName)) // Is it a partial file
+                else if (Files.exists(Paths.get(partialFileName))) // Is it a partial file
                 {
                     CloudCoin coinNote = fileSystem.loadOneCloudCoinFromJsonFile(partialFileName);
                     coinNote.aoid = null;//Clear all owner data
@@ -610,7 +602,7 @@ public class Exporter
                     json += ",\n";
                 }
 
-                if (File.Exists(bankFileName))
+                if (Files.exists(Paths.get(bankFileName)))
                 {
                     CloudCoin coinNote = this.fileSystem.loadOneCloudCoinFromJsonFile(bankFileName);
                     coinNote.aoid = null;//Clear all owner data
@@ -618,7 +610,7 @@ public class Exporter
                     coinsToDelete[c] = bankFileName;
                     c++;
                 }
-                else if (File.Exists(partialFileName)) // Is it a partial file
+                else if (Files.exists(Paths.get(partialFileName))) // Is it a partial file
                 {
                     CloudCoin coinNote = fileSystem.loadOneCloudCoinFromJsonFile(partialFileName);
                     coinNote.aoid = null;//Clear all owner data
@@ -645,7 +637,7 @@ public class Exporter
                     json += ",\n";
                 }
 
-                if (File.Exists(bankFileName))
+                if (Files.exists(Paths.get(bankFileName)))
                 {
                     CloudCoin coinNote = this.fileSystem.loadOneCloudCoinFromJsonFile(bankFileName);
                     coinNote.aoid = null;//Clear all owner data
@@ -653,7 +645,7 @@ public class Exporter
                     coinsToDelete[c] = bankFileName;
                     c++;
                 }
-                else if (File.Exists(partialFileName)) // Is it a partial file
+                else if (Files.exists(Paths.get(partialFileName))) // Is it a partial file
                 {
                     CloudCoin coinNote = fileSystem.loadOneCloudCoinFromJsonFile(partialFileName);
                     coinNote.aoid = null;//Clear all owner data
@@ -680,7 +672,7 @@ public class Exporter
                     json += ",\n";
                 }
 
-                if (File.Exists(bankFileName))
+                if (Files.exists(Paths.get(bankFileName)))
                 {
                     CloudCoin coinNote = this.fileSystem.loadOneCloudCoinFromJsonFile(bankFileName);
                     coinNote.aoid = null;//Clear all owner data
@@ -688,7 +680,7 @@ public class Exporter
                     coinsToDelete[c] = bankFileName;
                     c++;
                 }
-                else if (File.Exists(partialFileName)) // Is it a partial file
+                else if (Files.exists(Paths.get(partialFileName))) // Is it a partial file
                 {
                     CloudCoin coinNote = fileSystem.loadOneCloudCoinFromJsonFile(partialFileName);
                     coinNote.aoid = null;//Clear all owner data
@@ -715,7 +707,7 @@ public class Exporter
                     json += ",\n";
                 }
 
-                if (File.Exists(bankFileName))
+                if (Files.exists(Paths.get(bankFileName)))
                 {
                     CloudCoin coinNote = this.fileSystem.loadOneCloudCoinFromJsonFile(bankFileName);
                     coinNote.aoid = null;//Clear all owner data
@@ -723,7 +715,7 @@ public class Exporter
                     coinsToDelete[c] = bankFileName;
                     c++;
                 }
-                else if (File.Exists(partialFileName)) // Is it a partial file
+                else if (Files.exists(Paths.get(partialFileName))) // Is it a partial file
                 {
                     CloudCoin coinNote = fileSystem.loadOneCloudCoinFromJsonFile(partialFileName);
                     coinNote.aoid = null;//Clear all owner data
@@ -760,25 +752,29 @@ public class Exporter
         {
             filename = (backupDir + File.pathSeparator + totalSaved + ".CloudCoins." + tag + ".stack");
         }
-        if (File.Exists(filename))
+        if (Files.exists(Paths.get(filename)))
         {
             // tack on a random number if a file already exists with the same tag
             Random rnd = new Random();
-            int tagrand = rnd.Next(999);
+            int tagrand = rnd.nextInt(999);
             filename = (this.fileSystem.ExportFolder + File.pathSeparator + totalSaved + ".CloudCoins." + tag + tagrand + ".stack");
         }//end if file exists
 
-        File.WriteAllText(filename, json);
-        System.out.println("Writing to : ");
-        //CoreLogger.Log("Writing to : " + filename);
-        System.out.println(filename);
-        /*DELETE FILES THAT HAVE BEEN EXPORTED*/
-        if (mode == 0)
-            for (int cc = 0; cc < coinsToDelete.length; cc++)
-            {
+        try {
+            Files.write(Paths.get(filename), json.getBytes(StandardCharsets.UTF_8));
+            System.out.println("Writing to : ");
+            //CoreLogger.Log("Writing to : " + filename);
+            System.out.println(filename);
+            /*DELETE FILES THAT HAVE BEEN EXPORTED*/
+            for (int cc = 0; cc < coinsToDelete.length; cc++) {
                 // System.out.println("Deleting " + coinsToDelete[cc]);
-                if (coinsToDelete[cc] != null) { File.Delete(coinsToDelete[cc]); }
+                if (coinsToDelete[cc] != null) {
+                    Files.delete(Paths.get(coinsToDelete[cc]));
+                }
             }//end for all coins to delete
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         // end if write was good
         return jsonExported;
@@ -788,93 +784,96 @@ public class Exporter
     /* PRIVATE METHODS */
     private void qrCodeWriteOne(String path, String tag, String bankFileName, String frackedFileName, String partialFileName)
     {
-        if (File.Exists(bankFileName))//If the file is a bank file, export a good bank coin
-        {
-            CloudCoin jpgCoin = this.fileSystem.LoadCoin(bankFileName);
-            if (this.fileSystem.writeQrCode(jpgCoin, tag))//If the jpeg writes successfully
+        try {
+            if (Files.exists(Paths.get(bankFileName)))//If the file is a bank file, export a good bank coin
             {
-                //String json = JsonConvert.SerializeObject(jpgCoin);
-                //var barcode = new Barcode(json, Settings.Default);
-                //barcode.Canvas.SaveBmp(jpgCoin.FileName+".jpg");
-                File.Delete(bankFileName);//Delete the files if they have been written to
-            }//end if write was good.
+                CloudCoin jpgCoin = this.fileSystem.LoadCoin(bankFileName);
+                if (this.fileSystem.writeQrCode(jpgCoin, tag))//If the jpeg writes successfully
+                {
+                    //String json = JsonConvert.SerializeObject(jpgCoin);
+                    //var barcode = new Barcode(json, Settings.Default);
+                    //barcode.Canvas.SaveBmp(jpgCoin.FileName+".jpg");
+                    Files.delete(Paths.get(bankFileName));//Delete the files if they have been written to
+                }//end if write was good.
+            } else if (Files.exists(Paths.get(partialFileName)))//If the file is a bank file, export a good bank coin
+            {
+                CloudCoin jpgCoin = this.fileSystem.LoadCoin(partialFileName);
+                if (this.fileSystem.writeQrCode(jpgCoin, tag))//If the jpeg writes successfully
+                {
+                    Files.delete(Paths.get(partialFileName));//Delete the files if they have been written to
+                }//end if write was good.
+            } else//Export a fracked coin.
+            {
+                CloudCoin jpgCoin = fileSystem.LoadCoin(frackedFileName);
+                if (this.fileSystem.writeQrCode(jpgCoin, tag)) {
+                    Files.delete(Paths.get(frackedFileName));//Delete the files if they have been written to
+                }//end if
+            }//end else
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        else if (File.Exists(partialFileName))//If the file is a bank file, export a good bank coin
-        {
-            CloudCoin jpgCoin = this.fileSystem.LoadCoin(partialFileName);
-            if (this.fileSystem.writeQrCode(jpgCoin, tag))//If the jpeg writes successfully
-            {
-                File.Delete(partialFileName);//Delete the files if they have been written to
-            }//end if write was good.
-        }
-        else//Export a fracked coin.
-        {
-            CloudCoin jpgCoin = fileSystem.LoadCoin(frackedFileName);
-            if (this.fileSystem.writeQrCode(jpgCoin, tag))
-            {
-                File.Delete(frackedFileName);//Delete the files if they have been written to
-            }//end if
-        }//end else
     }//End write one jpeg
 
     private void barCode417WriteOne(String path, String tag, String bankFileName, String frackedFileName, String partialFileName)
     {
-        if (File.Exists(bankFileName))//If the file is a bank file, export a good bank coin
-        {
-            CloudCoin jpgCoin = this.fileSystem.LoadCoin(bankFileName);
-            if (this.fileSystem.writeBarCode(jpgCoin, tag))//If the jpeg writes successfully
+        try {
+            if (Files.exists(Paths.get(bankFileName)))//If the file is a bank file, export a good bank coin
             {
-                //String json = JsonConvert.SerializeObject(jpgCoin);
-                //var barcode = new Barcode(json, Settings.Default);
-                //barcode.Canvas.SaveBmp(jpgCoin.FileName+".jpg");
-                File.Delete(bankFileName);//Delete the files if they have been written to
-            }//end if write was good.
+                CloudCoin jpgCoin = this.fileSystem.LoadCoin(bankFileName);
+                if (this.fileSystem.writeBarCode(jpgCoin, tag))//If the jpeg writes successfully
+                {
+                    //String json = JsonConvert.SerializeObject(jpgCoin);
+                    //var barcode = new Barcode(json, Settings.Default);
+                    //barcode.Canvas.SaveBmp(jpgCoin.FileName+".jpg");
+                    Files.delete(Paths.get(bankFileName));//Delete the files if they have been written to
+                }//end if write was good.
+            } else if (Files.exists(Paths.get(partialFileName)))//If the file is a bank file, export a good bank coin
+            {
+                CloudCoin jpgCoin = this.fileSystem.LoadCoin(partialFileName);
+                if (this.fileSystem.writeBarCode(jpgCoin, tag))//If the jpeg writes successfully
+                {
+                    Files.delete(Paths.get(partialFileName));//Delete the files if they have been written to
+                }//end if write was good.
+            } else//Export a fracked coin.
+            {
+                CloudCoin jpgCoin = fileSystem.LoadCoin(frackedFileName);
+                if (this.fileSystem.writeBarCode(jpgCoin, tag)) {
+                    Files.delete(Paths.get(frackedFileName));//Delete the files if they have been written to
+                }//end if
+            }//end else
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        else if (File.Exists(partialFileName))//If the file is a bank file, export a good bank coin
-        {
-            CloudCoin jpgCoin = this.fileSystem.LoadCoin(partialFileName);
-            if (this.fileSystem.writeBarCode(jpgCoin, tag))//If the jpeg writes successfully
-            {
-                File.Delete(partialFileName);//Delete the files if they have been written to
-            }//end if write was good.
-        }
-        else//Export a fracked coin.
-        {
-            CloudCoin jpgCoin = fileSystem.LoadCoin(frackedFileName);
-            if (this.fileSystem.writeBarCode(jpgCoin, tag))
-            {
-                File.Delete(frackedFileName);//Delete the files if they have been written to
-            }//end if
-        }//end else
     }//End write one jpeg
 
 
     /* PRIVATE METHODS */
     private void jpegWriteOne(String path, String tag, String bankFileName, String frackedFileName, String partialFileName)
     {
-        if (File.Exists(bankFileName))//If the file is a bank file, export a good bank coin
-        {
-            CloudCoin jpgCoin = this.fileSystem.LoadCoin(bankFileName);
-            if (this.fileSystem.writeJpeg(jpgCoin, tag))//If the jpeg writes successfully
+        try {
+            if (Files.exists(Paths.get(bankFileName)))//If the file is a bank file, export a good bank coin
             {
-                File.Delete(bankFileName);//Delete the files if they have been written to
-            }//end if write was good.
+                CloudCoin jpgCoin = this.fileSystem.LoadCoin(bankFileName);
+                if (this.fileSystem.writeJpeg(jpgCoin, tag))//If the jpeg writes successfully
+                {
+                    Files.delete(Paths.get(bankFileName));//Delete the files if they have been written to
+                }//end if write was good.
+            } else if (Files.exists(Paths.get(partialFileName)))//If the file is a bank file, export a good bank coin
+            {
+                CloudCoin jpgCoin = this.fileSystem.LoadCoin(partialFileName);
+                if (this.fileSystem.writeJpeg(jpgCoin, tag))//If the jpeg writes successfully
+                {
+                    Files.delete(Paths.get(partialFileName));//Delete the files if they have been written to
+                }//end if write was good.
+            } else//Export a fracked coin.
+            {
+                CloudCoin jpgCoin = fileSystem.LoadCoin(frackedFileName);
+                if (this.fileSystem.writeJpeg(jpgCoin, tag)) {
+                    Files.delete(Paths.get(frackedFileName));//Delete the files if they have been written to
+                }//end if
+            }//end else
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        else if (File.Exists(partialFileName))//If the file is a bank file, export a good bank coin
-        {
-            CloudCoin jpgCoin = this.fileSystem.LoadCoin(partialFileName);
-            if (this.fileSystem.writeJpeg(jpgCoin, tag))//If the jpeg writes successfully
-            {
-                File.Delete(partialFileName);//Delete the files if they have been written to
-            }//end if write was good.
-        }
-        else//Export a fracked coin.
-        {
-            CloudCoin jpgCoin = fileSystem.LoadCoin(frackedFileName);
-            if (this.fileSystem.writeJpeg(jpgCoin, tag))
-            {
-                File.Delete(frackedFileName);//Delete the files if they have been written to
-            }//end if
-        }//end else
     }//End write one jpeg
 }// end exporter class

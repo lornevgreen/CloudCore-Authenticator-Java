@@ -8,50 +8,52 @@ import com.cloudcore.authenticator.core.Stack;
 import com.google.gson.Gson;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileAttributeView;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class FileSystem extends IFileSystem {
 
-        public FileSystem(String RootPath)
-        {
-            this.RootPath = RootPath;
-            ImportFolder = RootPath + File.pathSeparator + Config.TAG_IMPORT + File.pathSeparator;
-            ExportFolder = RootPath + File.pathSeparator + Config.TAG_EXPORT + File.pathSeparator;
-            ImportedFolder = RootPath + File.pathSeparator + Config.TAG_IMPORTED + File.pathSeparator;
-            TemplateFolder = RootPath + File.pathSeparator + Config.TAG_TEMPLATES + File.pathSeparator;
-            LanguageFolder = RootPath + File.pathSeparator + Config.TAG_LANGUAGE + File.pathSeparator;
-            CounterfeitFolder = RootPath + File.pathSeparator + Config.TAG_COUNTERFEIT + File.pathSeparator;
-            PartialFolder = RootPath + File.pathSeparator + Config.TAG_PARTIAL + File.pathSeparator;
-            FrackedFolder = RootPath + File.pathSeparator + Config.TAG_FRACKED + File.pathSeparator;
-            DetectedFolder = RootPath + File.pathSeparator + Config.TAG_DETECTED + File.pathSeparator;
-            SuspectFolder = RootPath + File.pathSeparator + Config.TAG_SUSPECT + File.pathSeparator;
-            TrashFolder = RootPath + File.pathSeparator + Config.TAG_TRASH + File.pathSeparator;
-            BankFolder = RootPath + File.pathSeparator + Config.TAG_BANK + File.pathSeparator;
-            PreDetectFolder = RootPath + File.pathSeparator + Config.TAG_PREDETECT + File.pathSeparator;
-            LostFolder = RootPath + File.pathSeparator + Config.TAG_LOST + File.pathSeparator;
-            RequestsFolder = RootPath + File.pathSeparator + Config.TAG_REQUESTS + File.pathSeparator;
-            DangerousFolder = RootPath + File.pathSeparator + Config.TAG_DANGEROUS + File.pathSeparator;
-            LogsFolder = RootPath + File.pathSeparator + Config.TAG_LOGS + File.pathSeparator;
-            QRFolder = ImportFolder + Config.TAG_QR;
-            BarCodeFolder = ImportFolder + Config.TAG_BARCODE;
-            CSVFolder = ImportFolder + Config.TAG_CSV;
+    public FileSystem(String RootPath) {
+        this.RootPath = RootPath;
+        ImportFolder = RootPath + File.pathSeparator + Config.TAG_IMPORT + File.pathSeparator;
+        ExportFolder = RootPath + File.pathSeparator + Config.TAG_EXPORT + File.pathSeparator;
+        ImportedFolder = RootPath + File.pathSeparator + Config.TAG_IMPORTED + File.pathSeparator;
+        TemplateFolder = RootPath + File.pathSeparator + Config.TAG_TEMPLATES + File.pathSeparator;
+        LanguageFolder = RootPath + File.pathSeparator + Config.TAG_LANGUAGE + File.pathSeparator;
+        CounterfeitFolder = RootPath + File.pathSeparator + Config.TAG_COUNTERFEIT + File.pathSeparator;
+        PartialFolder = RootPath + File.pathSeparator + Config.TAG_PARTIAL + File.pathSeparator;
+        FrackedFolder = RootPath + File.pathSeparator + Config.TAG_FRACKED + File.pathSeparator;
+        DetectedFolder = RootPath + File.pathSeparator + Config.TAG_DETECTED + File.pathSeparator;
+        SuspectFolder = RootPath + File.pathSeparator + Config.TAG_SUSPECT + File.pathSeparator;
+        TrashFolder = RootPath + File.pathSeparator + Config.TAG_TRASH + File.pathSeparator;
+        BankFolder = RootPath + File.pathSeparator + Config.TAG_BANK + File.pathSeparator;
+        PreDetectFolder = RootPath + File.pathSeparator + Config.TAG_PREDETECT + File.pathSeparator;
+        LostFolder = RootPath + File.pathSeparator + Config.TAG_LOST + File.pathSeparator;
+        RequestsFolder = RootPath + File.pathSeparator + Config.TAG_REQUESTS + File.pathSeparator;
+        DangerousFolder = RootPath + File.pathSeparator + Config.TAG_DANGEROUS + File.pathSeparator;
+        LogsFolder = RootPath + File.pathSeparator + Config.TAG_LOGS + File.pathSeparator;
+        QRFolder = ImportFolder + Config.TAG_QR;
+        BarCodeFolder = ImportFolder + Config.TAG_BARCODE;
+        CSVFolder = ImportFolder + Config.TAG_CSV;
 
-        }
+    }
 
-        @Override
-        public boolean CreateFolderStructure() {
-            // Create the Actual Folder Structure
-            return CreateDirectories();
-            //return true;
-        }
+    @Override
+    public boolean CreateFolderStructure() {
+        // Create the Actual Folder Structure
+        return CreateDirectories();
+        //return true;
+    }
 
-        public void CopyTemplates()
-        {
+    public void CopyTemplates() {
             /* TODO: see if this is necessary
             String[] fileNames = Assembly.GetExecutingAssembly().GetManifestResourceNames();
             for (String fileName : fileNames)
@@ -61,224 +63,195 @@ public class FileSystem extends IFileSystem {
 
                 }
             }*/
+    }
+
+    public boolean CreateDirectories() {
+        // Create Subdirectories as per the RootFolder Location
+        // Failure will return false
+
+        try {
+            Files.createDirectory(Paths.get(RootPath));
+            Files.createDirectory(Paths.get(RootPath));
+            Files.createDirectory(Paths.get(ImportFolder));
+            Files.createDirectory(Paths.get(ExportFolder));
+            Files.createDirectory(Paths.get(BankFolder));
+            Files.createDirectory(Paths.get(ImportedFolder));
+            Files.createDirectory(Paths.get(LostFolder));
+            Files.createDirectory(Paths.get(TrashFolder));
+            Files.createDirectory(Paths.get(SuspectFolder));
+            Files.createDirectory(Paths.get(DetectedFolder));
+            Files.createDirectory(Paths.get(FrackedFolder));
+            Files.createDirectory(Paths.get(TemplateFolder));
+            Files.createDirectory(Paths.get(PartialFolder));
+            Files.createDirectory(Paths.get(CounterfeitFolder));
+            Files.createDirectory(Paths.get(LanguageFolder));
+            Files.createDirectory(Paths.get(PreDetectFolder));
+            Files.createDirectory(Paths.get(RequestsFolder));
+            Files.createDirectory(Paths.get(DangerousFolder));
+            Files.createDirectory(Paths.get(LogsFolder));
+            Files.createDirectory(Paths.get(QRFolder));
+            Files.createDirectory(Paths.get(BarCodeFolder));
+            Files.createDirectory(Paths.get(CSVFolder));
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return false;
         }
 
-        public boolean CreateDirectories() {
-            // Create Subdirectories as per the RootFolder Location
-            // Failure will return false
 
-            try {
-                Files.createDirectory(Paths.get(RootPath));
-                Files.createDirectory(Paths.get(RootPath));
-                Files.createDirectory(Paths.get(ImportFolder));
-                Files.createDirectory(Paths.get(ExportFolder));
-                Files.createDirectory(Paths.get(BankFolder));
-                Files.createDirectory(Paths.get(ImportedFolder));
-                Files.createDirectory(Paths.get(LostFolder));
-                Files.createDirectory(Paths.get(TrashFolder));
-                Files.createDirectory(Paths.get(SuspectFolder));
-                Files.createDirectory(Paths.get(DetectedFolder));
-                Files.createDirectory(Paths.get(FrackedFolder));
-                Files.createDirectory(Paths.get(TemplateFolder));
-                Files.createDirectory(Paths.get(PartialFolder));
-                Files.createDirectory(Paths.get(CounterfeitFolder));
-                Files.createDirectory(Paths.get(LanguageFolder));
-                Files.createDirectory(Paths.get(PreDetectFolder));
-                Files.createDirectory(Paths.get(RequestsFolder));
-                Files.createDirectory(Paths.get(DangerousFolder));
-                Files.createDirectory(Paths.get(LogsFolder));
-                Files.createDirectory(Paths.get(QRFolder));
-                Files.createDirectory(Paths.get(BarCodeFolder));
-                Files.createDirectory(Paths.get(CSVFolder));
-            }
-            catch (Exception e)
-            {
-                System.out.println(e.getMessage());
-                return false;
-            }
-
-
-            return true;
-        }
-
-        @Override
-        public void LoadFileSystem()
-        {
-            // TODO: See if these need re-enabled
-            importCoins = LoadFolderCoins(ImportFolder);
-            ArrayList<CloudCoin> csvCoins = LoadCoinsByFormat(ImportFolder +File.pathSeparator + "CSV", Formats.CSV);
-            ArrayList<CloudCoin> qrCoins = LoadCoinsByFormat(ImportFolder + File.pathSeparator + "QrCodes", Formats.QRCode);
-            ArrayList<CloudCoin> BarCodeCoins = LoadCoinsByFormat(ImportFolder + File.pathSeparator + "Barcodes", Formats.BarCode);
-
-            // Add Additional File formats if present
-            //importCoins = importCoins.Concat(csvCoins);
-            importCoins.addAll(BarCodeCoins);
-            importCoins.addAll(qrCoins);
-
-            System.out.println("Count -" + importCoins.size());
-
-            //exportCoins = LoadFolderCoins(ExportFolder);
-            bankCoins = LoadFolderCoins(BankFolder);
-            lostCoins = LoadFolderCoins(LostFolder);
-            //importedCoins = LoadFolderCoins(ImportedFolder);
-            //trashCoins = LoadFolderCoins(TrashFolder);
-            suspectCoins = LoadFolderCoins(SuspectFolder);
-            detectedCoins = LoadFolderCoins(DetectedFolder);
-            frackedCoins = LoadFolderCoins(FrackedFolder);
-            //LoadFolderCoins(TemplateFolder);
-            partialCoins = LoadFolderCoins(PartialFolder);
-            //counterfeitCoins = LoadFolderCoins(CounterfeitFolder);
-            predetectCoins = LoadFolderCoins(PreDetectFolder);
-            dangerousCoins = LoadFolderCoins(DangerousFolder);
-
-        }
-
+        return true;
+    }
 
     @Override
-        public void DetectPreProcessing()
-        {
-            for (CloudCoin coin : importCoins)
-            {
-                String fileName = GetCoinName(coin.FileName());
-                int coinExists = 0;
-                for (CloudCoin folderCoin : predetectCoins)
-                    if (folderCoin.getSn() == coin.getSn())
-                        coinExists++;
-                //int coinExists = (int) Arrays.stream(predetectCoins.toArray(new CloudCoin[0])).filter(x -> x.getSn() == coin.getSn()).count();
+    public void LoadFileSystem() {
+        // TODO: See if these need re-enabled
+        importCoins = LoadFolderCoins(ImportFolder);
+        ArrayList<CloudCoin> csvCoins = LoadCoinsByFormat(ImportFolder + File.pathSeparator + "CSV", Formats.CSV);
+        ArrayList<CloudCoin> qrCoins = LoadCoinsByFormat(ImportFolder + File.pathSeparator + "QrCodes", Formats.QRCode);
+        ArrayList<CloudCoin> BarCodeCoins = LoadCoinsByFormat(ImportFolder + File.pathSeparator + "Barcodes", Formats.BarCode);
 
-                //if (coinExists > 0)
-                //{
-                //    String suffix = Utils.RandomString(16);
-                //    fileName += suffix.toLowerCase();
-                //}
+        // Add Additional File formats if present
+        //importCoins = importCoins.Concat(csvCoins);
+        importCoins.addAll(BarCodeCoins);
+        importCoins.addAll(qrCoins);
 
+        System.out.println("Count -" + importCoins.size());
+
+        //exportCoins = LoadFolderCoins(ExportFolder);
+        bankCoins = LoadFolderCoins(BankFolder);
+        lostCoins = LoadFolderCoins(LostFolder);
+        //importedCoins = LoadFolderCoins(ImportedFolder);
+        //trashCoins = LoadFolderCoins(TrashFolder);
+        suspectCoins = LoadFolderCoins(SuspectFolder);
+        detectedCoins = LoadFolderCoins(DetectedFolder);
+        frackedCoins = LoadFolderCoins(FrackedFolder);
+        //LoadFolderCoins(TemplateFolder);
+        partialCoins = LoadFolderCoins(PartialFolder);
+        //counterfeitCoins = LoadFolderCoins(CounterfeitFolder);
+        predetectCoins = LoadFolderCoins(PreDetectFolder);
+        dangerousCoins = LoadFolderCoins(DangerousFolder);
+
+    }
+
+    @Override
+    public void DetectPreProcessing() {
+        for (CloudCoin coin : importCoins) {
+            String fileName = GetCoinName(coin.FileName());
+            int coinExists = 0;
+            for (CloudCoin folderCoin : predetectCoins)
+                if (folderCoin.getSn() == coin.getSn())
+                    coinExists++;
+            //int coinExists = (int) Arrays.stream(predetectCoins.toArray(new CloudCoin[0])).filter(x -> x.getSn() == coin.getSn()).count();
+
+            //if (coinExists > 0)
+            //{
+            //    String suffix = Utils.RandomString(16);
+            //    fileName += suffix.toLowerCase();
+            //}
+
+            Stack stack = new Stack(coin);
+            try {
+                Files.write(Paths.get(PreDetectFolder + fileName + ".stack"), new Gson().toJson(stack).getBytes(StandardCharsets.UTF_8));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @Override
+    public void ProcessCoins(ArrayList<CloudCoin> coins) {
+
+        ArrayList<CloudCoin> detectedCoins = LoadFolderCoins(DetectedFolder);
+
+
+        for (CloudCoin coin : detectedCoins) {
+            if (coin.getPassCount() >= Config.PassCount) {
+                WriteCoin(coin, BankFolder);
+            } else {
+                WriteCoin(coin, CounterfeitFolder);
+            }
+        }
+    }
+
+    public String GetCoinName(String CoinName) {
+        return CoinName;
+    }
+
+    public void TransferCoins(ArrayList<CloudCoin> coins, String sourceFolder, String targetFolder) {
+        TransferCoins(coins, sourceFolder, targetFolder, ".stack");
+    }
+
+    public void TransferCoins(ArrayList<CloudCoin> coins, String sourceFolder, String targetFolder, String extension) {
+        ArrayList<CloudCoin> folderCoins = LoadFolderCoins(targetFolder);
+
+        for (CloudCoin coin : coins) {
+            String fileName = GetCoinName(coin.FileName());
+            try {
                 Stack stack = new Stack(coin);
                 try {
-                    Files.write(Paths.get(PreDetectFolder + fileName + ".stack"), new Gson().toJson(stack).getBytes(StandardCharsets.UTF_8));
+                    Files.write(Paths.get(targetFolder + fileName + extension), new Gson().toJson(stack).getBytes(StandardCharsets.UTF_8));
+                    Files.delete(Paths.get(sourceFolder + GetCoinName(coin.FileName()) + extension));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-            }
-        }
-
-    @Override
-        public void ProcessCoins(ArrayList<CloudCoin> coins)
-        {
-
-            ArrayList<CloudCoin> detectedCoins = LoadFolderCoins(DetectedFolder);
-
-
-            for (CloudCoin coin : detectedCoins)
-            {
-                if (coin.getPassCount() >= Config.PassCount)
-                {
-                    WriteCoin(coin, BankFolder);
-                }
-                else
-                {
-                    WriteCoin(coin, CounterfeitFolder);
-                }
-            }
-        }
-
-        public String GetCoinName(String CoinName)
-        {
-            return CoinName;
-        }
-
-        public void TransferCoins(ArrayList<CloudCoin> coins, String sourceFolder, String targetFolder) {
-            TransferCoins(coins, sourceFolder, targetFolder, ".stack");
-        }
-        public void TransferCoins(ArrayList<CloudCoin> coins, String sourceFolder, String targetFolder,String extension)
-        {
-            ArrayList<CloudCoin> folderCoins = LoadFolderCoins(targetFolder);
-
-            for (CloudCoin coin : coins)
-            {
-                String fileName = GetCoinName(coin.FileName());
-                try
-                {
-                    Stack stack = new Stack(coin);
-                    try {
-                        Files.write(Paths.get(targetFolder + fileName + extension), new Gson().toJson(stack).getBytes(StandardCharsets.UTF_8));
-                        Files.delete(Paths.get(sourceFolder + GetCoinName(coin.FileName()) + extension));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-                catch (Exception e)
-                {
-                    System.out.println(e.getMessage());
-                }
-            }
-        }
-
-
-
-
-    @Override
-        public void ClearCoins(String FolderName)
-        {
-
-            var fii = GetFiles(FolderName, Config.allowedExtensions);
-
-            DirectoryInfo di = new DirectoryInfo(FolderName);
-
-
-            for (FileInfo file : fii)
-            try
-            {
-                file.Attributes = FileAttributes.Normal;
-                File.Delete(file.FullName);
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 System.out.println(e.getMessage());
             }
-
         }
+    }
 
-        public boolean WriteTextFile(String fileName,String text)
-        {
-            try
-            {
-                Path path = Paths.get(fileName);
-                if (!Files.exists(path))
-                    Files.createFile(path);
-
-                Files.write(path, text.getBytes(StandardCharsets.UTF_8));
-            }
-            catch(Exception e)
-            {
-                e.printStackTrace();
-                // MainWindow.logger.Error(e.getMessage());
-                return false;
-            }
-            return true;
-        }
-        public ArrayList<FileInfo> GetFiles(String path, params String[] extensions)
-        {
-            ArrayList<FileInfo> list = new ArrayList<FileInfo>();
-            for (String ext : extensions)
-            list.addRange(new DirectoryInfo(path).GetFiles("*" + ext).Where(p =>
-                    p.Extension.Equals(ext, StringComparison.CurrentCultureIgnoreCase))
-                    .toArray());
-            return list;
-        }
     @Override
-        public void MoveImportedFiles()
-        {
-            var files = Directory
-                    .GetFiles(ImportFolder)
-                    .Where(file => Config.allowedExtensions.Any(file.toLowerCase().EndsWith))
-              .ToList();
+    public void ClearCoins(String FolderName) {
+        File[] files = GetFilesArray(FolderName, Config.allowedExtensions);
 
-            String[] fnames = new String[files.count()];
-            for (int i = 0; i < files.count(); i++)
-            {
-                MoveFile(files[i], ImportedFolder + File.pathSeparator + Path.GetFileName(files[i]), FileMoveOptions.Rename);
+        for (File file : files)
+            try {
+                file.setReadable(true);
+                file.setWritable(true);
+                file.delete();
+            } catch (SecurityException e) {
+                System.out.println(e.getMessage());
+                e.printStackTrace();
             }
 
+    }
+
+    public boolean WriteTextFile(String fileName, String text) {
+        try {
+            Path path = Paths.get(fileName);
+            if (!Files.exists(path))
+                Files.createFile(path);
+
+            Files.write(path, text.getBytes(StandardCharsets.UTF_8));
+        } catch (Exception e) {
+            e.printStackTrace();
+            // MainWindow.logger.Error(e.getMessage());
+            return false;
+        }
+        return true;
+    }
+
+    public File[] GetFilesArray(String path, String[] extensions) {
+        final ArrayList<String> extensionsArray = new ArrayList<>(Arrays.asList(extensions));
+        return new File(path).listFiles(pathname -> {
+            String filename = pathname.getAbsolutePath();
+            String extension = filename.substring(filename.lastIndexOf('.')).toLowerCase();
+            return extensionsArray.contains(extension);
+        });
+    }
+
+    public ArrayList<File> GetFiles(String path, String[] extensions) {
+        return new ArrayList<>(Arrays.asList(GetFilesArray(path, extensions)));
+    }
+
+    @Override
+    public void MoveImportedFiles() {
+        File[] files = GetFilesArray(ImportedFolder, Config.allowedExtensions);
+
+        for (int i = 0; i < files.length; i++) {
+            MoveFile(files[i].getAbsolutePath(), ImportedFolder + File.pathSeparator + files[i].getName(), FileMoveOptions.Rename);
+        }
+
+            /* TODO: Deal with QRCode
             var filesqr = Directory
                     .GetFiles(ImportFolder + File.pathSeparator + "QrCodes")
                     .Where(file => Config.allowedExtensions.Any(file.toLowerCase().EndsWith))
@@ -288,8 +261,9 @@ public class FileSystem extends IFileSystem {
             for (int i = 0; i < filesqr.count(); i++)
             {
                 MoveFile(filesqr[i], ImportedFolder + File.pathSeparator + Path.GetFileName(filesqr[i]), FileMoveOptions.Rename);
-            }
+            }*/
 
+            /* TODO: Deal with Barcode
             var filesbar = Directory
                     .GetFiles(ImportFolder + File.pathSeparator + "Barcodes")
                     .Where(file => Config.allowedExtensions.Any(file.toLowerCase().EndsWith))
@@ -299,16 +273,17 @@ public class FileSystem extends IFileSystem {
             for (int i = 0; i < filesbar.count(); i++)
             {
                 MoveFile(filesbar[i], ImportedFolder + File.pathSeparator + Path.GetFileName(filesbar[i]), FileMoveOptions.Rename);
-            }
-        }
+            }*/
+    }
 
     @Override
-        public boolean WriteCoinToJpeg(CloudCoin cloudCoin, String TemplateFile, String OutputFile, String tag)
-        {
+    public boolean WriteCoinToJpeg(CloudCoin cloudCoin, String TemplateFile, String OutputFile, String tag) {
+            /*  TODO: Deal with Barcode
+        }
             OutputFile = OutputFile.replace("\\\\", "\\");
             boolean fileSavedSuccessfully = true;
 
-            /* BUILD THE CLOUDCOIN STRING */
+            // BUILD THE CLOUDCOIN STRING //
             String cloudCoinStr = "01C34A46494600010101006000601D05"; //THUMBNAIL HEADER BYTES
             for (int i = 0; (i < 25); i++)
             {
@@ -338,23 +313,23 @@ public class FileSystem extends IFileSystem {
                 case 6: fullHexSN = hexSN; break;
             }
             cloudCoinStr = (cloudCoinStr + fullHexSN);
-            /* BYTES THAT WILL GO FROM 04 to 454 (Inclusive)*/
+            // BYTES THAT WILL GO FROM 04 to 454 (Inclusive)//
             byte[] ccArray = this.hexStringToByteArray(cloudCoinStr);
 
 
-            /* READ JPEG TEMPLATE*/
+            /* READ JPEG TEMPLATE//
             byte[] jpegBytes = null;
 
             //jpegBytes = readAllBytes(filePath);
             jpegBytes = File.ReadAllBytes(TemplateFile);
 
-            /* WRITE THE SERIAL NUMBER ON THE JPEG */
+            /* WRITE THE SERIAL NUMBER ON THE JPEG //
 
             //Bitmap bitmapimage;
             //jpegBytes = readAllBytes(filePath);
             jpegBytes = File.ReadAllBytes(TemplateFile);
 
-            /* WRITE THE SERIAL NUMBER ON THE JPEG */
+            /* WRITE THE SERIAL NUMBER ON THE JPEG //
 
             Bitmap bitmapimage;
 
@@ -391,11 +366,13 @@ public class FileSystem extends IFileSystem {
             //CoreLogger.Log("Writing to " + fileName);
 
             return fileSavedSuccessfully;
-        }
+            */
+        return false;
+    }
 
     @Override
-        public boolean WriteCoinToQRCode(CloudCoin cloudCoin, String OutputFile, String tag)
-        {
+    public boolean WriteCoinToQRCode(CloudCoin cloudCoin, String OutputFile, String tag) {
+            /*  TODO: Deal with QR Code
             int width = 250; // width of the Qr Code
             int height = 250; // height of the Qr Code
             int margin = 0;
@@ -433,11 +410,13 @@ public class FileSystem extends IFileSystem {
 
 
             return true;
-        }
+            */
+        return false;
+    }
 
     @Override
-        public boolean WriteCoinToBARCode(CloudCoin cloudCoin, String OutputFile, String tag)
-        {
+    public boolean WriteCoinToBARCode(CloudCoin cloudCoin, String OutputFile, String tag) {
+            /*  TODO: Deal with Barcode
             var writer = new BarcodeWriter
             {
                 Format = BarcodeFormat.PDF_417,
@@ -453,6 +432,8 @@ public class FileSystem extends IFileSystem {
                 imgBitmap.Save(OutputFile);
             }
             return true;
-        }
+            */
+        return false;
+    }
 }
 

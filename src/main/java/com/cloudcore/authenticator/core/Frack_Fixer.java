@@ -1,5 +1,13 @@
 package com.cloudcore.authenticator.core;
 
+import com.cloudcore.authenticator.coreclasses.FileSystem;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
 public class Frack_Fixer {
     /* INSTANCE VARIABLES */
     private IFileSystem fileUtils;
@@ -36,7 +44,7 @@ public class Frack_Fixer {
 
             if (!raida.nodes[trustedTriad[0]].FailsEcho || !raida.nodes[trustedTriad[0]].FailsDetect || !raida.nodes[trustedTriad[1]].FailsEcho || !!raida.nodes[trustedTriad[1]].FailsDetect || !raida.nodes[trustedTriad[2]].FailsEcho || !raida.nodes[trustedTriad[2]].FailsDetect) {
                 /*3. GET TICKETS AND UPDATE RAIDA STATUS TICKETS*/
-                String[] ans = {cc.an[trustedTriad[0]], cc.an[trustedTriad[1]], cc.an[trustedTriad[2]]};
+                String[] ans = {cc.an.get(trustedTriad[0]), cc.an.get(trustedTriad[1]), cc.an.get(trustedTriad[2])};
                 raida.GetTickets(trustedTriad, ans, cc.nn, cc.getSn(), cu.getDenomination(), 3000);
 
                 /*4. ARE ALL TICKETS GOOD?*/
@@ -47,45 +55,45 @@ public class Frack_Fixer {
                         System.out.println("Aborting Fix ");
                         return "Aborting for new operation";
                     }
-                    Response fixResponse = RAIDA.GetInstance().nodes[raida_ID].Fix(trustedTriad, raida.nodes[trustedTriad[0]].Ticket, raida.nodes[trustedTriad[1]].Ticket, raida.nodes[trustedTriad[2]].Ticket, cc.an[raida_ID]).Result;
+                    Response fixResponse = RAIDA.GetInstance().nodes[raida_ID].Fix(trustedTriad, raida.nodes[trustedTriad[0]].Ticket, raida.nodes[trustedTriad[1]].Ticket, raida.nodes[trustedTriad[2]].Ticket, cc.an.get(raida_ID));
                     /*6. DID THE FIX WORK?*/
                     if (fixResponse.success) {
-                        Console.ForegroundColor = ConsoleColor.Green;
+                        //Console.ForegroundColor = ConsoleColor.Green;
                         System.out.println("");
                         System.out.println("RAIDA" + raida_ID + " unfracked successfully.");
                         pge.MajorProgressMessage = "RAIDA" + raida_ID + " unfracked successfully.";
                         raida.OnLogRecieved(pge);
                         //CoreLogger.Log("RAIDA" + raida_ID + " unfracked successfully.");
                         System.out.println("");
-                        Console.ForegroundColor = ConsoleColor.White;
+                        //Console.ForegroundColor = ConsoleColor.White;
                         return "RAIDA" + raida_ID + " unfracked successfully.";
 
                     } else {
-                        Console.ForegroundColor = ConsoleColor.Red;
+                        //Console.ForegroundColor = ConsoleColor.Red;
                         System.out.println("");
                         System.out.println("RAIDA failed to accept tickets on corner " + corner);
                         pge.MajorProgressMessage = "RAIDA failed to accept tickets on corner " + corner;
                         raida.OnLogRecieved(pge);
                         //CoreLogger.Log("RAIDA failed to accept tickets on corner " + corner);
                         System.out.println("");
-                        Console.ForegroundColor = ConsoleColor.White;
+                        //Console.ForegroundColor = ConsoleColor.White;
                         return "RAIDA failed to accept tickets on corner " + corner;
                     }//end if fix respons was success or fail
                 } else {
-                    Console.ForegroundColor = ConsoleColor.Red;
+                    //Console.ForegroundColor = ConsoleColor.Red;
                     System.out.println("");
                     System.out.println("Trusted servers failed to provide tickets for corner " + corner);
                     pge.MajorProgressMessage = "Trusted servers failed to provide tickets for corner " + corner;
                     raida.OnLogRecieved(pge);
                     //CoreLogger.Log("Trusted servers failed to provide tickets for corner " + corner);
                     System.out.println("");
-                    Console.ForegroundColor = ConsoleColor.White;
+                    //Console.ForegroundColor = ConsoleColor.White;
 
                     return "Trusted servers failed to provide tickets for corner " + corner;//no three good tickets
                 }//end if all good
             }//end if trused triad will echo and detect (Detect is used to get ticket)
 
-            Console.ForegroundColor = ConsoleColor.Red;
+            //Console.ForegroundColor = ConsoleColor.Red;
             System.out.println("");
             System.out.println("One or more of the trusted triad will not echo and detect.So not trying.");
             pge.MajorProgressMessage = "One or more of the trusted triad will not echo and detect.So not trying.";
@@ -93,7 +101,7 @@ public class Frack_Fixer {
 
             //CoreLogger.Log("One or more of the trusted triad will not echo and detect.So not trying.");
             System.out.println("");
-            Console.ForegroundColor = ConsoleColor.White;
+            //Console.ForegroundColor = ConsoleColor.White;
             return "One or more of the trusted triad will not echo and detect. So not trying.";
         }//end if RAIDA fails to fix.
 
@@ -105,9 +113,7 @@ public class Frack_Fixer {
         IsFixing = true;
         continueExecution = true;
         int[] results = new int[3];
-        String[] frackedFileNames = new DirectoryInfo(this.fileUtils.FrackedFolder).GetFiles().Select(o = > o.Name).
-        ToArray();
-
+        File[] frackedFiles = FileSystem.GetFilesArray(fileUtils.FrackedFolder, Config.allowedExtensions);
 
         CloudCoin frackedCC;
 
@@ -116,26 +122,26 @@ public class Frack_Fixer {
         raida.OnLogRecieved(pge);
 
         //CoinUtils cu = new CoinUtils(frackedCC);
-        if (frackedFileNames.length < 0) {
-            Console.ForegroundColor = ConsoleColor.Green;
+        if (frackedFiles.length < 0) {
+            //Console.ForegroundColor = ConsoleColor.Green;
             System.out.println("You have no fracked coins.");
             //CoreLogger.Log("You have no fracked coins.");
-            Console.ForegroundColor = ConsoleColor.White;
+            //Console.ForegroundColor = ConsoleColor.White;
         }//no coins to unfrack
 
 
-        for (int i = 0; i < frackedFileNames.length; i++) {
+        for (int i = 0; i < frackedFiles.length; i++) {
             if (!continueExecution) {
                 System.out.println("Aborting Fix 1");
                 break;
             }
-            System.out.println("Unfracking coin " + (i + 1) + " of " + frackedFileNames.length);
+            System.out.println("Unfracking coin " + (i + 1) + " of " + frackedFiles.length);
             //ProgressChangedEventArgs pge = new ProgressChangedEventArgs();
-            pge.MajorProgressMessage = "Unfracking coin " + (i + 1) + " of " + frackedFileNames.length;
+            pge.MajorProgressMessage = "Unfracking coin " + (i + 1) + " of " + frackedFiles.length;
             raida.OnLogRecieved(pge);
             //CoreLogger.Log("UnFracking coin " + (i + 1) + " of " + frackedFileNames.length);
             try {
-                frackedCC = fileUtils.LoadCoin(this.fileUtils.FrackedFolder + frackedFileNames[i]);
+                frackedCC = fileUtils.LoadCoin(this.fileUtils.FrackedFolder + frackedFiles[i]);
                 if (frackedCC == null)
                     throw new IOException();
                 CoinUtils cu = new CoinUtils(frackedCC);
@@ -153,7 +159,7 @@ public class Frack_Fixer {
                     case "bank":
                         this.totalValueToBank++;
                         this.fileUtils.overWrite(this.fileUtils.BankFolder, fixedCC.cc);
-                        this.deleteCoin(this.fileUtils.FrackedFolder + frackedFileNames[i]);
+                        this.deleteCoin(this.fileUtils.FrackedFolder + frackedFiles[i].getName());
                         System.out.println("CloudCoin was moved to Bank.");
                         pge.MajorProgressMessage = "CloudCoin was moved to Bank.";
                         raida.OnLogRecieved(pge);
@@ -163,7 +169,7 @@ public class Frack_Fixer {
                     case "counterfeit":
                         this.totalValueToCounterfeit++;
                         this.fileUtils.overWrite(this.fileUtils.CounterfeitFolder, fixedCC.cc);
-                        this.deleteCoin(this.fileUtils.FrackedFolder + frackedFileNames[i]);
+                        this.deleteCoin(this.fileUtils.FrackedFolder + frackedFiles[i].getName());
                         System.out.println("CloudCoin was moved to Trash.");
                         pge.MajorProgressMessage = "CloudCoin was moved to Trash.";
                         raida.OnLogRecieved(pge);
@@ -172,7 +178,7 @@ public class Frack_Fixer {
                         break;
                     default://Move back to fracked folder
                         this.totalValueToFractured++;
-                        this.deleteCoin(this.fileUtils.FrackedFolder + frackedFileNames[i]);
+                        this.deleteCoin(this.fileUtils.FrackedFolder + frackedFiles[i].getName());
                         this.fileUtils.overWrite(this.fileUtils.FrackedFolder, fixedCC.cc);
                         System.out.println("CloudCoin was moved back to Fracked folder.");
                         pge.MajorProgressMessage = "CloudCoin was moved back to Fracked folder.";
@@ -188,15 +194,15 @@ public class Frack_Fixer {
 
                 System.out.println("");
             } catch (FileNotFoundException ex) {
-                Console.ForegroundColor = ConsoleColor.Red;
+                //Console.ForegroundColor = ConsoleColor.Red;
                 System.out.println(ex);
                 //CoreLogger.Log(ex.toString());
-                Console.ForegroundColor = ConsoleColor.White;
+                //Console.ForegroundColor = ConsoleColor.White;
             } catch (IOException ioex) {
-                Console.ForegroundColor = ConsoleColor.Red;
+                //Console.ForegroundColor = ConsoleColor.Red;
                 System.out.println(ioex);
                 //CoreLogger.Log(ioex.toString());
-                Console.ForegroundColor = ConsoleColor.White;
+                //Console.ForegroundColor = ConsoleColor.White;
             } // end try catch
         }// end for each file name that is fracked
 
@@ -217,16 +223,15 @@ public class Frack_Fixer {
 
     // End select all file names in a folder
     public boolean deleteCoin(String path) {
-        boolean deleted = false;
-
         // System.out.println("Deleteing Coin: "+path + this.fileName + extension);
         try {
-            File.Delete(path);
-        } catch (Exception e) {
+            Files.delete(Paths.get(path));
+        } catch (IOException e) {
             System.out.println(e);
+            return false;
             //  CoreLogger.Log(e.toString());
         }
-        return deleted;
+        return true;
     }//end delete coin
 
 
@@ -236,10 +241,10 @@ public class Frack_Fixer {
         /*0. RESET TICKETS IN RAIDA STATUS TO EMPTY*/
 
         //RAIDA_Status.resetTickets();
-        RAIDA.GetInstance().nodes.ToList().ForEach(x = > x.ResetTicket());
+        for (Node node : RAIDA.GetInstance().nodes) node.ResetTicket();
 
         /*0. RESET THE DETECTION to TRUE if it is a new COIN */
-        RAIDA.GetInstance().nodes.ToList().ForEach(x = > x.NewCoin());
+        for (Node node : RAIDA.GetInstance().nodes) node.NewCoin();
 
         //RAIDA_Status.newCoin();
 
@@ -255,7 +260,7 @@ public class Frack_Fixer {
         // For every guid, check to see if it is fractured
         for (int raida_ID = 0; raida_ID < 25; raida_ID++) {
             if (!continueExecution) {
-                Debug.Write("Stopping Execution");
+                System.out.println("Stopping Execution");
                 return cu;
             }
             //  System.out.println("Past Status for " + raida_ID + ", " + brokeCoin.pastStatus[raida_ID]);
@@ -263,26 +268,25 @@ public class Frack_Fixer {
             if (cu.getPastStatus(raida_ID).toLowerCase() != "pass")//will try to fix everything that is not perfect pass.
             {
 
-                Console.ForegroundColor = ConsoleColor.Cyan;
-                System.out.println("");
-                Console.Write("Attempting to fix RAIDA " + raida_ID);
+                //Console.ForegroundColor = ConsoleColor.Cyan;
+                System.out.println("Attempting to fix RAIDA " + raida_ID);
                 pge.MajorProgressMessage = "Attempting to fix RAIDA " + raida_ID;
                 raida.OnLogRecieved(pge);
                 // CoreLogger.Log("Attempting to fix RAIDA " + raida_ID);
                 System.out.println("");
-                Console.ForegroundColor = ConsoleColor.White;
+                //Console.ForegroundColor = ConsoleColor.White;
 
-                fixer = new FixitHelper(raida_ID, brokeCoin.an.toArray());
+                fixer = new FixitHelper(raida_ID, brokeCoin.an.toArray(new String[0]));
 
                 //trustedServerAns = new String[] { brokeCoin.ans[fixer.currentTriad[0]], brokeCoin.ans[fixer.currentTriad[1]], brokeCoin.ans[fixer.currentTriad[2]] };
                 corner = 1;
                 while (!fixer.finished) {
                     if (!continueExecution) {
-                        Debug.Write("Stopping Execution");
+                        System.out.println("Stopping Execution");
                         return cu;
                     }
-                    Console.ForegroundColor = ConsoleColor.White;
-                    Console.Write(" Using corner " + corner + " Pown is " + brokeCoin.pown);
+                    //Console.ForegroundColor = ConsoleColor.White;
+                    System.out.println(" Using corner " + corner + " Pown is " + brokeCoin.pown);
                     pge.MajorProgressMessage = " Using corner " + corner;
                     raida.OnLogRecieved(pge);
                     //   CoreLogger.Log(" Using corner " + corner);
@@ -311,16 +315,16 @@ public class Frack_Fixer {
             if (cu.getPastStatus(raida_ID).toLowerCase() != "pass")//will try to fix everything that is not perfect pass.
             {
 
-                Console.ForegroundColor = ConsoleColor.Cyan;
+                //Console.ForegroundColor = ConsoleColor.Cyan;
                 System.out.println("");
                 System.out.println("Attempting to fix RAIDA " + raida_ID);
                 pge.MajorProgressMessage = "Attempting to fix RAIDA " + raida_ID;
                 raida.OnLogRecieved(pge);
                 //  CoreLogger.Log("Attempting to fix RAIDA " + raida_ID);
                 System.out.println("");
-                Console.ForegroundColor = ConsoleColor.White;
+                //Console.ForegroundColor = ConsoleColor.White;
 
-                fixer = new FixitHelper(raida_ID, brokeCoin.an.toArray());
+                fixer = new FixitHelper(raida_ID, brokeCoin.an.toArray(new String[0]));
 
                 //trustedServerAns = new String[] { brokeCoin.ans[fixer.currentTriad[0]], brokeCoin.ans[fixer.currentTriad[1]], brokeCoin.ans[fixer.currentTriad[2]] };
                 corner = 1;
@@ -346,8 +350,8 @@ public class Frack_Fixer {
         }//end for each AN
         long after = System.currentTimeMillis();
         long ts = after - before;
-        System.out.println("Time spent fixing RAIDA in milliseconds: " + ts.Milliseconds);
-        pge.MajorProgressMessage = "Time spent fixing RAIDA in milliseconds: " + ts.Milliseconds;
+        System.out.println("Time spent fixing RAIDA in milliseconds: " + ts);
+        pge.MajorProgressMessage = "Time spent fixing RAIDA in milliseconds: " + ts;
         raida.OnLogRecieved(pge);
         //CoreLogger.Log("Time spent fixing RAIDA in milliseconds: " + ts.Milliseconds);
 

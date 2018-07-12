@@ -438,21 +438,24 @@ public class CoinUtils {
 
     public void setAnsToPans() {
         for (int i = 0; (i < 25); i++) {
-            this.pans[i] = cc.an[i];
+            this.pans[i] = cc.an.get(i);
         }// end for 25 ans
     }// end setAnsToPans
 
-    public void setAnsToPansIfPassed(boolean partial =false) {
+    public void setAnsToPansIfPassed() {
+        setAnsToPansIfPassed(false);
+    }
+    public void setAnsToPansIfPassed(boolean partial) {
         // now set all ans that passed to the new pans
         char[] pownArray = cc.pown.toCharArray();
 
         for (int i = 0; (i < 25); i++) {
             if (pownArray[i] == 'p')//1 means pass
             {
-                ccan.set(i, pans[i]);
+                cc.an.set(i, pans[i]);
             } else if (pownArray[i] == 'u' && !RAIDA.GetInstance().nodes[i].FailsEcho && partial == false)//Timed out but there server echoed. So it probably changed the PAN just too slow of a response
             {
-                ccan.set(i, pans[i]);
+                cc.an.set(i, pans[i]);
             } else {
                 // Just keep the ans and do not change. Hopefully they are not fracked.
             }

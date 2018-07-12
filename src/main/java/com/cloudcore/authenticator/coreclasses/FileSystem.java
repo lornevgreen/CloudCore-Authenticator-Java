@@ -230,7 +230,7 @@ public class FileSystem extends IFileSystem {
         return true;
     }
 
-    public File[] GetFilesArray(String path, String[] extensions) {
+    public static File[] GetFilesArray(String path, String[] extensions) {
         final ArrayList<String> extensionsArray = new ArrayList<>(Arrays.asList(extensions));
         return new File(path).listFiles(pathname -> {
             String filename = pathname.getAbsolutePath();
@@ -239,7 +239,7 @@ public class FileSystem extends IFileSystem {
         });
     }
 
-    public ArrayList<File> GetFiles(String path, String[] extensions) {
+    public static ArrayList<File> GetFiles(String path, String[] extensions) {
         return new ArrayList<>(Arrays.asList(GetFilesArray(path, extensions)));
     }
 

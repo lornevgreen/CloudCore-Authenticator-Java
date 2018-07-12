@@ -1,5 +1,9 @@
 package com.cloudcore.authenticator.core;
 
+import com.cloudcore.authenticator.coreclasses.FileSystem;
+
+import java.io.File;
+
 public class Banker {
 
     public IFileSystem fileUtils;
@@ -11,9 +15,9 @@ public class Banker {
     public int[] countCoins(String directoryPath) {
         int[] returnCounts = new int[6];
         // 0. Total, 1.1s, 2,5s, 3.25s 4.100s, 5.250s
-        String[] fileNames = new DirectoryInfo(directoryPath).GetFiles().Select(o = > o.Name).toArray();
-        for (int i = 0; (i < fileNames.length); i++) {
-            String[] nameParts = fileNames[i].split(".");
+        File[] files = FileSystem.GetFilesArray(directoryPath, Config.allowedExtensions);
+        for (int i = 0; (i < files.length); i++) {
+            String[] nameParts = files[i].getName().split(".");
             String denomination = nameParts[0];
             switch (denomination) {
                 case "1":

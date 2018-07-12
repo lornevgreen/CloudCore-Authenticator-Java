@@ -5,7 +5,7 @@ import java.util.HashMap;
 
 import static com.cloudcore.authenticator.coreclasses.TrustedTradeSocket.PacketType.*;
 
-class TrustedTradeSocket
+public class TrustedTradeSocket
 {
     public enum Status {NONE, STATUS_CONNECTED, STATUS_ERROR, STATUS_DISCONNECTED, STATUS_SENDING, STATUS_DONE, STATUS_REQUEST_RECIPIENT, STATUS_WAITING_RECIPIENT }
 

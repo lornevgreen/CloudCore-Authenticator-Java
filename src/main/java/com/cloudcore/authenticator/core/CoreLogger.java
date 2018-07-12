@@ -29,11 +29,11 @@ public class CoreLogger {
     }
 
 
-    public static /*async*/ void Log(String message, [System.Runtime.CompilerServices.CallerFilePath]String classpath="") {
+    public static /*async*/ void Log(String message, String classpath) {
         String path = logFolder + "other.log";
         try {
             createDir();
-            String classname = Path.GetFileNameWithoutExtension(classpath).toLowerCase();
+            String classname = classpath.substring(classpath.lastIndexOf(File.pathSeparator) + 1, classpath.lastIndexOf('.')).toLowerCase();
             path = logFolder + classname + ".log";
 
             TextWriter tw = File.AppendText(path);

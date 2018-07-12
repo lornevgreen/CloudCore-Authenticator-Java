@@ -1,12 +1,19 @@
 package com.cloudcore.authenticator.coreclasses;
 
+import com.cloudcore.authenticator.Formats;
+import com.cloudcore.authenticator.core.CloudCoin;
 import com.cloudcore.authenticator.core.Config;
-import com.cloudcore.authenticatorFormats;
 import com.cloudcore.authenticator.core.IFileSystem;
+import com.cloudcore.authenticator.core.Stack;
+import com.google.gson.Gson;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 
 public class FileSystem extends IFileSystem {
 
@@ -99,16 +106,16 @@ public class FileSystem extends IFileSystem {
         {
             // TODO: See if these need re-enabled
             importCoins = LoadFolderCoins(ImportFolder);
-            var csvCoins = LoadCoinsByFormat(ImportFolder +File.pathSeparator + "CSV", Formats.CSV);
-            var qrCoins = LoadCoinsByFormat(ImportFolder + File.pathSeparator + "QrCodes", Formats.QRCode);
-            var BarCodeCoins = LoadCoinsByFormat(ImportFolder + File.pathSeparator + "Barcodes", Formats.BarCode);
+            ArrayList<CloudCoin> csvCoins = LoadCoinsByFormat(ImportFolder +File.pathSeparator + "CSV", Formats.CSV);
+            ArrayList<CloudCoin> qrCoins = LoadCoinsByFormat(ImportFolder + File.pathSeparator + "QrCodes", Formats.QRCode);
+            ArrayList<CloudCoin> BarCodeCoins = LoadCoinsByFormat(ImportFolder + File.pathSeparator + "Barcodes", Formats.BarCode);
 
             // Add Additional File formats if present
             //importCoins = importCoins.Concat(csvCoins);
-            importCoins =  importCoins.Concat(BarCodeCoins);
-            importCoins = importCoins.Concat(qrCoins);
+            importCoins.addAll(BarCodeCoins);
+            importCoins.addAll(qrCoins);
 
-            System.out.println("Count -" + importCoins.count());
+            System.out.println("Count -" + importCoins.size());
 
             //exportCoins = LoadFolderCoins(ExportFolder);
             bankCoins = LoadFolderCoins(BankFolder);
@@ -130,25 +137,26 @@ public class FileSystem extends IFileSystem {
     @Override
         public void DetectPreProcessing()
         {
-            for (var coin : importCoins)
+            for (CloudCoin coin : importCoins)
             {
-                String fileName = GetCoinName(coin.FileName);
-                int coinExists = (from x in predetectCoins
-                where x.getSn() == coin.getSn()
-                select x).count();
+                String fileName = GetCoinName(coin.FileName());
+                int coinExists = 0;
+                for (CloudCoin folderCoin : predetectCoins)
+                    if (folderCoin.getSn() == coin.getSn())
+                        coinExists++;
+                //int coinExists = (int) Arrays.stream(predetectCoins.toArray(new CloudCoin[0])).filter(x -> x.getSn() == coin.getSn()).count();
+
                 //if (coinExists > 0)
                 //{
                 //    String suffix = Utils.RandomString(16);
                 //    fileName += suffix.toLowerCase();
                 //}
-                JsonSerializer serializer = new JsonSerializer();
-                serializer.Converters.add(new JavaScriptDateTimeConverter());
-                serializer.NullValueHandling = NullValueHandling.Ignore;
+
                 Stack stack = new Stack(coin);
-                using (StreamWriter sw = new StreamWriter(PreDetectFolder + fileName + ".stack"))
-                using (JsonWriter writer = new JsonTextWriter(sw))
-                {
-                    serializer.Serialize(writer, stack);
+                try {
+                    Files.write(Paths.get(PreDetectFolder + fileName + ".stack"), new Gson().toJson(stack).getBytes(StandardCharsets.UTF_8));
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
         }
@@ -157,12 +165,12 @@ public class FileSystem extends IFileSystem {
         public void ProcessCoins(ArrayList<CloudCoin> coins)
         {
 
-            var detectedCoins = LoadFolderCoins(DetectedFolder);
+            ArrayList<CloudCoin> detectedCoins = LoadFolderCoins(DetectedFolder);
 
 
-            for (var coin : detectedCoins)
+            for (CloudCoin coin : detectedCoins)
             {
-                if (coin.PassCount >= Config.PassCount)
+                if (coin.getPassCount() >= Config.PassCount)
                 {
                     WriteCoin(coin, BankFolder);
                 }
@@ -177,32 +185,31 @@ public class FileSystem extends IFileSystem {
         {
             return CoinName;
         }
-        public void TransferCoins(ArrayList<CloudCoin> coins, String sourceFolder, String targetFolder,String extension = ".stack")
-        {
-            var folderCoins = LoadFolderCoins(targetFolder);
 
-            for (var coin : coins)
+        public void TransferCoins(ArrayList<CloudCoin> coins, String sourceFolder, String targetFolder) {
+            TransferCoins(coins, sourceFolder, targetFolder, ".stack");
+        }
+        public void TransferCoins(ArrayList<CloudCoin> coins, String sourceFolder, String targetFolder,String extension)
+        {
+            ArrayList<CloudCoin> folderCoins = LoadFolderCoins(targetFolder);
+
+            for (CloudCoin coin : coins)
             {
-                String fileName = GetCoinName(coin.FileName);
+                String fileName = GetCoinName(coin.FileName());
                 try
                 {
-                    JsonSerializer serializer = new JsonSerializer();
-                    serializer.Converters.add(new JavaScriptDateTimeConverter());
-                    serializer.NullValueHandling = NullValueHandling.Ignore;
                     Stack stack = new Stack(coin);
-                    using (StreamWriter sw = new StreamWriter(targetFolder + fileName + extension))
-                    using (JsonWriter writer = new JsonTextWriter(sw))
-                    {
-                        serializer.Serialize(writer, stack);
+                    try {
+                        Files.write(Paths.get(targetFolder + fileName + extension), new Gson().toJson(stack).getBytes(StandardCharsets.UTF_8));
+                        Files.delete(Paths.get(sourceFolder + GetCoinName(coin.FileName()) + extension));
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                    File.Delete(sourceFolder + GetCoinName(coin.FileName) + extension);
                 }
                 catch (Exception e)
                 {
                     System.out.println(e.getMessage());
                 }
-
-
             }
         }
 
@@ -235,13 +242,15 @@ public class FileSystem extends IFileSystem {
         {
             try
             {
-                StreamWriter OurStream;
-                OurStream = File.CreateText(fileName);
-                OurStream.Write(text);
-                OurStream.Close();
+                Path path = Paths.get(fileName);
+                if (!Files.exists(path))
+                    Files.createFile(path);
+
+                Files.write(path, text.getBytes(StandardCharsets.UTF_8));
             }
             catch(Exception e)
             {
+                e.printStackTrace();
                 // MainWindow.logger.Error(e.getMessage());
                 return false;
             }
@@ -303,7 +312,7 @@ public class FileSystem extends IFileSystem {
             String cloudCoinStr = "01C34A46494600010101006000601D05"; //THUMBNAIL HEADER BYTES
             for (int i = 0; (i < 25); i++)
             {
-                cloudCoinStr = cloudCoinStr + cloudCoin.an[i];
+                cloudCoinStr = cloudCoinStr + cloudCoin.an.get(i);
             } // end for each an
 
             //cloudCoinStr += "204f42455920474f4420262044454645415420545952414e545320";// Hex for " OBEY GOD & DEFEAT TYRANTS "
@@ -319,7 +328,7 @@ public class FileSystem extends IFileSystem {
             cloudCoinStr += "01";//  cc.nn;//network number
             String hexSN = cloudCoin.getSn().ToString("X6");
             String fullHexSN = "";
-            switch (hexSN.length)
+            switch (hexSN.length())
             {
                 case 1: fullHexSN = ("00000" + hexSN); break;
                 case 2: fullHexSN = ("0000" + hexSN); break;
@@ -387,9 +396,9 @@ public class FileSystem extends IFileSystem {
     @Override
         public boolean WriteCoinToQRCode(CloudCoin cloudCoin, String OutputFile, String tag)
         {
-            var width = 250; // width of the Qr Code
-            var height = 250; // height of the Qr Code
-            var margin = 0;
+            int width = 250; // width of the Qr Code
+            int height = 250; // height of the Qr Code
+            int margin = 0;
             var qrCodeWriter = new ZXing.BarcodeWriterPixelData
             {
                 Format = ZXing.BarcodeFormat.QR_CODE,

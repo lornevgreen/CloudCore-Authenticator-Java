@@ -1,20 +1,17 @@
 package com.cloudcore.authenticator.core;
 
-import com.cloudcore.authenticatorFormats;
+import com.cloudcore.authenticator.Formats;
 import com.cloudcore.authenticator.utils.FileUtils;
 import com.google.gson.Gson;
 
+import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-
-import static com.cloudcore.authenticatorFormats.BarCode;
 
 public abstract class IFileSystem {
 
@@ -143,7 +140,7 @@ public abstract class IFileSystem {
                         ArrayList<String> lines = null;
                         try {
                             ArrayList<CloudCoin> csvCoins = new ArrayList<>();
-                            lines = Files.readAllLines(Paths.get(fileName));
+                            lines = new ArrayList<>(Files.readAllLines(Paths.get(fileName)));
                             for (String line : lines) {
                                 csvCoins.add(CloudCoin.FromCSV(line));
                             }
@@ -203,15 +200,15 @@ public abstract class IFileSystem {
 
     private ArrayList<CloudCoin> ReadCSVCoins(String fileName)//Read a CloudCoin from CSV . 
     {
-        ArrayList<CloudCoin> cloudCoins = new ArrayList<CloudCoin>();
-        var lines = File.ReadAllLines(fileName);
-        //var lines = File.ReadAllLines(fileName).Select(a => a.split(","));
-
-        CloudCoin coin = new CloudCoin();
-
-        for(var line : lines)
-        {
-            cloudCoins.add( CloudCoin.FromCSV(line));
+        ArrayList<CloudCoin> cloudCoins = new ArrayList<>();
+        ArrayList<String> lines;
+        try {
+            lines = new ArrayList<>(Files.readAllLines(Paths.get(fileName)));
+            //var lines = File.ReadAllLines(fileName).Select(a => a.split(","));
+            for(String line : lines)
+                cloudCoins.add(CloudCoin.FromCSV(line));
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         return cloudCoins;
     }
@@ -276,7 +273,7 @@ public abstract class IFileSystem {
 
     public CloudCoin LoadCoin(String fileName)
     {
-        var coins = Utils.LoadJson(fileName);
+        CloudCoin[] coins = Utils.LoadJson(fileName);
 
         if (coins != null && coins.length > 0)
             return coins[0];
@@ -284,10 +281,10 @@ public abstract class IFileSystem {
     }
     public ArrayList<CloudCoin> LoadCoins(String fileName)
     {
-        var coins = Utils.LoadJson(fileName);
+        CloudCoin[] coins = Utils.LoadJson(fileName);
 
         if (coins != null && coins.length > 0)
-            return coins;
+            return new ArrayList<>(Arrays.asList(coins));
         return null;
     }
     public ArrayList<FileInfo> LoadFiles(String folder)
@@ -346,10 +343,10 @@ public abstract class IFileSystem {
 
         try
         {
-            returnCC = JsonConvert.DeserializeObject<CloudCoin>(incomeJson);
-
+            returnCC = new Gson().fromJson(incomeJson, CloudCoin.class);
+            // TODO: perform file checking to see if the memo bug is present
         }
-        catch (JsonReaderException)
+        catch (Exception e)
         {
             System.out.println("There was an error reading files in your bank.");
             System.out.println("You may have the aoid memo bug that uses too many double quote marks.");
@@ -366,23 +363,28 @@ public abstract class IFileSystem {
 
     public void MoveFile(String SourcePath, String TargetPath, FileMoveOptions options)
     {
-        if (!File.Exists(TargetPath))
-            File.Move(SourcePath, TargetPath);
-        else
-        {
-            if (options == FileMoveOptions.replace)
-            {
-                File.Delete(TargetPath);
-                File.Move(SourcePath, TargetPath);
+        try {
+            if (!Files.exists(Paths.get(TargetPath))) {
+                Files.move(Paths.get(SourcePath), Paths.get(TargetPath));
             }
-            if (options == FileMoveOptions.Rename)
+            else
             {
-                String targetFileName = Path.GetFileNameWithoutExtension(SourcePath);
-                targetFileName += Utils.RandomString(8).toLowerCase() + ".stack";
-                String targetPath = Path.GetDirectoryName(TargetPath) + File.pathSeparator + targetFileName;
-                File.Move(SourcePath, targetPath);
+                if (options == FileMoveOptions.Replace)
+                {
+                    Files.delete(Paths.get(TargetPath));
+                    Files.move(Paths.get(SourcePath), Paths.get(TargetPath));
+                }
+                if (options == FileMoveOptions.Rename)
+                {
+                    String targetFileName = SourcePath.substring(SourcePath.lastIndexOf(File.pathSeparator) + 1, SourcePath.lastIndexOf('.'));
+                    targetFileName += Utils.RandomString(8).toLowerCase() + ".stack";
+                    String targetPath = TargetPath + File.pathSeparator + targetFileName;
+                    Files.move(Paths.get(SourcePath), Paths.get(targetPath));
 
+                }
             }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -391,32 +393,13 @@ public abstract class IFileSystem {
         String jsonData = "";
         String line;
 
-        try
-        {
-            // Create an instance of StreamReader to read from a file.
-            // The using statement also closes the StreamReader.
-
-            using (var sr = File.OpenText(jsonfile))
-            {
-                // Read and display lines from the file until the end of 
-                // the file is reached.
-                while (true)
-                {
-                    line = sr.ReadLine();
-                    if (line == null)
-                    {
-                        break;
-                    }//End if line is null
-                    jsonData = (jsonData + line + "\n");
-                }//end while true
-            }//end using
-        }
-        catch (Exception e)
-        {
-            // Let the user know what went wrong.
+        try {
+            jsonData = new String(Files.readAllBytes(Paths.get(jsonfile)));
+        } catch (IOException e) {
             System.out.println("The file " + jsonfile + " could not be read:");
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
+
         return jsonData;
     }//end importJSON
 
@@ -431,7 +414,7 @@ public abstract class IFileSystem {
         json += tab + tab + quote + "an" + quote + ": [" + quote;// "an": ["
         for (int i = 0; (i < 25); i++)
         {
-            json += cc.an[i];// 8551995a45457754aaaa44
+            json += cc.an.get(i);// 8551995a45457754aaaa44
             if (i == 4 || i == 9 || i == 14 || i == 19)
             {
                 json += quote + "," + System.lineSeparator() + tab + tab + tab + quote; //",
@@ -454,7 +437,7 @@ public abstract class IFileSystem {
         //cu.calcExpirationDate();
         cc.CalcExpirationDate();
         json += tab + tab + quote + "ed" + quote + ":" + quote + cc.ed + quote + "," + System.lineSeparator(); // "ed":"9-2016",
-        if (String.IsNullOrEmpty(cc.pown)) { cc.pown = "uuuuuuuuuuuuuuuuuuuuuuuuu"; }//Set pown to unknow if it is not set. 
+        if (cc.pown == null || cc.pown.length() == 0) { cc.pown = "uuuuuuuuuuuuuuuuuuuuuuuuu"; }//Set pown to unknow if it is not set.
         json += tab + tab + quote + "pown" + quote + ":" + quote + cc.pown + quote + "," + System.lineSeparator();// "pown":"uuupppppffpppppfuuf",
         json += tab + tab + quote + "aoid" + quote + ": []" + System.lineSeparator();
         json += tab + tab + "}" + System.lineSeparator();
@@ -529,41 +512,12 @@ public abstract class IFileSystem {
         }
     }
 
-    public void WriteCoin(CloudCoin coin, String folder)
-    {
-        var folderCoins = LoadFolderCoins(folder);
-        String fileName = (coin.FileName());
-        int coinExists = (from x in folderCoins
-        where x.getSn() == coin.getSn()
-        select x).count();
-        if (coinExists > 0)
-        {
-            String suffix = Utils.RandomString(16);
-            fileName += suffix.toLowerCase();
-        }
-        JsonSerializer serializer = new JsonSerializer();
-        serializer.Converters.add(new JavaScriptDateTimeConverter());
-        serializer.NullValueHandling = NullValueHandling.Ignore;
+    public void WriteCoinToFile(CloudCoin coin, String filename) {
         Stack stack = new Stack(coin);
-        using (StreamWriter sw = new StreamWriter(folder + File.pathSeparator + fileName + ".stack"))
-        using (JsonWriter writer = new JsonTextWriter(sw))
-        {
-            serializer.Serialize(writer, stack);
-        }
-    }
-
-    public void WriteCoinToFile(CloudCoin coin, String filename)
-    {
-
-
-        JsonSerializer serializer = new JsonSerializer();
-        serializer.Converters.add(new JavaScriptDateTimeConverter());
-        serializer.NullValueHandling = NullValueHandling.Ignore;
-        Stack stack = new Stack(coin);
-        using (StreamWriter sw = new StreamWriter(filename))
-        using (JsonWriter writer = new JsonTextWriter(sw))
-        {
-            serializer.Serialize(writer, stack);
+        try {
+            Files.write(Paths.get(filename), new Gson().toJson(stack).getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -583,54 +537,58 @@ public abstract class IFileSystem {
             return;
         }
 
-        var folderCoins = LoadFolderCoins(folder);
+        ArrayList<CloudCoin> folderCoins = LoadFolderCoins(folder);
 
-        for (var coin : coins)
+        for (CloudCoin coin : coins)
         {
-            String fileName = coin.FileName;
-            int coinExists = (from x in folderCoins
-            where x.getSn() == coin.getSn()
-            select x).count();
+            String fileName = coin.FileName();
+            int coinExists = 0;
+            for (CloudCoin folderCoin : folderCoins)
+                if (folderCoin.getSn() == coin.getSn())
+                    coinExists++;
+            //int coinExists = (int) Arrays.stream(folderCoins.toArray(new CloudCoin[0])).filter(x -> x.getSn() == coin.getSn()).count();
+
             if (coinExists > 0)
             {
                 String suffix = Utils.RandomString(16);
                 fileName += suffix.toLowerCase();
             }
-            JsonSerializer serializer = new JsonSerializer();
-            serializer.Converters.add(new JavaScriptDateTimeConverter());
-            serializer.NullValueHandling = NullValueHandling.Ignore;
-            Stack stack = new Stack(coin);
-            using (StreamWriter sw = new StreamWriter(folder + fileName + ".stack"))
-            using (JsonWriter writer = new JsonTextWriter(sw))
-            {
-                serializer.Serialize(writer, stack);
-            }
 
+            Stack stack = new Stack(coin);
+            try {
+                Files.write(Paths.get(folder + fileName + ".stack"), new Gson().toJson(stack).getBytes(StandardCharsets.UTF_8));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
-    public void WriteCoin(CloudCoin coin, String folder, String extension)
-    {
-        var folderCoins = LoadFolderCoins(folder);
+    public void WriteCoin(CloudCoin coin, String folder) {
+        WriteCoin(coin, folder, ".stack");
+    }
+    public void WriteCoin(CloudCoin coin, String folder, String extension) {
+        ArrayList<CloudCoin> folderCoins = LoadFolderCoins(folder);
         String fileName = (coin.FileName());
-        int coinExists = (from x in folderCoins
-        where x.getSn() == coin.getSn()
-        select x).count();
-        if (coinExists > 0)
-        {
+
+        int coinExists = 0;
+        for (CloudCoin folderCoin : folderCoins)
+            if (folderCoin.getSn() == coin.getSn())
+                coinExists++;
+        //int coinExists = (int) Arrays.stream(folderCoins.toArray(new CloudCoin[0])).filter(x -> x.getSn() == coin.getSn()).count();
+
+        if (coinExists > 0) {
             String suffix = Utils.RandomString(16);
             fileName += suffix.toLowerCase();
         }
-        JsonSerializer serializer = new JsonSerializer();
-        serializer.Converters.add(new JavaScriptDateTimeConverter());
-        serializer.NullValueHandling = NullValueHandling.Ignore;
+
         Stack stack = new Stack(coin);
-        using (StreamWriter sw = new StreamWriter(folder + File.pathSeparator + fileName + extension))
-        using (JsonWriter writer = new JsonTextWriter(sw))
-        {
-            serializer.Serialize(writer, stack);
+        try {
+            Files.write(Paths.get(folder + File.pathSeparator + fileName + extension), new Gson().toJson(stack).getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
+
     public int ordinalIndexOf(String str, String substr, int n)
     {
         int pos = str.indexOf(substr);
@@ -734,7 +692,7 @@ public abstract class IFileSystem {
         String cloudCoinStr = "01C34A46494600010101006000601D05"; //THUMBNAIL HEADER BYTES
         for (int i = 0; (i < 25); i++)
         {
-            cloudCoinStr = cloudCoinStr + cc.an[i];
+            cloudCoinStr = cloudCoinStr + cc.an.get(i);
         } // end for each an
 
         //cloudCoinStr += "204f42455920474f4420262044454645415420545952414e545320";// Hex for " OBEY GOD & DEFEAT TYRANTS "
@@ -750,7 +708,7 @@ public abstract class IFileSystem {
         cloudCoinStr += "01";//  cc.nn;//network number
         String hexSN = cc.getSn().ToString("X6");
         String fullHexSN = "";
-        switch (hexSN.length)
+        switch (hexSN.length())
         {
             case 1: fullHexSN = ("00000" + hexSN); break;
             case 2: fullHexSN = ("0000" + hexSN); break;
@@ -838,7 +796,7 @@ public abstract class IFileSystem {
         String cloudCoinStr = "01C34A46494600010101006000601D05"; //THUMBNAIL HEADER BYTES
         for (int i = 0; (i < 25); i++)
         {
-            cloudCoinStr = cloudCoinStr + cc.an[i];
+            cloudCoinStr = cloudCoinStr + cc.an.get(i);
         } // end for each an
 
         //cloudCoinStr += "204f42455920474f4420262044454645415420545952414e545320";// Hex for " OBEY GOD & DEFEAT TYRANTS "
@@ -854,7 +812,7 @@ public abstract class IFileSystem {
         cloudCoinStr += "01";//  cc.nn;//network number
         String hexSN = cc.getSn().ToString("X6");
         String fullHexSN = "";
-        switch (hexSN.length)
+        switch (hexSN.length())
         {
             case 1: fullHexSN = ("00000" + hexSN); break;
             case 2: fullHexSN = ("0000" + hexSN); break;
@@ -871,8 +829,9 @@ public abstract class IFileSystem {
         /* READ JPEG TEMPLATE*/
         byte[] jpegBytes = null;
 
-        //jpegBytes = readAllBytes(filePath);
-        jpegBytes = File.ReadAllBytes(filePath);
+        jpegBytes = readAllBytes(filePath);
+        if (jpegBytes == null)
+            return false;
 
         /* WRITE THE SERIAL NUMBER ON THE JPEG */
 
@@ -936,7 +895,7 @@ public abstract class IFileSystem {
         String cloudCoinStr = "01C34A46494600010101006000601D05"; //THUMBNAIL HEADER BYTES
         for (int i = 0; (i < 25); i++)
         {
-            cloudCoinStr = cloudCoinStr + cc.an[i];
+            cloudCoinStr = cloudCoinStr + cc.an.get(i);
         } // end for each an
 
         //cloudCoinStr += "204f42455920474f4420262044454645415420545952414e545320";// Hex for " OBEY GOD & DEFEAT TYRANTS "
@@ -952,7 +911,7 @@ public abstract class IFileSystem {
         cloudCoinStr += "01";//  cc.nn;//network number
         String hexSN = cc.getSn().ToString("X6");
         String fullHexSN = "";
-        switch (hexSN.length)
+        switch (hexSN.length())
         {
             case 1: fullHexSN = ("00000" + hexSN); break;
             case 2: fullHexSN = ("0000" + hexSN); break;
@@ -968,9 +927,10 @@ public abstract class IFileSystem {
 
         /* READ JPEG TEMPLATE*/
         byte[] jpegBytes = null;
-
-        //jpegBytes = readAllBytes(filePath);
-        jpegBytes = File.ReadAllBytes(filePath);
+=
+        jpegBytes = readAllBytes(filePath);
+        if (jpegBytes == null)
+            return false;
 
         /* WRITE THE SERIAL NUMBER ON THE JPEG */
 
@@ -1067,8 +1027,9 @@ public abstract class IFileSystem {
         /* READ JPEG TEMPLATE*/
         byte[] jpegBytes = null;
 
-        //jpegBytes = readAllBytes(filePath);
-        jpegBytes = File.ReadAllBytes(filePath);
+        jpegBytes = readAllBytes(filePath);
+        if (jpegBytes == null)
+            return false;
 
         /* WRITE THE SERIAL NUMBER ON THE JPEG */
 
@@ -1152,14 +1113,12 @@ public abstract class IFileSystem {
     /* OPEN FILE AND READ ALL CONTENTS AS BYTE ARRAY */
     public byte[] readAllBytes(String fileName)
     {
-        byte[] buffer = null;
-        using (FileStream fs = new FileStream(fileName, FileMode.Open, FileAccess.Read))
-        {
-            buffer = new byte[fs.length];
-            int fileLength = Convert.ToInt32(fs.length);
-            fs.Read(buffer, 0, fileLength);
+        try {
+            return Files.readAllBytes(Paths.get(fileName));
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        return buffer;
+        return null;
     }//end read all bytes
 
     public boolean writeTo(String folder, CloudCoin cc)
@@ -1170,40 +1129,39 @@ public abstract class IFileSystem {
         String wholeJson = "{" + System.lineSeparator(); //{
         boolean alreadyExists = true;
         String json = this.setJSON(cc);
-        if (!File.Exists(folder + cc.FileName() + ".stack"))
-        {
-            wholeJson += tab + quote + "cloudcoin" + quote + ": [" + System.lineSeparator(); // "cloudcoin" : [
-            wholeJson += json;
-            wholeJson += System.lineSeparator() + tab + "]" + System.lineSeparator() + "}";
-            File.WriteAllText(folder + cc.FileName() + ".stack", wholeJson);
+
+        try {
+            if (!Files.exists(Paths.get(folder + cc.FileName() + ".stack"))) {
+                wholeJson += tab + quote + "cloudcoin" + quote + ": [" + System.lineSeparator(); // "cloudcoin" : [
+                wholeJson += json;
+                wholeJson += System.lineSeparator() + tab + "]" + System.lineSeparator() + "}";
+                alreadyExists = true;
+                Files.write(Paths.get(folder + cc.FileName() + ".stack"), wholeJson.getBytes(StandardCharsets.UTF_8));
+            } else {
+                if (folder.contains("Counterfeit") || folder.contains("Trash")) {
+                    //Let the program delete it
+                    alreadyExists = false;
+                    return alreadyExists;
+                } else if (folder.contains("Imported")) {
+                    alreadyExists = false;
+                    Files.delete(Paths.get(folder + cc.FileName() + ".stack"));
+                    Files.write(Paths.get(folder + cc.FileName() + ".stack"), wholeJson.getBytes(StandardCharsets.UTF_8));
+                    return alreadyExists;
+                } else {
+                    System.out.println(cc.FileName() + ".stack" + " already exists in the folder " + folder);
+                    //CoreLogger.Log(cu.fileName + ".stack" + " already exists in the folder " + folder);
+                    return alreadyExists;
+                }//end else
+            }//File Exists
+            // TODO: Should not write text twice
+            Files.write(Paths.get(folder + cc.FileName() + ".stack"), wholeJson.getBytes(StandardCharsets.UTF_8));
+            alreadyExists = false;
+            return alreadyExists;
         }
-        else
-        {
-            if (folder.contains("Counterfeit") || folder.contains("Trash"))
-            {
-                //Let the program delete it
-                alreadyExists = false;
-                return alreadyExists;
-            }
-            else if (folder.contains("Imported"))
-            {
-                File.Delete(folder + cc.FileName() + ".stack");
-                File.WriteAllText(folder + cc.FileName() + ".stack", wholeJson);
-                alreadyExists = false;
-                return alreadyExists;
-            }
-            else
-            {
-                System.out.println(cc.FileName() + ".stack" + " already exists in the folder " + folder);
-                //CoreLogger.Log(cu.fileName + ".stack" + " already exists in the folder " + folder);
-                return alreadyExists;
-
-            }//end else
-
-        }//File Exists
-        File.WriteAllText(folder + cc.FileName() + ".stack", wholeJson);
-        alreadyExists = false;
-        return alreadyExists;
+        catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
 
     }//End Write To
 
@@ -1219,7 +1177,11 @@ public abstract class IFileSystem {
         wholeJson += json;
         wholeJson += System.lineSeparator() + tab + "]" + System.lineSeparator() + "}";
 
-        File.WriteAllText(folder + cc.FileName() + ".stack", wholeJson);
+        try {
+            Files.write(Paths.get(folder + cc.FileName() + ".stack"), wholeJson.getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }//End Overwrite
 
     public CloudCoin loadOneCloudCoinFromJPEGFile(String loadFilePath)
@@ -1276,7 +1238,7 @@ public abstract class IFileSystem {
     // en d json test
     public byte[] hexStringToByteArray(String HexString)
     {
-        int NumberChars = HexString.length;
+        int NumberChars = HexString.length();
         byte[] bytes = new byte[NumberChars / 2];
         for (int i = 0; i < NumberChars; i += 2)
         {

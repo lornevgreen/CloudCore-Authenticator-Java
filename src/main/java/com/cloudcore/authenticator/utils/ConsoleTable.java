@@ -1,14 +1,9 @@
 package com.cloudcore.authenticator.utils;
 
-import jdk.nashorn.internal.runtime.regexp.joni.Regex;
-import org.graalvm.compiler.api.replacements.Snippet;
-
-import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import static com.cloudcore.authenticator.utils.ConsoleTable.Format.*;
-import static javafx.scene.input.KeyCode.T;
+import static com.cloudcore.authenticator.utils.ConsoleTable.Format.Default;
 
 public class ConsoleTable {
     public enum Format {
@@ -38,7 +33,7 @@ public class ConsoleTable {
         Columns = new ArrayList<>(Arrays.asList(columns));
     }
 
-    public ConsoleTable(@Snippet.NonNullParameter ConsoleTableOptions options) {
+    public ConsoleTable(ConsoleTableOptions options) {
         Options = options;
         Rows = new ArrayList<>();
         Columns = new ArrayList<>(options.Columns);
@@ -49,7 +44,7 @@ public class ConsoleTable {
         return this;
     }
 
-    public ConsoleTable AddRow(@Snippet.NonNullParameter Object[] values) {
+    public ConsoleTable AddRow(Object[] values) {
         if (Columns.size() != 0) {
             System.out.println("Please set the columns first");
             System.exit(-1);

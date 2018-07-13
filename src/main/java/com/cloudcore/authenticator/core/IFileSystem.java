@@ -3,12 +3,12 @@ package com.cloudcore.authenticator.core;
 import com.cloudcore.authenticator.Formats;
 import com.cloudcore.authenticator.utils.FileUtils;
 import com.google.gson.Gson;
-import org.graalvm.compiler.api.replacements.Snippet;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -324,9 +324,9 @@ public abstract class IFileSystem {
                     Files.move(Paths.get(SourcePath), Paths.get(TargetPath));
                 }
                 if (options == FileMoveOptions.Rename) {
-                    String targetFileName = SourcePath.substring(SourcePath.lastIndexOf(File.pathSeparator) + 1, SourcePath.lastIndexOf('.'));
+                    String targetFileName = SourcePath.substring(SourcePath.lastIndexOf(File.separator) + 1, SourcePath.lastIndexOf('.'));
                     targetFileName += Utils.RandomString(8).toLowerCase() + ".stack";
-                    String targetPath = TargetPath + File.pathSeparator + targetFileName;
+                    String targetPath = TargetPath + File.separator + targetFileName;
                     Files.move(Paths.get(SourcePath), Paths.get(targetPath));
 
                 }
@@ -526,7 +526,7 @@ public abstract class IFileSystem {
 
         Stack stack = new Stack(coin);
         try {
-            Files.write(Paths.get(folder + File.pathSeparator + fileName + extension), new Gson().toJson(stack).getBytes(StandardCharsets.UTF_8));
+            Files.write(Paths.get(folder + File.separator + fileName + extension), new Gson().toJson(stack).getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -1030,7 +1030,7 @@ public abstract class IFileSystem {
     }//end write JPEG*/
 
 
-    public String bytesToHexString(@Snippet.NonNullParameter byte[] data) {
+    public String bytesToHexString(byte[] data) {
         int length = data.length;
         char[] hex = new char[length * 2];
         int num1 = 0;

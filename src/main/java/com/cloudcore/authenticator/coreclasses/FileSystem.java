@@ -23,23 +23,23 @@ public class FileSystem extends IFileSystem {
 
     public FileSystem(String RootPath) {
         this.RootPath = RootPath;
-        ImportFolder = RootPath + File.pathSeparator + Config.TAG_IMPORT + File.pathSeparator;
-        ExportFolder = RootPath + File.pathSeparator + Config.TAG_EXPORT + File.pathSeparator;
-        ImportedFolder = RootPath + File.pathSeparator + Config.TAG_IMPORTED + File.pathSeparator;
-        TemplateFolder = RootPath + File.pathSeparator + Config.TAG_TEMPLATES + File.pathSeparator;
-        LanguageFolder = RootPath + File.pathSeparator + Config.TAG_LANGUAGE + File.pathSeparator;
-        CounterfeitFolder = RootPath + File.pathSeparator + Config.TAG_COUNTERFEIT + File.pathSeparator;
-        PartialFolder = RootPath + File.pathSeparator + Config.TAG_PARTIAL + File.pathSeparator;
-        FrackedFolder = RootPath + File.pathSeparator + Config.TAG_FRACKED + File.pathSeparator;
-        DetectedFolder = RootPath + File.pathSeparator + Config.TAG_DETECTED + File.pathSeparator;
-        SuspectFolder = RootPath + File.pathSeparator + Config.TAG_SUSPECT + File.pathSeparator;
-        TrashFolder = RootPath + File.pathSeparator + Config.TAG_TRASH + File.pathSeparator;
-        BankFolder = RootPath + File.pathSeparator + Config.TAG_BANK + File.pathSeparator;
-        PreDetectFolder = RootPath + File.pathSeparator + Config.TAG_PREDETECT + File.pathSeparator;
-        LostFolder = RootPath + File.pathSeparator + Config.TAG_LOST + File.pathSeparator;
-        RequestsFolder = RootPath + File.pathSeparator + Config.TAG_REQUESTS + File.pathSeparator;
-        DangerousFolder = RootPath + File.pathSeparator + Config.TAG_DANGEROUS + File.pathSeparator;
-        LogsFolder = RootPath + File.pathSeparator + Config.TAG_LOGS + File.pathSeparator;
+        ImportFolder = RootPath + File.separator + Config.TAG_IMPORT + File.separator;
+        ExportFolder = RootPath + File.separator + Config.TAG_EXPORT + File.separator;
+        ImportedFolder = RootPath + File.separator + Config.TAG_IMPORTED + File.separator;
+        TemplateFolder = RootPath + File.separator + Config.TAG_TEMPLATES + File.separator;
+        LanguageFolder = RootPath + File.separator + Config.TAG_LANGUAGE + File.separator;
+        CounterfeitFolder = RootPath + File.separator + Config.TAG_COUNTERFEIT + File.separator;
+        PartialFolder = RootPath + File.separator + Config.TAG_PARTIAL + File.separator;
+        FrackedFolder = RootPath + File.separator + Config.TAG_FRACKED + File.separator;
+        DetectedFolder = RootPath + File.separator + Config.TAG_DETECTED + File.separator;
+        SuspectFolder = RootPath + File.separator + Config.TAG_SUSPECT + File.separator;
+        TrashFolder = RootPath + File.separator + Config.TAG_TRASH + File.separator;
+        BankFolder = RootPath + File.separator + Config.TAG_BANK + File.separator;
+        PreDetectFolder = RootPath + File.separator + Config.TAG_PREDETECT + File.separator;
+        LostFolder = RootPath + File.separator + Config.TAG_LOST + File.separator;
+        RequestsFolder = RootPath + File.separator + Config.TAG_REQUESTS + File.separator;
+        DangerousFolder = RootPath + File.separator + Config.TAG_DANGEROUS + File.separator;
+        LogsFolder = RootPath + File.separator + Config.TAG_LOGS + File.separator;
         QRFolder = ImportFolder + Config.TAG_QR;
         BarCodeFolder = ImportFolder + Config.TAG_BARCODE;
         CSVFolder = ImportFolder + Config.TAG_CSV;
@@ -105,9 +105,9 @@ public class FileSystem extends IFileSystem {
     public void LoadFileSystem() {
         // TODO: See if these need re-enabled
         importCoins = LoadFolderCoins(ImportFolder);
-        ArrayList<CloudCoin> csvCoins = LoadCoinsByFormat(ImportFolder + File.pathSeparator + "CSV", Formats.CSV);
-        ArrayList<CloudCoin> qrCoins = LoadCoinsByFormat(ImportFolder + File.pathSeparator + "QrCodes", Formats.QRCode);
-        ArrayList<CloudCoin> BarCodeCoins = LoadCoinsByFormat(ImportFolder + File.pathSeparator + "Barcodes", Formats.BarCode);
+        ArrayList<CloudCoin> csvCoins = LoadCoinsByFormat(ImportFolder + File.separator + "CSV", Formats.CSV);
+        ArrayList<CloudCoin> qrCoins = LoadCoinsByFormat(ImportFolder + File.separator + "QrCodes", Formats.QRCode);
+        ArrayList<CloudCoin> BarCodeCoins = LoadCoinsByFormat(ImportFolder + File.separator + "Barcodes", Formats.BarCode);
 
         // Add Additional File formats if present
         //importCoins = importCoins.Concat(csvCoins);
@@ -218,9 +218,10 @@ public class FileSystem extends IFileSystem {
     public boolean WriteTextFile(String fileName, String text) {
         try {
             Path path = Paths.get(fileName);
-            if (!Files.exists(path))
+            if (!Files.exists(path)) {
+                Files.createDirectories(path.getParent());
                 Files.createFile(path);
-
+            }
             Files.write(path, text.getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) {
             e.printStackTrace();
@@ -256,31 +257,31 @@ public class FileSystem extends IFileSystem {
         File[] files = GetFilesArray(ImportedFolder, Config.allowedExtensions);
 
         for (int i = 0; i < files.length; i++) {
-            MoveFile(files[i].getAbsolutePath(), ImportedFolder + File.pathSeparator + files[i].getName(), FileMoveOptions.Rename);
+            MoveFile(files[i].getAbsolutePath(), ImportedFolder + File.separator + files[i].getName(), FileMoveOptions.Rename);
         }
 
             /* TODO: Deal with QRCode
             var filesqr = Directory
-                    .GetFiles(ImportFolder + File.pathSeparator + "QrCodes")
+                    .GetFiles(ImportFolder + File.separator + "QrCodes")
                     .Where(file => Config.allowedExtensions.Any(file.toLowerCase().EndsWith))
               .ToList();
 
             String[] fnamesqr = new String[filesqr.count()];
             for (int i = 0; i < filesqr.count(); i++)
             {
-                MoveFile(filesqr[i], ImportedFolder + File.pathSeparator + Path.GetFileName(filesqr[i]), FileMoveOptions.Rename);
+                MoveFile(filesqr[i], ImportedFolder + File.separator + Path.GetFileName(filesqr[i]), FileMoveOptions.Rename);
             }*/
 
             /* TODO: Deal with Barcode
             var filesbar = Directory
-                    .GetFiles(ImportFolder + File.pathSeparator + "Barcodes")
+                    .GetFiles(ImportFolder + File.separator + "Barcodes")
                     .Where(file => Config.allowedExtensions.Any(file.toLowerCase().EndsWith))
               .ToList();
 
             String[] fnamesbar = new String[filesbar.count()];
             for (int i = 0; i < filesbar.count(); i++)
             {
-                MoveFile(filesbar[i], ImportedFolder + File.pathSeparator + Path.GetFileName(filesbar[i]), FileMoveOptions.Rename);
+                MoveFile(filesbar[i], ImportedFolder + File.separator + Path.GetFileName(filesbar[i]), FileMoveOptions.Rename);
             }*/
     }
 

@@ -121,7 +121,7 @@ public class Node {
         });
     }//end get ticket
 
-    public CompletableFuture<Response>  Echo() {
+    public CompletableFuture<Response> Echo() {
         return CompletableFuture.supplyAsync(() -> {
             Response echoResponse = new Response();
             echoResponse.fullRequest = this.FullUrl + "echo";
@@ -179,11 +179,6 @@ public class Node {
      * Method DETECT
      * Sends a Detection request to a RAIDA server
      *
-     * @param nn  int that is the coin's Network Number
-     * @param sn  int that is the coin's Serial Number
-     * @param an String that is the coin's Authenticity Number (GUID)
-     * @param pan String that is the Proposed Authenticity Number to replace the AN.
-     * @param d int that is the Denomination of the Coin
      * @return Response Object.
      */
     public CompletableFuture<Response> Detect(CloudCoin coin, int nodeNumber) {
@@ -252,6 +247,7 @@ public class Node {
 
         return MultiDetect(nn, sn, an, pan, d, timeout);
     }
+
     public CompletableFuture<MultiDetectResponse> MultiDetect(int[] nn, int[] sn, String[] an, String[] pan, int[] d, int timeout) {
         Response[] response = new Response[nn.length];
         for (int i = 0; i < nn.length; i++) {
@@ -394,10 +390,10 @@ public class Node {
      * Repairs a fracked RAIDA
      *
      * @param triad three ints trusted server RAIDA numbers
-     * @param m1 String ticket from the first trusted server
-     * @param m2 String ticket from the second trusted server
-     * @param m3 String ticket from the third trusted server
-     * @param pan String proposed authenticity number (to replace the wrong AN the RAIDA has)
+     * @param m1    String ticket from the first trusted server
+     * @param m2    String ticket from the second trusted server
+     * @param m3    String ticket from the third trusted server
+     * @param pan   String proposed authenticity number (to replace the wrong AN the RAIDA has)
      * @return String status sent back from the server: sucess, fail or error.
      */
     public Response Fix(int[] triad, String m1, String m2, String m3, String pan) {
@@ -432,9 +428,8 @@ public class Node {
      *
      * @param nn  int that is the coin's Network Number
      * @param sn  int that is the coin's Serial Number
-     * @param an String that is the coin's Authenticity Number (GUID)
-     * @param pan String that is the Proposed Authenticity Number to replace the AN.
-     * @param d int that is the Denomination of the Coin
+     * @param an  String that is the coin's Authenticity Number (GUID)
+     * @param d   int that is the Denomination of the Coin
      * @return Response Object.
      */
     public CompletableFuture<Response> GetTicket(int nn, int sn, String an, int d) {

@@ -493,13 +493,13 @@ public class Exporter
         /*WRITE JSON TO FILE*/
         json = json + "\t] " + System.lineSeparator();
         json += "}";
-        String filename = (this.fileSystem.ExportFolder + File.pathSeparator + totalSaved + ".CloudCoins." + tag + ".stack");
+        String filename = (this.fileSystem.ExportFolder + File.separator + totalSaved + ".CloudCoins." + tag + ".stack");
         if (Files.exists(Paths.get(filename)))
         {
             // tack on a random number if a file already exists with the same tag
             Random rnd = new Random();
             int tagrand = rnd.nextInt(999);
-            filename = (this.fileSystem.ExportFolder + File.pathSeparator + totalSaved + ".CloudCoins." + tag + tagrand + ".stack");
+            filename = (this.fileSystem.ExportFolder + File.separator + totalSaved + ".CloudCoins." + tag + tagrand + ".stack");
         }//end if file exists
 
         try {
@@ -746,18 +746,18 @@ public class Exporter
         /*WRITE JSON TO FILE*/
         json = json + "\t] " + System.lineSeparator();
         json += "}";
-        String filename = (this.fileSystem.ExportFolder + File.pathSeparator + totalSaved + ".CloudCoins." + tag + ".stack");
+        String filename = (this.fileSystem.ExportFolder + File.separator + totalSaved + ".CloudCoins." + tag + ".stack");
 
         if (mode == 1)
         {
-            filename = (backupDir + File.pathSeparator + totalSaved + ".CloudCoins." + tag + ".stack");
+            filename = (backupDir + File.separator + totalSaved + ".CloudCoins." + tag + ".stack");
         }
         if (Files.exists(Paths.get(filename)))
         {
             // tack on a random number if a file already exists with the same tag
             Random rnd = new Random();
             int tagrand = rnd.nextInt(999);
-            filename = (this.fileSystem.ExportFolder + File.pathSeparator + totalSaved + ".CloudCoins." + tag + tagrand + ".stack");
+            filename = (this.fileSystem.ExportFolder + File.separator + totalSaved + ".CloudCoins." + tag + tagrand + ".stack");
         }//end if file exists
 
         try {

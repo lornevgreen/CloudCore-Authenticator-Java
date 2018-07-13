@@ -40,7 +40,7 @@ public class SimpleLogger {
     }
 
     private void initialize(String FileName, boolean append) {
-        DatetimeFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.fff");
+        DatetimeFormat = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
         this.Filename = FileName;
 
         String logHeader = Filename + " is created.";
@@ -147,6 +147,10 @@ public class SimpleLogger {
             StandardOpenOption option = (append) ? StandardOpenOption.APPEND : StandardOpenOption.TRUNCATE_EXISTING;
 
             Path path = Paths.get(Filename);
+            if (!Files.exists(path)) {
+                Files.createDirectories(path.getParent());
+                Files.createFile(path);
+            }
             Files.write(path, text.getBytes(StandardCharsets.UTF_8), option);
         } catch (IOException e) {
             System.out.println(e.getMessage());

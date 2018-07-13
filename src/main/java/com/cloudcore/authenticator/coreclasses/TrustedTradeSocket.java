@@ -10,7 +10,7 @@ public class TrustedTradeSocket
     public enum Status {NONE, STATUS_CONNECTED, STATUS_ERROR, STATUS_DISCONNECTED, STATUS_SENDING, STATUS_DONE, STATUS_REQUEST_RECIPIENT, STATUS_WAITING_RECIPIENT }
 
     public enum PacketType {NONE, PACKET_TYPE_INIT, PACKET_TYPE_WORD, PACKET_TYPE_COINS, PACKET_TYPE_PROGRESS, PACKET_TYPE_DONE, PACKET_TYPE_REQUEST_RECIPIENT, PACKET_TYPE_OK, PACKET_TYPE_HASH, PACKET_TYPE_RECIPIENT_REPLY }
-
+    /*
     Status status = Status.STATUS_DISCONNECTED;
     String errorMsg = "";
 
@@ -18,22 +18,22 @@ public class TrustedTradeSocket
     CancellationTokenSource cts;
     String _url;
     int _timeout;
-    Func<String, bool> _onWord;
-    Func<bool> _onStatusChange;
-    Func<String, bool> _onReceive;
-    Func<String, bool> _onProgress;
+    Func<String, Boolean> _onWord;
+    Func<Boolean> _onStatusChange;
+    Func<String, Boolean> _onReceive;
+    Func<String, Boolean> _onProgress;
     public String secretWord = "";
 
-    public String Url { get => _url; set => _url = value; }
-    public int Timeout { get => _timeout; set => _timeout = value; }
-    public Func<String, bool> OnWord { get => _onWord; set => _onWord = value; }
-    public Func<bool> OnStatusChange { get => _onStatusChange; set => _onStatusChange = value; }
-    public Func<String, bool> OnReceive { get => _onReceive; set => _onReceive = value; }
-    public Func<String, bool> OnProgress { get => _onProgress; set => _onProgress = value; }
+    public String Url;
+    public int Timeout;
+    public Func<String, Boolean> OnWord;
+    public Func<Boolean> OnStatusChange;
+    public Func<String, Boolean> OnReceive;
+    public Func<String, Boolean> OnProgress;
 
 
 
-    public TrustedTradeSocket(String url, int timeout = 10, Func<String, bool> onWord = null, Func<bool> onStatusChange = null, Func<String, bool> onReceive = null, Func<String, bool> onProgress = null)
+    public TrustedTradeSocket(String url, int timeout = 10, Func<String, Boolean> onWord = null, Func<Boolean> onStatusChange = null, Func<String, Boolean> onReceive = null, Func<String, Boolean> onProgress = null)
     {
         Url = url;
         Timeout = timeout;
@@ -161,7 +161,7 @@ public class TrustedTradeSocket
         SetStatus(Status.STATUS_ERROR);
     }
 
-    public /*async*/ Task SendCoins(String sh, String stack)
+    public //async// Task SendCoins(String sh, String stack)
 {
     Dictionary<String, String> json = new Dictionary<String, String> { ["type"] = "3", ["word"] = sh, ["stack"] = stack};
     String message = JsonConvert.SerializeObject(json);
@@ -169,10 +169,11 @@ public class TrustedTradeSocket
     SetStatus(Status.STATUS_REQUEST_RECIPIENT);//Status.STATUS_SENDING
 }
 
-    public /*async*/ Task Send(String message)
+    public //async// Task Send(String message)
 {
     byte[] sendBytes = Encoding.UTF8.GetBytes(message);
     var sendBuffer = new ArraySegment<byte>(sendBytes);
     await ws.SendAsync(sendBuffer, WebSocketMessageType.Text, true, cts.Token);
 }
+*/
 }

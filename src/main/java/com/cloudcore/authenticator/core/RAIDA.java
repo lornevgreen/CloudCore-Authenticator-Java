@@ -11,7 +11,6 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -81,7 +80,7 @@ public class RAIDA {
             }
             try {
                 nodesJson = new String(Files.readAllBytes(Paths.get(Paths.get("").toAbsolutePath().toString()
-                        + File.pathSeparator + "directory.json")));
+                        + File.separator + "directory.json")));
             } catch (IOException e1) {
                 e1.printStackTrace();
             }

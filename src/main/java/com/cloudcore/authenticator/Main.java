@@ -20,8 +20,7 @@ public class Main {
     static FileSystem FS = new FileSystem(rootFolder);
     public static RAIDA raida;
     public static Frack_Fixer fixer;
-    public static SimpleLogger logger = new SimpleLogger(FS.LogsFolder + "logs" +
-            LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.fff")).toLowerCase() + ".log", true);
+    public static SimpleLogger logger;
     static TrustedTradeSocket tts;
 
     public static int NetworkNumber = 1;
@@ -29,12 +28,13 @@ public class Main {
     public static void main(String[] args) {
         setup();
 
+        RAIDA.logger = logger;
         updateLog("Loading Network Directory");
         SetupRAIDA();
         FS.LoadFileSystem();
-        RAIDA.logger = logger;
         fixer = new Frack_Fixer(FS, Config.milliSecondsToTimeOut);
 
+        System.out.println("Processing Network Coins...");
         RAIDA.ProcessNetworkCoins(NetworkNumber);
     }
 
@@ -42,6 +42,9 @@ public class Main {
         FS.CreateDirectories();
         RAIDA raida = RAIDA.GetInstance();
         FS.LoadFileSystem();
+
+        logger = new SimpleLogger(FS.LogsFolder + "logs" +
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS")).toLowerCase() + ".log", true);
 
         //Connect to Trusted Trade Socket
         //tts = new TrustedTradeSocket("wss://escrow.cloudcoin.digital/ws/", 10, OnWord, OnStatusChange, OnReceive, OnProgress);

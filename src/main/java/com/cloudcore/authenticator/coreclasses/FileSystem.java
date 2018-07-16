@@ -70,30 +70,30 @@ public class FileSystem extends IFileSystem {
         // Failure will return false
 
         try {
-            Files.createDirectory(Paths.get(RootPath));
-            Files.createDirectory(Paths.get(RootPath));
-            Files.createDirectory(Paths.get(ImportFolder));
-            Files.createDirectory(Paths.get(ExportFolder));
-            Files.createDirectory(Paths.get(BankFolder));
-            Files.createDirectory(Paths.get(ImportedFolder));
-            Files.createDirectory(Paths.get(LostFolder));
-            Files.createDirectory(Paths.get(TrashFolder));
-            Files.createDirectory(Paths.get(SuspectFolder));
-            Files.createDirectory(Paths.get(DetectedFolder));
-            Files.createDirectory(Paths.get(FrackedFolder));
-            Files.createDirectory(Paths.get(TemplateFolder));
-            Files.createDirectory(Paths.get(PartialFolder));
-            Files.createDirectory(Paths.get(CounterfeitFolder));
-            Files.createDirectory(Paths.get(LanguageFolder));
-            Files.createDirectory(Paths.get(PreDetectFolder));
-            Files.createDirectory(Paths.get(RequestsFolder));
-            Files.createDirectory(Paths.get(DangerousFolder));
-            Files.createDirectory(Paths.get(LogsFolder));
-            Files.createDirectory(Paths.get(QRFolder));
-            Files.createDirectory(Paths.get(BarCodeFolder));
-            Files.createDirectory(Paths.get(CSVFolder));
+            Files.createDirectories(Paths.get(RootPath));
+            Files.createDirectories(Paths.get(ImportFolder));
+            Files.createDirectories(Paths.get(ExportFolder));
+            Files.createDirectories(Paths.get(BankFolder));
+            Files.createDirectories(Paths.get(ImportedFolder));
+            Files.createDirectories(Paths.get(LostFolder));
+            Files.createDirectories(Paths.get(TrashFolder));
+            Files.createDirectories(Paths.get(SuspectFolder));
+            Files.createDirectories(Paths.get(DetectedFolder));
+            Files.createDirectories(Paths.get(FrackedFolder));
+            Files.createDirectories(Paths.get(TemplateFolder));
+            Files.createDirectories(Paths.get(PartialFolder));
+            Files.createDirectories(Paths.get(CounterfeitFolder));
+            Files.createDirectories(Paths.get(LanguageFolder));
+            Files.createDirectories(Paths.get(PreDetectFolder));
+            Files.createDirectories(Paths.get(RequestsFolder));
+            Files.createDirectories(Paths.get(DangerousFolder));
+            Files.createDirectories(Paths.get(LogsFolder));
+            Files.createDirectories(Paths.get(QRFolder));
+            Files.createDirectories(Paths.get(BarCodeFolder));
+            Files.createDirectories(Paths.get(CSVFolder));
         } catch (Exception e) {
             System.out.println(e.getMessage());
+            e.printStackTrace();
             return false;
         }
 

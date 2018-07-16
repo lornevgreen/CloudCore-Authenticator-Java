@@ -125,6 +125,7 @@ public abstract class IFileSystem {
             int index = fileName.lastIndexOf('.');
             if (index > 0) {
                 extension = fileName.substring(index + 1);
+                fileName = folder + fileName;
 
                 switch (extension) {
                     case "celeb":
@@ -140,7 +141,7 @@ public abstract class IFileSystem {
                         folderCoins.add(coin);
                         break;
                     case "csv":
-                        ArrayList<String> lines = null;
+                        ArrayList<String> lines;
                         try {
                             ArrayList<CloudCoin> csvCoins = new ArrayList<>();
                             lines = new ArrayList<>(Files.readAllLines(Paths.get(fileName)));
@@ -432,7 +433,7 @@ public abstract class IFileSystem {
                 Gson gson = new Gson();
                 Stack stack = new Stack(coin);
                 Files.write(Paths.get(targetFolder + fileName + extension), gson.toJson(stack).getBytes(StandardCharsets.UTF_8));
-                Files.delete(Paths.get(sourceFolder + coin.FileName() + extension));
+                Files.deleteIfExists(Paths.get(sourceFolder + coin.currentFilename));
             } catch (Exception e) {
                 System.out.println(e.getMessage());
                 e.printStackTrace();

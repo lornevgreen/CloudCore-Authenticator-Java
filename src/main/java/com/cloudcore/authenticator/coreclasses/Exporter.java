@@ -306,7 +306,7 @@ public class Exporter
             bankFileName = this.fileSystem.BankFolder + bankedFileNames[i];//File name in bank folder
             frackedFileName = this.fileSystem.FrackedFolder + bankedFileNames[i];//File name in fracked folder
             partialFileName = this.fileSystem.PartialFolder + bankedFileNames[i];
-            if (denomination == "1" && m1 > 0)
+            if (denomination.equals("1") && m1 > 0)
             {
                 if (c != 0)//This is the json seperator between each coin. It is not needed on the first coin
                 {
@@ -344,7 +344,7 @@ public class Exporter
                 // Get the clean JSON of the coin
             }// end if coin is a 1
 
-            if (denomination == "5" && m5 > 0)
+            if (denomination.equals("5") && m5 > 0)
             {
                 if ((c != 0))
                 {
@@ -379,7 +379,7 @@ public class Exporter
                 m5--;
             } // end if coin is a 5
 
-            if (denomination == "25" && m25 > 0)
+            if (denomination.equals("25") && m25 > 0)
             {
                 if ((c != 0))
                 {
@@ -414,7 +414,7 @@ public class Exporter
                 m25--;
             }// end if coin is a 25
 
-            if (denomination == "100" && m100 > 0)
+            if (denomination.equals("100") && m100 > 0)
             {
                 if ((c != 0))
                 {
@@ -449,7 +449,7 @@ public class Exporter
                 m100--;
             } // end if coin is a 100
 
-            if (denomination == "250" && m250 > 0)
+            if (denomination.equals("250") && m250 > 0)
             {
                 if ((c != 0))
                 {
@@ -559,7 +559,7 @@ public class Exporter
             bankFileName = this.fileSystem.BankFolder + bankedFileNames[i];//File name in bank folder
             frackedFileName = this.fileSystem.FrackedFolder + bankedFileNames[i];//File name in fracked folder
             partialFileName = this.fileSystem.PartialFolder + bankedFileNames[i];
-            if (denomination == "1" && m1 > 0)
+            if (denomination.equals("1") && m1 > 0)
             {
                 if (c != 0)//This is the json seperator between each coin. It is not needed on the first coin
                 {
@@ -595,7 +595,7 @@ public class Exporter
                 // Get the clean JSON of the coin
             }// end if coin is a 1
 
-            if (denomination == "5" && m5 > 0)
+            if (denomination.equals("5") && m5 > 0)
             {
                 if ((c != 0))
                 {
@@ -630,7 +630,7 @@ public class Exporter
                 m5--;
             } // end if coin is a 5
 
-            if (denomination == "25" && m25 > 0)
+            if (denomination.equals("25") && m25 > 0)
             {
                 if ((c != 0))
                 {
@@ -665,7 +665,7 @@ public class Exporter
                 m25--;
             }// end if coin is a 25
 
-            if (denomination == "100" && m100 > 0)
+            if (denomination.equals("100") && m100 > 0)
             {
                 if ((c != 0))
                 {
@@ -700,7 +700,7 @@ public class Exporter
                 m100--;
             } // end if coin is a 100
 
-            if (denomination == "250" && m250 > 0)
+            if (denomination.equals("250") && m250 > 0)
             {
                 if ((c != 0))
                 {

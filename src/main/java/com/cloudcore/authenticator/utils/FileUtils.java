@@ -58,16 +58,18 @@ public class FileUtils {
         try {
             JSONObject json = new JSONObject(fileJson);
             incomeJsonArray = json.getJSONArray("cloudcoin");
-            CloudCoin tempCoin;
             for (int i = 0; i < incomeJsonArray.length(); i++) {
                 JSONObject childJSONObject = incomeJsonArray.getJSONObject(i);
                 int nn = childJSONObject.getInt("nn");
                 int sn = childJSONObject.getInt("sn");
                 JSONArray an = childJSONObject.getJSONArray("an");
-                String[] ans = toStringArray(an);
+                ArrayList<String> ans = toStringArrayList(an);
                 String ed = childJSONObject.getString("ed");
+                String pown = childJSONObject.getString("pown");
+                ArrayList<String> aoid = toStringArrayList(childJSONObject.getJSONArray("aoid"));
 
-                tempCoin = new CloudCoin(nn, sn, ans);
+                String currentFilename = fileName.substring(fileName.lastIndexOf(File.separatorChar) + 1);
+                cloudCoins.add(new CloudCoin(currentFilename, nn, sn, ans, ed, pown, aoid));
             }
         } catch (JSONException ex) {
             System.out.println("File " + fileName + " was not imported.");
@@ -112,6 +114,23 @@ public class FileUtils {
         String[] arr = new String[jsonArray.length()];
         for (int i = 0; i < arr.length; i++) {
             arr[i] = jsonArray.optString(i);
+        }
+        return arr;
+    }
+
+    /**
+     * Converts a JSONArray to a String ArrayList
+     *
+     * @param jsonArray a JSONArray Object
+     * @return String[]
+     */
+    public static ArrayList<String> toStringArrayList(JSONArray jsonArray) {
+        if (jsonArray == null)
+            return null;
+
+        ArrayList<String> arr = new ArrayList<>(jsonArray.length());
+        for (int i = 0; i < arr.size(); i++) {
+            arr.add(jsonArray.optString(i));
         }
         return arr;
     }

@@ -15,9 +15,9 @@ import static com.cloudcore.authenticator.core.RAIDA.updateLog;
 
 public class Main {
 
-    public static String rootFolder = Paths.get("").toAbsolutePath().toString();
+    public static String rootFolder = Paths.get("C:/CloudCoins-Authenticate").toAbsolutePath().toString();
 
-    static FileSystem FS = new FileSystem(rootFolder);
+    static FileSystem FS;
     public static RAIDA raida;
     public static Frack_Fixer fixer;
     public static SimpleLogger logger;
@@ -39,6 +39,7 @@ public class Main {
     }
 
     private static void setup() {
+        FS = new FileSystem(rootFolder);
         FS.CreateDirectories();
         RAIDA raida = RAIDA.GetInstance();
         FS.LoadFileSystem();

@@ -17,6 +17,8 @@ public class CloudCoin {
 
     public String folder;
 
+    public String currentFilename;
+
     //public Response[] response = new Response[Config.NodeCount];
 
     public String[] gradeStatus = new String[3];// What passed, what failed, what was undetected
@@ -120,14 +122,14 @@ public class CloudCoin {
         this.an = new ArrayList<>(Arrays.asList(ans));
     }
 
-    public CloudCoin(int nn, int sn, ArrayList<String> an, String ed, String pown, ArrayList<String> aoid) {
+    public CloudCoin(String currentFilename, int nn, int sn, ArrayList<String> an, String ed, String pown, ArrayList<String> aoid) {
+        this.currentFilename = currentFilename;
         this.nn = nn;
         this.sn = sn;
         this.an = an;
         this.ed = ed;
         this.pown = pown;
         this.aoid = aoid;
-
     }
 
     public CloudCoin(String fileName) {
@@ -227,7 +229,7 @@ public class CloudCoin {
 
     public boolean isPerfect() {
         boolean returnTruth = false;
-        if (pown == "ppppppppppppppppppppppppp") {
+        if (pown.equals("ppppppppppppppppppppppppp")) {
             returnTruth = true;
         }
         return returnTruth;

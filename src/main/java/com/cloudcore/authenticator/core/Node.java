@@ -61,16 +61,14 @@ public class Node {
     public Node(int NodeNumber, RAIDANode node) {
         this.NodeNumber = NodeNumber;
         this.node = node;
-        FullUrl = GetFullURL();
         FullUrl = "https://" + node.urls[0].url + "/service/";
-        System.out.println(FullUrl);
 
         client = asyncHttpClient();
         gson = new Gson();
     }
 
     public String GetFullURL() {
-        return "https://RAIDA" + (NodeNumber - 1) + ".cloudcoin.global/service/";
+        return "https://raida" + (NodeNumber - 1) + ".cloudcoin.global/service/";
     }
 
     public void ResetTicket() {
@@ -259,7 +257,7 @@ public class Node {
             formParams.add(new Param("nns[]", Integer.toString(nn[i])));
             formParams.add(new Param("sns[]", Integer.toString(sn[i])));
             formParams.add(new Param("ans[]", an[i]));
-            formParams.add(new Param("pan[]", pan[i]));
+            formParams.add(new Param("pans[]", pan[i]));
             formParams.add(new Param("denomination[]", Integer.toString(d[i])));
             // System.out.println("url is " + this.fullUrl + "detect?nns[]=" + nn[i] + "&sns[]=" + sn[i] + "&ans[]=" + an[i] + "&pans[]=" + pan[i] + "&denomination[]=" + d[i]);
             response[i].fullRequest = this.FullUrl + "detect?nns[]=" + nn[i] + "&sns[]=" + sn[i] + "&ans[]=" + an[i] + "&pans[]=" + pan[i] + "&denomination[]=" + d[i]; // Record what was sent
@@ -270,7 +268,7 @@ public class Node {
 
         return client.preparePost(FullUrl + "multi_detect")
                 .setFormParams(formParams)
-                .setRequestTimeout((int) (timeout * 0.001f))
+                .setRequestTimeout(timeout)
                 .execute(new AsyncHandler() {
                     private final org.asynchttpclient.Response.ResponseBuilder builder = new org.asynchttpclient.Response.ResponseBuilder();
                     private Integer status;

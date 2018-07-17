@@ -11,6 +11,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -212,8 +213,9 @@ public class RAIDA {
 
             RAIDA raida = null;
             for (RAIDA network : RAIDA.networks) {
-                if (raida == null && NetworkNumber == network.NetworkNumber) {
+                if (network != null && NetworkNumber == network.NetworkNumber) {
                     raida = network;
+                    break;
                 }
             }
 
@@ -239,10 +241,11 @@ public class RAIDA {
                 }
                 ArrayList<CompletableFuture<Node.MultiDetectResponse>> tasks = raida.GetMultiDetectTasks(raida.coins, Config.milliSecondsToTimeOut, ChangeANS);
                 try {
-                    String requestFileName = Utils.RandomString(16).toLowerCase() + LocalDateTime.now().format(datetimeFormat) + ".stack";
-                    // Write Request To file before detect
-                    FileSystem.WriteCoinsToFile(coins, FileSystem.RequestsFolder + requestFileName);
-                    CompletableFuture.allOf(tasks.toArray(new CompletableFuture[0])).get();
+                    try {
+                        CompletableFuture.allOf(tasks.toArray(new CompletableFuture[0])).get();
+                    } catch (Exception e) {
+                        System.out.println("RAIDA#PNC:" + e.getLocalizedMessage());
+                    }
 
                     for (int j = 0; j < coins.size(); j++) {
                         CloudCoin coin = coins.get(j);
@@ -271,7 +274,6 @@ public class RAIDA {
                         pge.MinorProgress = (CoinCount) * 100 / totalCoinCount;
                         System.out.println("Minor Progress- " + pge.MinorProgress);
                         raida.OnProgressChanged(pge);
-                        j++;
                     }
                     pge.MinorProgress = (CoinCount - 1) * 100 / totalCoinCount;
                     System.out.println("Minor Progress- " + pge.MinorProgress);
@@ -379,14 +381,19 @@ public class RAIDA {
                 pans[nodeNumber][i] = coins.get(i).pan[nodeNumber];
             }
             multiRequest.an[nodeNumber] = ans[nodeNumber];
-            multiRequest.an[nodeNumber] = pans[nodeNumber];
+            multiRequest.pan[nodeNumber] = pans[nodeNumber];
             multiRequest.nn = nns;
             multiRequest.sn = sns;
             multiRequest.d = dens;
         }
 
-        for (int nodeNumber = 0; nodeNumber < Config.NodeCount; nodeNumber++) {
-            detectTasks.add(nodes[nodeNumber].MultiDetect());
+        try {
+            for (int nodeNumber = 0; nodeNumber < Config.NodeCount; nodeNumber++) {
+                detectTasks.add(nodes[nodeNumber].MultiDetect());
+            }
+        } catch (Exception e) {
+            System.out.println("/1" + e.getLocalizedMessage());
+            e.printStackTrace();
         }
 
         return detectTasks;

@@ -391,6 +391,17 @@ public abstract class IFileSystem {
 
     public abstract void MoveImportedFiles();
 
+    public void RemoveCoinsRealName(ArrayList<CloudCoin> coins, String folder) {
+        for (CloudCoin coin : coins) {
+            try {
+                Files.deleteIfExists(Paths.get(folder + coin.currentFilename));
+            } catch (IOException e) {
+                System.out.println(e.getLocalizedMessage());
+                e.printStackTrace();
+            }
+        }
+    }
+
     public void RemoveCoins(ArrayList<CloudCoin> coins, String folder) {
         RemoveCoins(coins, folder, ".stack");
     }
@@ -398,7 +409,7 @@ public abstract class IFileSystem {
     public void RemoveCoins(ArrayList<CloudCoin> coins, String folder, String extension) {
         for (CloudCoin coin : coins) {
             try {
-                Files.delete(Paths.get(folder + coin.FileName() + extension));
+                Files.deleteIfExists(Paths.get(folder + coin.currentFilename + extension));
             } catch (IOException e) {
                 System.out.println(e.getMessage());
                 e.printStackTrace();
@@ -447,8 +458,8 @@ public abstract class IFileSystem {
 
     public void WriteCoinsToFile(ArrayList<CloudCoin> coins, String fileName, String extension) {
         Gson gson = new Gson();
-        Stack stack = new Stack((CloudCoin[]) coins.toArray());
         try {
+            Stack stack = new Stack(coins.toArray(new CloudCoin[0]));
             Files.write(Paths.get(fileName + extension), gson.toJson(stack).getBytes());
         } catch (IOException e) {
             System.out.println(e.getMessage());

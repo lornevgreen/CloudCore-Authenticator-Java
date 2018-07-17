@@ -136,6 +136,11 @@ public class CloudCoin {
 
     }
 
+    @Override
+    public String toString() {
+        return "cloudcoin: (nn:" + nn + ", sn:" + sn + ", ed:" + ed + ", aoid:" + aoid.toString() + ", an:" + an.toString() + ", pan:" + Arrays.toString(pan);
+    }
+
     public static CloudCoin FromJson(String csvLine) {
         try {
 
@@ -274,8 +279,9 @@ public class CloudCoin {
         return detectTaskList;
     }
     public void GeneratePAN() {
+        pan = new String[Config.NodeCount];
         for (int i = 0; i < Config.NodeCount; i++) {
-            an.set(i, this.generatePan());
+            pan[i] = this.generatePan();
         }
     }
 
@@ -433,7 +439,7 @@ public class CloudCoin {
         byte[] cryptoRandomBuffer = random.generateSeed(16);
 
         UUID pan = UUID.nameUUIDFromBytes(cryptoRandomBuffer);
-        return String.format("%32s", pan).replace(' ', '0');
+        return pan.toString().replace("-", "");
     }
 
     public void recordPown() {

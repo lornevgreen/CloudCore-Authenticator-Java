@@ -18,7 +18,7 @@ public class Stack {
     }
 
     public Stack(ArrayList<CloudCoin> coins) {
-        cc = (CloudCoin[]) coins.toArray();
+        cc = coins.toArray(new CloudCoin[0]);
     }
 
     public Stack(CloudCoin[] coins) {

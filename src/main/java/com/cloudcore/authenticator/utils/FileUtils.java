@@ -65,8 +65,9 @@ public class FileUtils {
                 JSONArray an = childJSONObject.getJSONArray("an");
                 ArrayList<String> ans = toStringArrayList(an);
                 String ed = childJSONObject.getString("ed");
-                String pown = childJSONObject.getString("pown");
-                ArrayList<String> aoid = toStringArrayList(childJSONObject.getJSONArray("aoid"));
+                String pown = childJSONObject.optString("pown", "");
+                String aoidKey = (childJSONObject.has("aoid"))? "aoid" : "aoidText";
+                ArrayList<String> aoid = toStringArrayList(childJSONObject.getJSONArray(aoidKey));
 
                 String currentFilename = fileName.substring(fileName.lastIndexOf(File.separatorChar) + 1);
                 cloudCoins.add(new CloudCoin(currentFilename, nn, sn, ans, ed, pown, aoid));
@@ -129,9 +130,8 @@ public class FileUtils {
             return null;
 
         ArrayList<String> arr = new ArrayList<>(jsonArray.length());
-        for (int i = 0; i < arr.size(); i++) {
+        for (int i = 0; i < jsonArray.length(); i++)
             arr.add(jsonArray.optString(i));
-        }
         return arr;
     }
 }

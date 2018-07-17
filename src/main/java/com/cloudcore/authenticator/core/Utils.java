@@ -104,4 +104,11 @@ public class Utils {
 
         return data;
     }//end get HTML
+
+    public static void setArraySize(ArrayList array, int size) {
+        array.ensureCapacity(Config.NodeCount);
+        for (int i = 0, j = size - array.size(); i < j; i++) {
+            array.add(null);
+        }
+    }
 }

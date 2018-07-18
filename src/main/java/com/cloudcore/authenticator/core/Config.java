@@ -16,8 +16,8 @@ public class Config  {
     public static String TAG_LANGUAGE = "Language";
     public static String TAG_PARTIAL = "Partial";
     public static String TAG_TRASH = "Trash";
+    public static String TAG_SUSPECT_OLD = "SuspectOld";
     public static String TAG_SUSPECT = "Suspect";
-    public static String TAG_PREDETECT = "Predetect";
     public static String URL_DIRECTORY = "http://michael.pravoslavnye.ru/";
     public static String TAG_REQUESTS = "Requests";
 

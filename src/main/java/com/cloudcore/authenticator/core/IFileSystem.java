@@ -24,14 +24,14 @@ public abstract class IFileSystem {
     public String ImportedFolder;
     public String LostFolder;
     public String TrashFolder;
-    public String SuspectFolder;
+    public String SuspectFolderOld;
     public String DetectedFolder;
     public String FrackedFolder;
     public String TemplateFolder;
     public String PartialFolder;
     public String CounterfeitFolder;
     public String LanguageFolder;
-    public String PreDetectFolder;
+    public String SuspectFolder;
     public String RequestsFolder;
     public String DangerousFolder;
     public String LogsFolder;
@@ -253,7 +253,7 @@ public abstract class IFileSystem {
             // System.out.println("From FileUtils returnCC.fileName " + tempCoin.fileName);
             /*end import from jpeg file */
             //   System.out.println("Loaded coin filename: " + tempCoin.fileName);
-            writeTo(SuspectFolder, tempCoin);
+            writeTo(SuspectFolderOld, tempCoin);
             return tempCoin;
         } catch (IOException ioex) {
             System.out.println("IO Exception:" + fileName + ioex);

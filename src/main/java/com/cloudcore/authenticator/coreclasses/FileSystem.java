@@ -25,10 +25,10 @@ public class FileSystem extends IFileSystem {
         PartialFolder = RootPath + File.separator + Config.TAG_PARTIAL + File.separator;
         FrackedFolder = RootPath + File.separator + Config.TAG_FRACKED + File.separator;
         DetectedFolder = RootPath + File.separator + Config.TAG_DETECTED + File.separator;
-        SuspectFolder = RootPath + File.separator + Config.TAG_SUSPECT + File.separator;
+        SuspectFolderOld = RootPath + File.separator + Config.TAG_SUSPECT_OLD + File.separator;
         TrashFolder = RootPath + File.separator + Config.TAG_TRASH + File.separator;
         BankFolder = RootPath + File.separator + Config.TAG_BANK + File.separator;
-        PreDetectFolder = RootPath + File.separator + Config.TAG_PREDETECT + File.separator;
+        SuspectFolder = RootPath + File.separator + Config.TAG_SUSPECT + File.separator;
         LostFolder = RootPath + File.separator + Config.TAG_LOST + File.separator;
         RequestsFolder = RootPath + File.separator + Config.TAG_REQUESTS + File.separator;
         DangerousFolder = RootPath + File.separator + Config.TAG_DANGEROUS + File.separator;
@@ -70,14 +70,14 @@ public class FileSystem extends IFileSystem {
             Files.createDirectories(Paths.get(ImportedFolder));
             Files.createDirectories(Paths.get(LostFolder));
             Files.createDirectories(Paths.get(TrashFolder));
-            Files.createDirectories(Paths.get(SuspectFolder));
+            Files.createDirectories(Paths.get(SuspectFolderOld));
             Files.createDirectories(Paths.get(DetectedFolder));
             Files.createDirectories(Paths.get(FrackedFolder));
             Files.createDirectories(Paths.get(TemplateFolder));
             Files.createDirectories(Paths.get(PartialFolder));
             Files.createDirectories(Paths.get(CounterfeitFolder));
             Files.createDirectories(Paths.get(LanguageFolder));
-            Files.createDirectories(Paths.get(PreDetectFolder));
+            Files.createDirectories(Paths.get(SuspectFolder));
             Files.createDirectories(Paths.get(RequestsFolder));
             Files.createDirectories(Paths.get(DangerousFolder));
             Files.createDirectories(Paths.get(LogsFolder));
@@ -107,20 +107,18 @@ public class FileSystem extends IFileSystem {
         importCoins.addAll(BarCodeCoins);
         importCoins.addAll(qrCoins);
 
-        System.out.println("Count -" + importCoins.size());
-
         //exportCoins = LoadFolderCoins(ExportFolder);
         bankCoins = LoadFolderCoins(BankFolder);
         lostCoins = LoadFolderCoins(LostFolder);
         //importedCoins = LoadFolderCoins(ImportedFolder);
         //trashCoins = LoadFolderCoins(TrashFolder);
-        suspectCoins = LoadFolderCoins(SuspectFolder);
+        suspectCoins = LoadFolderCoins(SuspectFolderOld);
         detectedCoins = LoadFolderCoins(DetectedFolder);
         frackedCoins = LoadFolderCoins(FrackedFolder);
         //LoadFolderCoins(TemplateFolder);
         partialCoins = LoadFolderCoins(PartialFolder);
         //counterfeitCoins = LoadFolderCoins(CounterfeitFolder);
-        predetectCoins = LoadFolderCoins(PreDetectFolder);
+        predetectCoins = LoadFolderCoins(SuspectFolder);
         dangerousCoins = LoadFolderCoins(DangerousFolder);
 
     }
@@ -143,7 +141,7 @@ public class FileSystem extends IFileSystem {
 
             Stack stack = new Stack(coin);
             try {
-                Files.write(Paths.get(PreDetectFolder + fileName + ".stack"), new Gson().toJson(stack).getBytes(StandardCharsets.UTF_8));
+                Files.write(Paths.get(SuspectFolder + fileName + ".stack"), Utils.createGson().toJson(stack).getBytes(StandardCharsets.UTF_8));
             } catch (IOException e) {
                 e.printStackTrace();
             }

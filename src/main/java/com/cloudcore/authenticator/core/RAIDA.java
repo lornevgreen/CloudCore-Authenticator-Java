@@ -91,8 +91,10 @@ public class RAIDA {
             Gson gson = Utils.createGson();
             RAIDADirectory dir = gson.fromJson(nodesJson, RAIDADirectory.class);
 
-            for (Network network : dir.networks)
+            for (Network network : dir.networks) {
+                System.out.println("Available Networks: " + network.raida[0].urls[0].url + " , " + network.nn);
                 networks.add(RAIDA.GetInstance(network));
+            }
         } catch (Exception e) {
             System.out.println("RAIDA instantiation failed. No Directory found on server or local path");
             e.printStackTrace();
@@ -201,7 +203,7 @@ public class RAIDA {
             FileSystem.LoadFileSystem();
             FileSystem.DetectPreProcessing();
 
-            ArrayList<CloudCoin> oldPredetectCoins = FileSystem.LoadFolderCoins(FileSystem.PreDetectFolder);
+            ArrayList<CloudCoin> oldPredetectCoins = FileSystem.LoadFolderCoins(FileSystem.SuspectFolder);
             ArrayList<CloudCoin> predetectCoins = new ArrayList<>();
             for (int i = 0; i < oldPredetectCoins.size(); i++) {
                 if (NetworkNumber == oldPredetectCoins.get(i).nn) {
@@ -266,9 +268,9 @@ public class RAIDA {
                         coin.setFailCount(countf);
                         CoinCount++;
 
-                        updateLog("No. " + CoinCount + ". Coin Deteced. S. No. - " + coin.getSn() + ". Pass Count - " + coin.getPassCount() +
+                        updateLog("No. " + CoinCount + ". Coin Detected. sn - " + coin.getSn() + ". Pass Count - " + coin.getPassCount() +
                                 ". Fail Count  - " + coin.getFailCount() + ". Result - " + coin.DetectionResult + "." + coin.pown);
-                        System.out.println("Coin Deteced. S. No. - " + coin.getSn() + ". Pass Count - " + coin.getPassCount() +
+                        System.out.println("Coin Detected. sn - " + coin.getSn() + ". Pass Count - " + coin.getPassCount() +
                                 ". Fail Count  - " + coin.getFailCount() + ". Result - " + coin.DetectionResult);
                         //coin.sortToFolder();
                         pge.MinorProgress = (CoinCount) * 100 / totalCoinCount;
@@ -279,7 +281,7 @@ public class RAIDA {
                     System.out.println("Minor Progress- " + pge.MinorProgress);
                     raida.OnProgressChanged(pge);
                     FileSystem.WriteCoin(coins, FileSystem.DetectedFolder);
-                    FileSystem.RemoveCoinsRealName(coins, FileSystem.PreDetectFolder);
+                    FileSystem.RemoveCoinsRealName(coins, FileSystem.SuspectFolder);
 
                     updateLog(pge.MinorProgress + " % of Coins on Network " + NetworkNumber + " processed.");
                 } catch (Exception e) {
@@ -293,22 +295,18 @@ public class RAIDA {
             raida.OnProgressChanged(pge);
             ArrayList<CloudCoin> detectedCoins = FileSystem.LoadFolderCoins(FileSystem.DetectedFolder);
 
-            updateLog("Starting Sort.....");
-            detectedCoins.forEach(CloudCoin::SortToFolder); // Apply Sort to Folder to all detected coins at once.
-            updateLog("Ended Sort........");
+            detectedCoins.forEach(CloudCoin::GradeSimple); // Apply Grading to all detected coins at once.
 
             ArrayList<CloudCoin> passedCoins = new ArrayList<>();
             ArrayList<CloudCoin> frackedCoins = new ArrayList<>();
             ArrayList<CloudCoin> failedCoins = new ArrayList<>();
             ArrayList<CloudCoin> lostCoins = new ArrayList<>();
-            ArrayList<CloudCoin> suspectCoins = new ArrayList<>();
 
             for (CloudCoin coin : detectedCoins) {
                 if (coin.folder.equals(FileSystem.BankFolder)) passedCoins.add(coin);
                 else if (coin.folder.equals(FileSystem.FrackedFolder)) frackedCoins.add(coin);
                 else if (coin.folder.equals(FileSystem.CounterfeitFolder)) failedCoins.add(coin);
                 else if (coin.folder.equals(FileSystem.LostFolder)) lostCoins.add(coin);
-                else if (coin.folder.equals(FileSystem.SuspectFolder)) suspectCoins.add(coin);
             }
             /*ArrayList<CloudCoin> passedCoins = new ArrayList<>(Arrays.asList((CloudCoin[])
                     Arrays.stream(detectedCoins.toArray(new CloudCoin[0]))
@@ -320,7 +318,6 @@ public class RAIDA {
             updateLog("Total Passed Coins - " + (passedCoins.size() + frackedCoins.size()) + "");
             updateLog("Total Failed Coins - " + failedCoins.size() + "");
             updateLog("Total Lost Coins - " + lostCoins.size() + "");
-            updateLog("Total Suspect Coins - " + suspectCoins.size() + "");
 
             // Move Coins to their respective folders after sort
             FileSystem.MoveCoins(passedCoins, FileSystem.DetectedFolder, FileSystem.BankFolder);
@@ -328,12 +325,10 @@ public class RAIDA {
 
             //FileSystem.WriteCoin(failedCoins, FileSystem.CounterfeitFolder, true);
             FileSystem.MoveCoins(lostCoins, FileSystem.DetectedFolder, FileSystem.LostFolder);
-            FileSystem.MoveCoins(suspectCoins, FileSystem.DetectedFolder, FileSystem.SuspectFolder);
 
             // Clean up Detected Folder
             FileSystem.RemoveCoins(failedCoins, FileSystem.DetectedFolder);
             FileSystem.RemoveCoins(lostCoins, FileSystem.DetectedFolder);
-            FileSystem.RemoveCoins(suspectCoins, FileSystem.DetectedFolder);
 
             FileSystem.MoveImportedFiles();
 

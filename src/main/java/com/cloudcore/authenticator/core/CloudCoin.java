@@ -127,6 +127,8 @@ public class CloudCoin {
         this.ed = ed;
         this.pown = pown;
         this.aoid = aoid;
+
+        denomination = getDenomination();
     }
 
     public CloudCoin(String fileName) {
@@ -135,7 +137,7 @@ public class CloudCoin {
 
     @Override
     public String toString() {
-        return "cloudcoin: (nn:" + nn + ", sn:" + sn + ", ed:" + ed + ", aoid:" + aoid.toString() + ", an:" + an.toString() + ", pan:" + Arrays.toString(pan);
+        return "cloudcoin: (nn:" + nn + ", sn:" + sn + ", ed:" + ed + ", aoid:" + aoid.toString() + ", an:" + an.toString() + ",\n pan:" + Arrays.toString(pan);
     }
 
     public static CloudCoin FromJson(String csvLine) {
@@ -257,7 +259,6 @@ public class CloudCoin {
         return nom;
     }
 
-    public ArrayList<CompletableFuture> detectTaskList = new ArrayList<>();
     public ArrayList<CompletableFuture> GetDetectTasks() {
         RAIDA raida = RAIDA.GetInstance();
 
@@ -444,6 +445,51 @@ public class CloudCoin {
         pastPown = pown;
     }
 
+    /**
+     * Determines the coin's folder placement based on a simple grading schematic.
+     */
+    public void GradeSimple() {
+        if (isPassingSimple()) {
+            if (isFrackedSimple())
+                folder = RAIDA.ActiveRAIDA.FS.FrackedFolder;
+            else
+                folder = RAIDA.ActiveRAIDA.FS.BankFolder;
+        }
+        else {
+            if (isHealthySimple())
+                folder = RAIDA.ActiveRAIDA.FS.CounterfeitFolder;
+            else
+                folder = RAIDA.ActiveRAIDA.FS.LostFolder;
+        }
+    }
+
+    /**
+     * Checks to see if the pown result is a passing grade.
+     *
+     * @return true if the pown result contains more than 20 passing grades.
+     */
+    public boolean isPassingSimple() {
+        return (charCount(pown, 'p') >= 20);
+    }
+
+    /**
+     * Checks to see if the pown result is fracked.
+     *
+     * @return true if the pown result contains more than 5 fracked grades.
+     */
+    public boolean isFrackedSimple() {
+        return (charCount(pown, 'f') >= 5);
+    }
+
+    /**
+     * Checks to see if the pown result is in good health. Unhealthy grades are errors and no-responses.
+     *
+     * @return true if the pown result contains more than 20 passing or failing grades.
+     */
+    public boolean isHealthySimple() {
+        return (charCount(pown, 'p') + charCount(pown, 'f') >= 20);
+    }
+
     public void SortToFolder() {
         //figures out which folder to put it in.
         //pown = pown.replace('d', 'e').replace('n', 'e').replace('u', 'e');
@@ -495,7 +541,7 @@ public class CloudCoin {
                 //folder = Folder.Lost;
                 return;
             } else {
-                folder = RAIDA.ActiveRAIDA.FS.SuspectFolder;
+                folder = RAIDA.ActiveRAIDA.FS.SuspectFolderOld;
                 //folder = Folder.Lost;
                 return;
             }
@@ -621,7 +667,7 @@ public class CloudCoin {
         // Coin will go to bank, counterfeit or fracked
         if (other > 12) {
             // not enough RAIDA to have a quorum
-            folder = RAIDA.GetInstance().FS.SuspectFolder;
+            folder = RAIDA.GetInstance().FS.SuspectFolderOld;
         } else if (failed > passed) {
             // failed out numbers passed with a quorum: Counterfeit
             folder = RAIDA.GetInstance().FS.CounterfeitFolder;
@@ -670,6 +716,16 @@ public class CloudCoin {
 
 
         return threat;
+    }
+
+
+
+    public int getSn() {
+        return sn;
+    }
+    public void setSn(int sn) {
+        this.sn = sn;
+        denomination = getDenomination();
     }
 
 

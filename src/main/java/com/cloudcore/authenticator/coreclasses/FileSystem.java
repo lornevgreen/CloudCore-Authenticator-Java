@@ -1,21 +1,14 @@
 package com.cloudcore.authenticator.coreclasses;
 
 import com.cloudcore.authenticator.Formats;
-import com.cloudcore.authenticator.core.CloudCoin;
-import com.cloudcore.authenticator.core.Config;
-import com.cloudcore.authenticator.core.IFileSystem;
-import com.cloudcore.authenticator.core.Stack;
-import com.google.gson.Gson;
+import com.cloudcore.authenticator.core.*;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.nio.file.attribute.FileAttributeView;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -188,7 +181,7 @@ public class FileSystem extends IFileSystem {
             try {
                 Stack stack = new Stack(coin);
                 try {
-                    Files.write(Paths.get(targetFolder + fileName + extension), new Gson().toJson(stack).getBytes(StandardCharsets.UTF_8));
+                    Files.write(Paths.get(targetFolder + fileName + extension), Utils.createGson().toJson(stack).getBytes(StandardCharsets.UTF_8));
                     Files.delete(Paths.get(sourceFolder + GetCoinName(coin.FileName()) + extension));
                 } catch (IOException e) {
                     e.printStackTrace();

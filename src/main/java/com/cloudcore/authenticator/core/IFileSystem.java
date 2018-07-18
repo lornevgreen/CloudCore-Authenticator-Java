@@ -299,7 +299,7 @@ public abstract class IFileSystem {
         //Deserial JSON
 
         try {
-            returnCC = new Gson().fromJson(incomeJson, CloudCoin.class);
+            returnCC = Utils.createGson().fromJson(incomeJson, CloudCoin.class);
             // TODO: perform file checking to see if the memo bug is present
         } catch (Exception e) {
             System.out.println("There was an error reading files in your bank.");
@@ -441,7 +441,7 @@ public abstract class IFileSystem {
                 fileName += suffix.toLowerCase();
             }
             try {
-                Gson gson = new Gson();
+                Gson gson = Utils.createGson();
                 Stack stack = new Stack(coin);
                 Files.write(Paths.get(targetFolder + fileName + extension), gson.toJson(stack).getBytes(StandardCharsets.UTF_8));
                 Files.deleteIfExists(Paths.get(sourceFolder + coin.currentFilename));
@@ -457,7 +457,7 @@ public abstract class IFileSystem {
     }
 
     public void WriteCoinsToFile(ArrayList<CloudCoin> coins, String fileName, String extension) {
-        Gson gson = new Gson();
+        Gson gson = Utils.createGson();
         try {
             Stack stack = new Stack(coins.toArray(new CloudCoin[0]));
             Files.write(Paths.get(fileName + extension), gson.toJson(stack).getBytes());
@@ -470,7 +470,7 @@ public abstract class IFileSystem {
     public void WriteCoinToFile(CloudCoin coin, String filename) {
         Stack stack = new Stack(coin);
         try {
-            Files.write(Paths.get(filename), new Gson().toJson(stack).getBytes(StandardCharsets.UTF_8));
+            Files.write(Paths.get(filename), Utils.createGson().toJson(stack).getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -485,7 +485,7 @@ public abstract class IFileSystem {
             String file = folder + Utils.RandomString(16) + ".stack";
             try {
                 Stack stack = new Stack(coins);
-                Gson gson = new Gson();
+                Gson gson = Utils.createGson();
                 Files.write(Paths.get(file), gson.toJson(stack).getBytes(StandardCharsets.UTF_8));
             } catch (Exception e) {
                 e.printStackTrace();
@@ -510,7 +510,7 @@ public abstract class IFileSystem {
 
             Stack stack = new Stack(coin);
             try {
-                Files.write(Paths.get(folder + fileName + ".stack"), new Gson().toJson(stack).getBytes(StandardCharsets.UTF_8));
+                Files.write(Paths.get(folder + fileName + ".stack"), Utils.createGson().toJson(stack).getBytes(StandardCharsets.UTF_8));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -538,7 +538,7 @@ public abstract class IFileSystem {
 
         Stack stack = new Stack(coin);
         try {
-            Files.write(Paths.get(folder + File.separator + fileName + extension), new Gson().toJson(stack).getBytes(StandardCharsets.UTF_8));
+            Files.write(Paths.get(folder + File.separator + fileName + extension), Utils.createGson().toJson(stack).getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
             e.printStackTrace();
         }

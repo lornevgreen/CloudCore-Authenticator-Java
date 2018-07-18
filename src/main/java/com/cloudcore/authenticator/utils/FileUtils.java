@@ -57,7 +57,7 @@ public class FileUtils {
         JSONArray incomeJsonArray;
         try {
             JSONObject json = new JSONObject(fileJson);
-            incomeJsonArray = json.getJSONArray("cloudcoin");
+            incomeJsonArray = (json.has("cloudcoin")) ? json.getJSONArray("cloudcoin") : new JSONArray().put(json);
             for (int i = 0; i < incomeJsonArray.length(); i++) {
                 JSONObject childJSONObject = incomeJsonArray.getJSONObject(i);
                 int nn = childJSONObject.getInt("nn");

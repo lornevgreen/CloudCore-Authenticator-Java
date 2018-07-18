@@ -88,7 +88,7 @@ public class RAIDA {
         }
 
         try {
-            Gson gson = new Gson();
+            Gson gson = Utils.createGson();
             RAIDADirectory dir = gson.fromJson(nodesJson, RAIDADirectory.class);
 
             for (Network network : dir.networks)
@@ -279,7 +279,7 @@ public class RAIDA {
                     System.out.println("Minor Progress- " + pge.MinorProgress);
                     raida.OnProgressChanged(pge);
                     FileSystem.WriteCoin(coins, FileSystem.DetectedFolder);
-                    FileSystem.RemoveCoins(coins, FileSystem.PreDetectFolder);
+                    FileSystem.RemoveCoinsRealName(coins, FileSystem.PreDetectFolder);
 
                     updateLog(pge.MinorProgress + " % of Coins on Network " + NetworkNumber + " processed.");
                 } catch (Exception e) {

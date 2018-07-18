@@ -1,5 +1,6 @@
 package com.cloudcore.authenticator.core;
 
+import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 import java.security.SecureRandom;
@@ -11,71 +12,63 @@ import static java.time.temporal.ChronoUnit.DAYS;
 
 public class CloudCoin {
 
-    public String[] pan = new String[Config.NodeCount];
-    public int hp;// HitPoints (1-25, One point for each server not failed)
-    public String edHex;// Months from zero date that the coin will expire. 
 
-    public String folder;
-
-    public String currentFilename;
-
-    //public Response[] response = new Response[Config.NodeCount];
-
-    public String[] gradeStatus = new String[3];// What passed, what failed, what was undetected
-    //Fields
-
-    public Response[] response = new Response[Config.NodeCount];
-
+    @Expose
     @SerializedName("nn")
     public int nn;
-
-
+    @Expose
     @SerializedName("sn")
     private int sn;
-
-    public int getSn() {
-        return pSN;
-    }
-
-    public void setSn(int sn) {
-        this.sn = sn;
-        denomination = getDenomination();
-    }
-
+    @Expose
     @SerializedName("an")
     public ArrayList<String> an;
-
+    @Expose
     @SerializedName("ed")
     public String ed;
-
+    @Expose
     @SerializedName("pown")
     public String pown;
-
+    @Expose
     @SerializedName("aoid")
     public ArrayList<String> aoid;
 
+    public transient String[] pan = new String[Config.NodeCount];
+    public transient int hp;// HitPoints (1-25, One point for each server not failed)
+    public transient String edHex;// Months from zero date that the coin will expire.
 
-    public String pastPown = "uuuuuuuuuuuuuuuuuuuuuuuuu";//Used to see if there are any improvments in defracking
+    public transient String folder;
+
+    public transient String currentFilename;
+
+    //public Response[] response = new Response[Config.NodeCount];
+
+    public transient String[] gradeStatus = new String[3];// What passed, what failed, what was undetected
+    //Fields
+
+    public transient Response[] response = new Response[Config.NodeCount];
+
+    public transient String pastPown = "uuuuuuuuuuuuuuuuuuuuuuuuu";//Used to see if there are any improvments in defracking
+
+    public transient boolean IsPerfect;
+
+    public transient boolean IsCounterfeit;
+
+    public transient boolean IsGradable;
+
+    public transient boolean IsFracked;
+
+    public transient int denomination;
+    public transient String DetectionResult;
 
 
-    public boolean IsPerfect;
+    private transient int PassCount;
+    private transient int passCount = 0;
+    private transient int failCount = 0;
+    private transient int FailCount;
 
-    public boolean IsCounterfeit;
-
-    public boolean IsGradable;
-
-    public boolean IsFracked;
-
-    public int denomination;
-    public String DetectionResult;
-
-    public DetectionResult detectionResult;
-
-    public DetectionStatus DetectResult;
-    private int PassCount;
-    private int passCount = 0;
-    private int failCount = 0;
-    private int FailCount;
+    public transient DetectionResult detectionResult;
+    public transient DetectionStatus DetectResult;
+    public transient ArrayList<CompletableFuture> detectTaskList = new ArrayList<>();
 
     public int getPassCount() {
         return passCount;
@@ -83,7 +76,11 @@ public class CloudCoin {
 
     public void setPassCount(int passCount) {
         this.passCount = passCount;
-        DetectionResult = (passCount >= Config.PassCount) ? "Pass" : "Fail";
+        if (passCount >= Config.PassCount) {
+            DetectionResult = "Pass";
+            an = new ArrayList<>(Arrays.asList(pan));
+        } else
+            DetectionResult = "Fail";
     }
 
     public int getFailCount() {

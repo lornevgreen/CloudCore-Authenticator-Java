@@ -55,7 +55,7 @@ public class Node {
         System.out.println(FullUrl);
 
         client = asyncHttpClient();
-        gson = new Gson();
+        gson = Utils.createGson();
     }
 
     public Node(int NodeNumber, RAIDANode node) {
@@ -64,7 +64,7 @@ public class Node {
         FullUrl = "https://" + node.urls[0].url + "/service/";
 
         client = asyncHttpClient();
-        gson = new Gson();
+        gson = Utils.createGson();
     }
 
     public String GetFullURL() {
@@ -129,7 +129,7 @@ public class Node {
             try {
                 echoResponse.fullResponse = Utils.GetHtmlFromURL(echoResponse.fullRequest);
                 System.out.println("Echo From Node - " + NodeNumber + ". " + echoResponse.fullResponse);
-                echoresult = new Gson().fromJson(echoResponse.fullResponse, NodeEchoResponse.class);
+                echoresult = Utils.createGson().fromJson(echoResponse.fullResponse, NodeEchoResponse.class);
                 //System.out.println("Echo URL - "+ FullUrl);
                 if (echoResponse.fullResponse.contains("ready")) {
                     echoResponse.success = true;

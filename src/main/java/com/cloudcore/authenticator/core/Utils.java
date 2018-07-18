@@ -1,6 +1,7 @@
 package com.cloudcore.authenticator.core;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -15,10 +16,17 @@ import java.util.Random;
 public class Utils {
 
 
+    public static Gson createGson() {
+        return new GsonBuilder()
+                .excludeFieldsWithoutExposeAnnotation()
+                .setPrettyPrinting()
+                .create();
+    }
+
     public static CloudCoin[] LoadJson(String filename) {
         try {
             byte[] json = Files.readAllBytes(Paths.get(filename));
-            Gson gson = new Gson();
+            Gson gson = createGson();
             Stack coins = gson.fromJson(new String(json), Stack.class);
             return coins.cc;
         } catch (Exception e) {

@@ -17,8 +17,6 @@ public class Config  {
     public static int NodeCount = 25;
     public static int PassCount = 16;
 
-    public static String[] allowedExtensions = new String[] { ".stack", ".jpeg", ".chest", ".bank", ".jpg",".celebrium",".celeb",".csv" };
-
     public static String TAG_LOGS = "Logs";
 
 }

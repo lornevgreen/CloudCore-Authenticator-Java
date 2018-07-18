@@ -55,6 +55,5 @@ public class Utils {
         }
 
         return data;
-    }//end get HTML
-
+    }
 }

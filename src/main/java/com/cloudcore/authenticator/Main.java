@@ -78,7 +78,6 @@ public class Main {
                     break;
                 }
 
-            raida.FS = FS;
             RAIDA.ActiveRAIDA = raida;
             if (raida == null) {
                 updateLog("Selected Network Number not found. Quitting.");

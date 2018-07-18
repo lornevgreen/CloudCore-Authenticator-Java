@@ -7,8 +7,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
 
 public class FileSystem extends IFileSystem {
 
@@ -89,24 +87,6 @@ public class FileSystem extends IFileSystem {
 
     public String GetCoinName(String CoinName) {
         return CoinName;
-    }
-
-    public static File[] GetFilesArray(String path, String[] extensions) {
-        final ArrayList<String> extensionsArray = new ArrayList<>(Arrays.asList(extensions));
-        return new File(path).listFiles(pathname -> {
-            String filename = pathname.getAbsolutePath();
-            String extension = filename.substring(filename.lastIndexOf('.')).toLowerCase();
-            return extensionsArray.contains(extension);
-        });
-    }
-
-    @Override
-    public void MoveImportedFiles() {
-        File[] files = GetFilesArray(ImportedFolder, Config.allowedExtensions);
-
-        for (File file : files) {
-            MoveFile(file.getAbsolutePath(), ImportedFolder + File.separator + file.getName(), FileMoveOptions.Rename);
-        }
     }
 }
 

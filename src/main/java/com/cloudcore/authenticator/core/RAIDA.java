@@ -18,7 +18,6 @@ public class RAIDA {
     public int NetworkNumber = 1;
 
     public static IFileSystem FileSystem;
-    public IFileSystem FS;
 
     public ArrayList<CloudCoin> coins;
 
@@ -30,7 +29,6 @@ public class RAIDA {
     // This allows only one instance of RAIDA per application
 
     private RAIDA() {
-        FS = RAIDA.FileSystem;
         for (int i = 0; i < Config.NodeCount; i++) {
             nodes[i] = new Node(i + 1);
         }
@@ -105,9 +103,7 @@ public class RAIDA {
     }
 
     public static RAIDA GetInstance(Network network) {
-        RAIDA raida = new RAIDA(network);
-        raida.FS = FileSystem;
-        return raida;
+        return new RAIDA(network);
     }
 
     public static CompletableFuture<Object> ProcessNetworkCoins(int NetworkNumber) {
@@ -205,50 +201,6 @@ public class RAIDA {
                     e.printStackTrace();
                 }*/
             }
-
-            progress = 100;
-            System.out.println("Minor Progress- " + progress);
-            ArrayList<CloudCoin> detectedCoins = FileSystem.LoadFolderCoins(FileSystem.DetectedFolder);
-
-            detectedCoins.forEach(CloudCoin::GradeSimple); // Apply Grading to all detected coins at once.
-
-            ArrayList<CloudCoin> passedCoins = new ArrayList<>();
-            ArrayList<CloudCoin> frackedCoins = new ArrayList<>();
-            ArrayList<CloudCoin> failedCoins = new ArrayList<>();
-            ArrayList<CloudCoin> lostCoins = new ArrayList<>();
-
-            for (CloudCoin coin : detectedCoins) {
-                if (coin.folder.equals(FileSystem.BankFolder)) passedCoins.add(coin);
-                else if (coin.folder.equals(FileSystem.FrackedFolder)) frackedCoins.add(coin);
-                else if (coin.folder.equals(FileSystem.CounterfeitFolder)) failedCoins.add(coin);
-                else if (coin.folder.equals(FileSystem.LostFolder)) lostCoins.add(coin);
-            }
-            /*ArrayList<CloudCoin> passedCoins = new ArrayList<>(Arrays.asList((CloudCoin[])
-                    Arrays.stream(detectedCoins.toArray(new CloudCoin[0]))
-                            .filter(x -> x.folder.equals(FileSystem.BankFolder)).toArray()));*/
-
-            System.out.println("Total Passed Coins - " + (passedCoins.size() + frackedCoins.size()));
-            System.out.println("Total Failed Coins - " + failedCoins.size());
-            updateLog("Coin Detection finished.");
-            updateLog("Total Passed Coins - " + (passedCoins.size() + frackedCoins.size()) + "");
-            updateLog("Total Failed Coins - " + failedCoins.size() + "");
-            updateLog("Total Lost Coins - " + lostCoins.size() + "");
-
-            // Move Coins to their respective folders after sort
-            FileSystem.MoveCoins(passedCoins, FileSystem.DetectedFolder, FileSystem.BankFolder);
-            FileSystem.MoveCoins(frackedCoins, FileSystem.DetectedFolder, FileSystem.FrackedFolder);
-
-            //FileSystem.WriteCoin(failedCoins, FileSystem.CounterfeitFolder, true);
-            FileSystem.MoveCoins(lostCoins, FileSystem.DetectedFolder, FileSystem.LostFolder);
-
-            // Clean up Detected Folder
-            FileSystem.RemoveCoins(failedCoins, FileSystem.DetectedFolder);
-            FileSystem.RemoveCoins(lostCoins, FileSystem.DetectedFolder);
-
-            FileSystem.MoveImportedFiles();
-
-            progress = 100;
-            System.out.println("Minor Progress- " + progress);
 
             return null;
         });

@@ -30,11 +30,7 @@ public class CloudCoin {
 
     public transient String[] pan = new String[Config.NodeCount];
 
-    public transient String folder;
-
     public transient String currentFilename;
-
-    //public Response[] response = new Response[Config.NodeCount];
 
     //Fields
 
@@ -93,10 +89,6 @@ public class CloudCoin {
         return this.getDenomination() + ".CloudCoin." + nn + "." + sn + ".";
     }
 
-    public int charCount(String pown, char character) {
-        return pown.length() - pown.replace(Character.toString(character), "").length();
-    }
-
     public int getDenomination() {
         int nom;
         if ((sn < 1))
@@ -138,51 +130,6 @@ public class CloudCoin {
 
         UUID pan = UUID.nameUUIDFromBytes(cryptoRandomBuffer);
         return pan.toString().replace("-", "");
-    }
-
-    /**
-     * Determines the coin's folder placement based on a simple grading schematic.
-     */
-    public void GradeSimple() {
-        if (isPassingSimple()) {
-            if (isFrackedSimple())
-                folder = RAIDA.ActiveRAIDA.FS.FrackedFolder;
-            else
-                folder = RAIDA.ActiveRAIDA.FS.BankFolder;
-        }
-        else {
-            if (isHealthySimple())
-                folder = RAIDA.ActiveRAIDA.FS.CounterfeitFolder;
-            else
-                folder = RAIDA.ActiveRAIDA.FS.LostFolder;
-        }
-    }
-
-    /**
-     * Checks to see if the pown result is a passing grade.
-     *
-     * @return true if the pown result contains more than 20 passing grades.
-     */
-    public boolean isPassingSimple() {
-        return (charCount(pown, 'p') >= 20);
-    }
-
-    /**
-     * Checks to see if the pown result is fracked.
-     *
-     * @return true if the pown result contains more than 5 fracked grades.
-     */
-    public boolean isFrackedSimple() {
-        return (charCount(pown, 'f') >= 5);
-    }
-
-    /**
-     * Checks to see if the pown result is in good health. Unhealthy grades are errors and no-responses.
-     *
-     * @return true if the pown result contains more than 20 passing or failing grades.
-     */
-    public boolean isHealthySimple() {
-        return (charCount(pown, 'p') + charCount(pown, 'f') >= 20);
     }
 
 

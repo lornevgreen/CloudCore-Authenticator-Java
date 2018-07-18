@@ -8,9 +8,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Random;
 
 public class Utils {
@@ -21,17 +18,6 @@ public class Utils {
                 .excludeFieldsWithoutExposeAnnotation()
                 .setPrettyPrinting()
                 .create();
-    }
-
-    public static CloudCoin[] LoadJson(String filename) {
-        try {
-            byte[] json = Files.readAllBytes(Paths.get(filename));
-            Gson gson = createGson();
-            Stack coins = gson.fromJson(new String(json), Stack.class);
-            return coins.cc;
-        } catch (Exception e) {
-            return null;
-        }
     }
 
 
@@ -45,22 +31,6 @@ public class Utils {
         }
         return builder.toString();
     }
-
-    /**
-     * Method ordinalIndexOf used to parse cloudcoins. Finds the nth number of a character within a String
-     *
-     * @param str    The String to search in
-     * @param substr What to count in the String
-     * @param n      The nth number
-     * @return The index of the nth number
-     */
-    public static int ordinalIndexOf(String str, String substr, int n) {
-        int pos = str.indexOf(substr);
-        while (--n > 0 && pos != -1) {
-            pos = str.indexOf(substr, (pos + 1));
-        }
-        return pos;
-    }//end ordinal Index of
 
 
     public static String GetHtmlFromURL(String urlAddress) {

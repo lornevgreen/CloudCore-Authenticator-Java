@@ -4,10 +4,7 @@ import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 import java.security.SecureRandom;
-import java.time.LocalDate;
 import java.util.*;
-
-import static java.time.temporal.ChronoUnit.DAYS;
 
 public class CloudCoin {
 
@@ -72,27 +69,8 @@ public class CloudCoin {
         DetectionResult = (passCount >= Config.PassCount) ? "Pass" : "Fail";
     }
 
-    ;
-
 
     //Constructors
-
-    public CloudCoin() {
-        an = new ArrayList<>();
-    }
-
-    /**
-     * CloudCoin Constructor for importing new coins from a JSON-encoded file.
-     *
-     * @param nn  Network Number
-     * @param sn  Serial Number
-     * @param ans Authenticity Numbers
-     */
-    public CloudCoin(int nn, int sn, String[] ans) {
-        this.nn = nn;
-        this.sn = sn;
-        this.an = new ArrayList<>(Arrays.asList(ans));
-    }
 
     public CloudCoin(String currentFilename, int nn, int sn, ArrayList<String> an, String ed, String pown, ArrayList<String> aoid) {
         this.currentFilename = currentFilename;
@@ -109,27 +87,6 @@ public class CloudCoin {
     @Override
     public String toString() {
         return "cloudcoin: (nn:" + nn + ", sn:" + sn + ", ed:" + ed + ", aoid:" + aoid.toString() + ", an:" + an.toString() + ",\n pan:" + Arrays.toString(pan);
-    }
-
-    public static CloudCoin FromCSV(String csvLine) {
-        try {
-            CloudCoin coin = new CloudCoin();
-            String[] values = csvLine.split(",");
-            System.out.println(values[0]);
-            coin.sn = Integer.parseInt(values[0]);
-            coin.nn = Integer.parseInt(values[1]);
-            coin.denomination = Integer.parseInt(values[1]);
-            coin.an = new ArrayList<>();
-            for (int i = 0; i < Config.NodeCount; i++) {
-                coin.an.add(values[i + 3]);
-            }
-
-            return coin;
-
-        } catch (Exception e) {
-
-        }
-        return null;
     }
 
     public String FileName() {
@@ -165,52 +122,6 @@ public class CloudCoin {
         for (int i = 0; i < Config.NodeCount; i++) {
             pan[i] = this.generatePan();
         }
-    }
-
-    public boolean isFixable() {
-        //The coin is considered fixable if it has any of the patersns that would allow the new owner to fix fracked.
-        //There are four of these patterns: One for each corner.
-        String origPown = pown;
-        pown = pown.replace('d', 'e').replace('n', 'e').replace('u', 'e');
-        boolean canFix = false;
-        // System.out.println(cc.getSn() + " char count p =" + charCount(cc.pown, 'p'));
-        if (charCount(pown, 'p') > 5) {
-            String doublePown = pown + pown;//double it so we see patters that happen on the ends.
-
-            boolean UP_LEFT = doublePown.matches("(?i)pp[a-z][a-z][a-z]pf");
-            boolean UP_RIGHT = doublePown.matches("(?i)pp[a-z][a-z][a-z]fp");
-            boolean DOWN_LEFT = doublePown.matches("(?i)pf[a-z][a-z][a-z]pp");
-            boolean DOWN_RIGHT = doublePown.matches("(?i)fp[a-z][a-z][a-z]pp");
-
-            boolean UP_LEFT_n = doublePown.matches("(?i)pp[a-z][a-z][a-z]pn");
-            boolean UP_RIGHT_n = doublePown.matches("(?i)pp[a-z][a-z][a-z]np");
-            boolean DOWN_LEFT_n = doublePown.matches("(?i)pn[a-z][a-z][a-z]pp");
-            boolean DOWN_RIGHT_n = doublePown.matches("(?i)np[a-z][a-z][a-z]pp");
-
-            boolean UP_LEFT_e = doublePown.matches("(?i)pp[a-z][a-z][a-z]pe");
-            boolean UP_RIGHT_e = doublePown.matches("(?i)pp[a-z][a-z][a-z]ep");
-            boolean DOWN_LEFT_e = doublePown.matches("(?i)pe[a-z][a-z][a-z]pp");
-            boolean DOWN_RIGHT_e = doublePown.matches("(?i)ep[a-z][a-z][a-z]pp");
-
-            boolean UP_LEFT_u = doublePown.matches("(?i)pp[a-z][a-z][a-z]pu");
-            boolean UP_RIGHT_u = doublePown.matches("(?i)pp[a-z][a-z][a-z]up");
-            boolean DOWN_LEFT_u = doublePown.matches("(?i)pu[a-z][a-z][a-z]pp");
-            boolean DOWN_RIGHT_u = doublePown.matches("(?i)up[a-z][a-z][a-z]pp");
-
-            if (UP_LEFT || UP_RIGHT || DOWN_LEFT || DOWN_RIGHT || UP_LEFT_n || UP_RIGHT_n || DOWN_LEFT_n || DOWN_RIGHT_n
-                    || UP_LEFT_e || UP_RIGHT_e || DOWN_LEFT_e || DOWN_RIGHT_e || UP_LEFT_u || UP_RIGHT_u || DOWN_LEFT_u || DOWN_RIGHT_u) {
-                canFix = true;
-                //System.out.println("isFixable");
-            } else {
-                canFix = false;
-                //System.out.println("Not isFixable");
-            }
-        } else {
-            canFix = false;
-//                System.out.println("Not isFixable");
-        }
-        pown = origPown;
-        return canFix;
     }
 
 
@@ -275,26 +186,9 @@ public class CloudCoin {
     }
 
 
-    public void CalcExpirationDate() {
-        LocalDate expirationnnnDate = LocalDate.now().plusYears(Config.YEARSTILEXPIRE);
-        ed = (expirationnnnDate.getMonth() + "-" + expirationnnnDate.getYear());
-
-        LocalDate zeroDateee = LocalDate.of(2016, 8, 13);
-        int monthsAfterZero = (int) (DAYS.between(expirationnnnDate, zeroDateee) / (365.25 / 12));
-        //this.edHex = String.format("0x%08X", monthsAfterZero);
-    }
-
-
     public int getSn() {
         return sn;
     }
-    public void setSn(int sn) {
-        this.sn = sn;
-        denomination = getDenomination();
-    }
 
-
-    public enum DetectionStatus {
-    }
 
 }

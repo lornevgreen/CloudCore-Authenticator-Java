@@ -22,24 +22,16 @@ public class FileUtils {
      */
     public static String loadJSON(String jsonFilePath) {
         String jsonData = "";
-        BufferedReader br = null;
-        try {
-            String line;
-            br = new BufferedReader(new FileReader(jsonFilePath));
+        String line;
+        try (BufferedReader br = new BufferedReader(new FileReader(jsonFilePath))) {
             while ((line = br.readLine()) != null) {
                 jsonData += line + System.lineSeparator();
             }
         } catch (IOException e) {
             System.out.println("Failed to open " + jsonFilePath);
             e.printStackTrace();
-        } finally {
-            try {
-                if (br != null)
-                    br.close();
-            } catch (IOException e){
-                //e.printStackTrace();
-            }
         }
+        //e.printStackTrace();
         return jsonData;
     }
 
@@ -88,14 +80,15 @@ public class FileUtils {
      */
     public static String[] selectFileNamesInFolder(String directoryPath) {
         File dir = new File(directoryPath);
-        String candidateFileExt = "";
-        Collection<String> files = new ArrayList<String>();
+        Collection<String> files = new ArrayList<>();
         if (dir.isDirectory()) {
             File[] listFiles = dir.listFiles();
 
-            for (File file : listFiles) {
-                if (file.isFile()) {//Only add files with the matching file extension
-                    files.add(file.getName());
+            if (listFiles != null) {
+                for (File file : listFiles) {
+                    if (file.isFile()) {//Only add files with the matching file extension
+                        files.add(file.getName());
+                    }
                 }
             }
         }

@@ -92,8 +92,7 @@ public class SimpleLogger {
     /// <exception cref="System.IO.IOException"></exception>
     private void WriteLine(String text) {
         try {
-            boolean append = false;
-            StandardOpenOption option = (append) ? StandardOpenOption.APPEND : StandardOpenOption.TRUNCATE_EXISTING;
+            StandardOpenOption option = StandardOpenOption.TRUNCATE_EXISTING;
 
             Path path = Paths.get(Filename);
             if (!Files.exists(path)) {

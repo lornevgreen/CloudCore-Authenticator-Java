@@ -40,7 +40,7 @@ public class Main {
     private static void setup() {
         FS = new FileSystem(rootFolder);
         FS.CreateDirectories();
-        RAIDA raida = RAIDA.GetInstance();
+        RAIDA.GetInstance();
         FS.LoadFileSystem();
 
         logger = new SimpleLogger(FS.LogsFolder + "logs" +
@@ -80,8 +80,7 @@ public class Main {
 
             raida.FS = FS;
             RAIDA.ActiveRAIDA = raida;
-            if (raida == null)
-            {
+            if (raida == null) {
                 updateLog("Selected Network Number not found. Quitting.");
                 System.exit(0);
             }

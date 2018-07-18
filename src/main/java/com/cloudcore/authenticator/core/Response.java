@@ -1,5 +1,6 @@
 package com.cloudcore.authenticator.core;
 
+@SuppressWarnings({"ALL", "unused"})
 public class Response {
 
 

@@ -9,9 +9,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 public class RAIDA {
 
@@ -122,15 +119,15 @@ public class RAIDA {
             FileSystem.LoadFileSystem();
             FileSystem.DetectPreProcessing();
 
-            ArrayList<CloudCoin> oldPredetectCoins = FileSystem.LoadFolderCoins(FileSystem.SuspectFolder);
-            ArrayList<CloudCoin> predetectCoins = new ArrayList<>();
-            for (int i = 0; i < oldPredetectCoins.size(); i++) {
-                if (NetworkNumber == oldPredetectCoins.get(i).nn) {
-                    predetectCoins.add(oldPredetectCoins.get(i));
+            ArrayList<CloudCoin> folderSuspectCoins = FileSystem.LoadFolderCoins(FileSystem.SuspectFolder);
+            ArrayList<CloudCoin> suspectCoins = new ArrayList<>();
+            for (CloudCoin oldPredetectCoin : folderSuspectCoins) {
+                if (NetworkNumber == oldPredetectCoin.nn) {
+                    suspectCoins.add(oldPredetectCoin);
                 }
             }
 
-            IFileSystem.predetectCoins = predetectCoins;
+            IFileSystem.predetectCoins = suspectCoins;
 
             RAIDA raida = null;
             for (RAIDA network : RAIDA.networks) {
@@ -144,17 +141,17 @@ public class RAIDA {
                 return null;
 
             // Process Coins in Lots of 200. Can be changed from Config File
-            int LotCount = predetectCoins.size() / Config.MultiDetectLoad;
-            if (predetectCoins.size() % Config.MultiDetectLoad > 0)
+            int LotCount = suspectCoins.size() / Config.MultiDetectLoad;
+            if (suspectCoins.size() % Config.MultiDetectLoad > 0)
                 LotCount++;
-            ProgressChangedEventArgs pge = new ProgressChangedEventArgs();
 
             int CoinCount = 0;
-            int totalCoinCount = predetectCoins.size();
+            int totalCoinCount = suspectCoins.size();
+            int progress;
             for (int i = 0; i < LotCount; i++) {
                 ArrayList<CloudCoin> coins = new ArrayList<>();
                 try { // Pick up to 200 Coins and send them to RAIDA
-                    coins = new ArrayList<>(predetectCoins.subList(i * Config.MultiDetectLoad, Math.min(predetectCoins.size(), 200)));
+                    coins = new ArrayList<>(suspectCoins.subList(i * Config.MultiDetectLoad, Math.min(suspectCoins.size(), 200)));
                     raida.coins = coins;
                 } catch (Exception e) {
                     System.out.println(":" + e.getLocalizedMessage());
@@ -176,7 +173,7 @@ public class RAIDA {
                         int countf = 0;
                         for (int k = 0; k < Config.NodeCount; k++) {
                             coin.response[k] = raida.nodes[k].MultiResponse.responses[j];
-                            pownString.append(coin.response[k].outcome.substring(0, 1));
+                            pownString.append(coin.response[k].outcome, 0, 1);
                             if ("pass".equals(coin.response[k].outcome))
                                 countp++;
                             else
@@ -192,17 +189,15 @@ public class RAIDA {
                         System.out.println("Coin Detected. sn - " + coin.getSn() + ". Pass Count - " + coin.getPassCount() +
                                 ". Fail Count  - " + coin.getFailCount() + ". Result - " + coin.DetectionResult);
                         //coin.sortToFolder();
-                        pge.MinorProgress = (CoinCount) * 100 / totalCoinCount;
-                        System.out.println("Minor Progress- " + pge.MinorProgress);
-                        raida.OnProgressChanged();
+                        progress = (CoinCount) * 100 / totalCoinCount;
+                        System.out.println("Minor Progress- " + progress);
                     }
-                    pge.MinorProgress = (CoinCount - 1) * 100 / totalCoinCount;
-                    System.out.println("Minor Progress- " + pge.MinorProgress);
-                    raida.OnProgressChanged();
+                    progress = (CoinCount - 1) * 100 / totalCoinCount;
+                    System.out.println("Minor Progress- " + progress);
                     FileSystem.WriteCoin(coins, FileSystem.DetectedFolder);
                     FileSystem.RemoveCoinsRealName(coins, FileSystem.SuspectFolder);
 
-                    updateLog(pge.MinorProgress + " % of Coins on Network " + NetworkNumber + " processed.");
+                    updateLog(progress + " % of Coins on Network " + NetworkNumber + " processed.");
                 } catch (Exception e) {
                     System.out.println("RAIDA#PNC: " + e.getLocalizedMessage());
                 }/* catch (Exception e) {
@@ -211,9 +206,8 @@ public class RAIDA {
                 }*/
             }
 
-            pge.MinorProgress = 100;
-            System.out.println("Minor Progress- " + pge.MinorProgress);
-            raida.OnProgressChanged();
+            progress = 100;
+            System.out.println("Minor Progress- " + progress);
             ArrayList<CloudCoin> detectedCoins = FileSystem.LoadFolderCoins(FileSystem.DetectedFolder);
 
             detectedCoins.forEach(CloudCoin::GradeSimple); // Apply Grading to all detected coins at once.
@@ -253,8 +247,8 @@ public class RAIDA {
 
             FileSystem.MoveImportedFiles();
 
-            pge.MinorProgress = 100;
-            System.out.println("Minor Progress- " + pge.MinorProgress);
+            progress = 100;
+            System.out.println("Minor Progress- " + progress);
 
             return null;
         });
@@ -315,10 +309,6 @@ public class RAIDA {
         }
 
         return detectTasks;
-    }
-
-    public void OnProgressChanged() {
-        //ProgressChanged.Invoke(this, e);
     }
 
     public static void updateLog(String message) {

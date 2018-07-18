@@ -11,9 +11,6 @@ public class Stack {
     @SerializedName("cloudcoin")
     public CloudCoin[] cc;
 
-    public Stack() {
-    }
-
     public Stack(CloudCoin coin) {
         cc = new CloudCoin[1];
         cc[0] = coin;
@@ -23,7 +20,4 @@ public class Stack {
         cc = coins.toArray(new CloudCoin[0]);
     }
 
-    public Stack(CloudCoin[] coins) {
-        cc = coins;
-    }
 }

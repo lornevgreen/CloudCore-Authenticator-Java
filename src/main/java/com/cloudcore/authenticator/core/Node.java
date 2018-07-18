@@ -1,11 +1,6 @@
 package com.cloudcore.authenticator.core;
 
-import com.cloudcore.authenticator.utils.NodeEchoResponse;
 import com.google.gson.Gson;
-import org.asynchttpclient.AsyncHandler;
-import org.asynchttpclient.AsyncHttpClient;
-import org.asynchttpclient.HttpResponseBodyPart;
-import org.asynchttpclient.HttpResponseStatus;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -26,27 +21,19 @@ public class Node {
         NotReady,
     }
 
-    public enum TicketHistory {Untried, Failed, Success}
+    public enum TicketHistory {}
 
     private AsyncHttpClient client;
     private Gson gson;
 
     public int NodeNumber;
-    public int EchoTime = 0;
-    public int MultiDetectTime = 0;
     public String FullUrl;
-    public int ReadTimeout;
-    public NodeStatus RAIDANodeStatus = NodeStatus.NotReady;
     public boolean FailsDetect = false;
     public boolean FailsFix = false;
     public boolean FailsEcho = false;
     public boolean HasTicket = false;
-    public TicketHistory ticketHistory = TicketHistory.Untried;
     public MultiDetectResponse MultiResponse = new MultiDetectResponse();
     public String Ticket = "";
-    RAIDANode node;
-    public NodeEchoResponse echoresult;
-    public NodeEchoResponse echresponses;
 
     //Constructor
     public Node(int NodeNumber) {
@@ -60,7 +47,6 @@ public class Node {
 
     public Node(int NodeNumber, RAIDANode node) {
         this.NodeNumber = NodeNumber;
-        this.node = node;
         FullUrl = "https://" + node.urls[0].url + "/service/";
 
         client = asyncHttpClient();
@@ -70,108 +56,6 @@ public class Node {
     public String GetFullURL() {
         return "https://raida" + (NodeNumber - 1) + ".cloudcoin.global/service/";
     }
-
-    public void ResetTicket() {
-        HasTicket = false;
-        ticketHistory = TicketHistory.Untried;
-        Ticket = "";
-    }
-
-    public CompletableFuture<String> GetTicketResponse(int nn, int sn, String an, int d) {
-        return CompletableFuture.supplyAsync(() -> {
-            RAIDA raida = RAIDA.GetInstance();
-            Response get_ticketResponse = new Response();
-            get_ticketResponse.fullRequest = FullUrl + "get_ticket?nn=" + nn + "&sn=" + sn + "&an=" + an + "&pan=" + an + "&denomination=" + d;
-            long before = System.currentTimeMillis();
-
-            try {
-                get_ticketResponse.fullResponse = Utils.GetHtmlFromURL(get_ticketResponse.fullRequest);
-                System.out.println(get_ticketResponse.fullResponse);
-                long after = System.currentTimeMillis();
-                long ts = after - before;
-                get_ticketResponse.milliseconds = (int) ts;
-
-                if (get_ticketResponse.fullResponse.contains("ticket")) {
-                    String[] KeyPairs = get_ticketResponse.fullResponse.split(",");
-                    String message = KeyPairs[3];
-                    int startTicket = Utils.ordinalIndexOf(message, "\"", 3) + 2;
-                    int endTicket = Utils.ordinalIndexOf(message, "\"", 4) - startTicket;
-                    get_ticketResponse.outcome = message.substring(startTicket - 1, endTicket + 1); //This is the ticket or message
-                    get_ticketResponse.success = true;
-                    HasTicket = true;
-                    ticketHistory = TicketHistory.Success;
-                    Ticket = get_ticketResponse.outcome;
-
-                } else {
-                    get_ticketResponse.success = false;
-                    HasTicket = false;
-                    ticketHistory = TicketHistory.Failed;
-                }//end if
-
-            } catch (Exception ex) {
-                get_ticketResponse.outcome = "error";
-                get_ticketResponse.fullResponse = ex.getMessage();
-                get_ticketResponse.success = false;
-                HasTicket = false;
-                ticketHistory = TicketHistory.Failed;
-            }//end try catch
-            return get_ticketResponse.fullResponse;
-        });
-    }//end get ticket
-
-    public CompletableFuture<Response> Echo() {
-        return CompletableFuture.supplyAsync(() -> {
-            Response echoResponse = new Response();
-            echoResponse.fullRequest = this.FullUrl + "echo";
-            long before = System.currentTimeMillis();
-            FailsEcho = true;
-            //RAIDA_Status.failsEcho[raidaID] = true;
-            try {
-                echoResponse.fullResponse = Utils.GetHtmlFromURL(echoResponse.fullRequest);
-                System.out.println("Echo From Node - " + NodeNumber + ". " + echoResponse.fullResponse);
-                echoresult = Utils.createGson().fromJson(echoResponse.fullResponse, NodeEchoResponse.class);
-                //System.out.println("Echo URL - "+ FullUrl);
-                if (echoResponse.fullResponse.contains("ready")) {
-                    echoResponse.success = true;
-                    echoResponse.outcome = "ready";
-                    this.RAIDANodeStatus = NodeStatus.Ready;
-                    FailsEcho = false;
-                    //RAIDA_Status.failsEcho[raidaID] = false;
-                } else {
-                    this.RAIDANodeStatus = NodeStatus.NotReady;
-                    echoResponse.success = false;
-                    echoResponse.outcome = "error";
-                    FailsEcho = true;
-                    //RAIDA_Status.failsEcho[raidaID] = true;
-                }
-            } catch (Exception ex) {
-                echoResponse.outcome = "error";
-                echoResponse.success = false;
-                this.RAIDANodeStatus = NodeStatus.NotReady;
-                FailsEcho = true;
-                //RAIDA_Status.failsEcho[raidaID] = true;
-                echoResponse.fullResponse = ex.getMessage();
-                System.out.println("Error---" + ex.getMessage());
-            }
-            long after = System.currentTimeMillis();
-            long ts = after - before;
-            echoResponse.milliseconds = (int) ts;
-            EchoTime = (int) ts;
-            //System.out.println("Echo Complete-Node No.-" + NodeNumber + ".Status-" + RAIDANodeStatus);
-            return echoResponse;
-        });
-    }//end detect
-
-    public CompletableFuture<Response> Detect() {
-        CloudCoin coin = RAIDA.GetInstance().coin;
-        int nodeNumber = NodeNumber - 1; // TODO: understand why the node number changes with a cached CloudCoin.
-
-        return Detect(coin, nodeNumber);
-    }//end detect
-
-    public CompletableFuture<Response> Detect(CloudCoin coin) {
-        return Detect(coin, NodeNumber);
-    }//end detect
 
     /**
      * Method DETECT
@@ -190,7 +74,6 @@ public class Node {
 
                 long after = System.currentTimeMillis();
                 long ts = after - before;
-                detectResponse.milliseconds = (int) ts;
                 coin.response[nodeNumber] = detectResponse;
 
                 if (detectResponse.fullResponse.contains("pass")) {
@@ -201,32 +84,24 @@ public class Node {
                 {
                     detectResponse.outcome = "fail";
                     detectResponse.success = false;
-                    RAIDANodeStatus = NodeStatus.Ready;
                     FailsDetect = true;
                     //RAIDA_Status.failsDetect[RAIDANumber] = true;
                 } else {
                     detectResponse.outcome = "error";
                     detectResponse.success = false;
-                    RAIDANodeStatus = NodeStatus.NotReady;
                     FailsDetect = true;
                     //RAIDA_Status.failsDetect[RAIDANumber] = true;
                 }
 
-            } catch (Exception ex) {
+            } catch (Exception e){
+                System.out.println("/3" + e.getLocalizedMessage());
                 detectResponse.outcome = "error";
-                detectResponse.fullResponse = ex.getMessage();
+                detectResponse.fullResponse = e.getLocalizedMessage();
                 detectResponse.success = false;
             }
             return detectResponse;
         });
     }//end detect
-
-    public void NewCoin() {
-        HasTicket = false;
-        ticketHistory = TicketHistory.Untried;
-        Ticket = "";
-        FailsDetect = false;
-    }
 
     public class MultiDetectResponse {
         public Response[] responses;
@@ -271,12 +146,10 @@ public class Node {
                 .setRequestTimeout(timeout)
                 .execute(new AsyncHandler() {
                     private final org.asynchttpclient.Response.ResponseBuilder builder = new org.asynchttpclient.Response.ResponseBuilder();
-                    private Integer status;
 
                     @Override
                     public State onStatusReceived(HttpResponseStatus responseStatus) {
                         builder.accumulate(responseStatus);
-                        status = responseStatus.getStatusCode();
                         return State.CONTINUE;
                     }
 
@@ -308,24 +181,22 @@ public class Node {
                                 ts = after - before;
 
                                 try {
+                                    System.out.println("Response: " + totalResponse);
                                     DetectResponse[] responses = gson.fromJson(totalResponse, DetectResponse[].class);
 
                                     for (int i = 0; i < nn.length; i++) {
                                         response[i].fullResponse = totalResponse;
                                         response[i].success = "pass".equals(responses[i].status);
                                         response[i].outcome = responses[i].status;
-                                        response[i].milliseconds = (int) ts;
                                     }
                                 } catch (Exception e) {
+                                    System.out.println("/4: " + e.getLocalizedMessage() + httpResponse.getUri().toUrl());
                                     for (int i = 0; i < nn.length; i++) {
                                         response[i].fullResponse = totalResponse;
-                                        response[i].success = false;
                                         response[i].outcome = "e";
-                                        response[i].milliseconds = (int) ts;
                                     }
                                 }
 
-                                MultiDetectTime = (int) ts;
                                 MultiResponse.responses = response;
                                 return MultiResponse;
                             } else { // 404 not found or 500 error.
@@ -336,45 +207,35 @@ public class Node {
                                 for (int i = 0; i < nn.length; i++) {
                                     response[i].outcome = "error";
                                     response[i].fullResponse = Integer.toString(httpResponse.getStatusCode());
-                                    response[i].success = false;
-                                    response[i].milliseconds = (int) ts;
-                                    FailsDetect = true;
                                 }
                                 MultiResponse.responses = response;
                                 return MultiResponse;
                             }
                         } catch (JSONException e) {
-                            System.out.println("Exception: " + e.getMessage());
+                            System.out.println("Exception: " + e.getLocalizedMessage());
                             e.printStackTrace();
                         }
                         return MultiResponse;
                     }
 
                     @Override
-                    public void onThrowable(Throwable t) {
+                    public void onThrowable(Throwable e) {
                         long after = System.currentTimeMillis();
                         long ts = after - before;
 
-                        switch (t.getClass().getCanonicalName()) {
+                        switch (e.getClass().getCanonicalName()) {
                             case "TimeoutException":
                                 for (int i = 0; i < nn.length; i++) {
                                     response[i].outcome = "noresponse";
-                                    response[i].fullResponse = t.getMessage();
-                                    response[i].success = false;
-                                    response[i].milliseconds = (int) ts;
-                                    FailsDetect = true;
+                                    response[i].fullResponse = e.getLocalizedMessage();
                                 }
                                 MultiResponse.responses = response;
                                 return;
                             default:
-                                System.out.println(t.getMessage());
-                                t.printStackTrace();
+                                System.out.println("Node#MD" + e.getLocalizedMessage());
                                 for (int i = 0; i < nn.length; i++) {
                                     response[i].outcome = "error";
-                                    response[i].fullResponse = t.getMessage();
-                                    response[i].success = false;
-                                    response[i].milliseconds = (int) ts;
-                                    FailsDetect = true;
+                                    response[i].fullResponse = e.getLocalizedMessage();
                                 }
                                 MultiResponse.responses = response;
                                 return;
@@ -400,7 +261,6 @@ public class Node {
         fixResponse.fullRequest = FullUrl + "fix?fromserver1=" + triad[0] + "&message1=" + m1 + "&fromserver2=" + triad[1] + "&message2=" + m2 + "&fromserver3=" + triad[2] + "&message3=" + m3 + "&pan=" + pan;
         long after = System.currentTimeMillis();
         long ts = after - before;
-        fixResponse.milliseconds = (int) ts;
 
         try {
             fixResponse.fullResponse = Utils.GetHtmlFromURL(fixResponse.fullRequest);
@@ -411,9 +271,10 @@ public class Node {
                 fixResponse.outcome = "fail";
                 fixResponse.success = false;
             }
-        } catch (Exception ex) {//quit
+        } catch (Exception e){//quit
+            System.out.println("/5" + e.getLocalizedMessage());
             fixResponse.outcome = "error";
-            fixResponse.fullResponse = ex.getMessage();
+            fixResponse.fullResponse = e.getLocalizedMessage();
             fixResponse.success = false;
         }
         return fixResponse;
@@ -441,7 +302,6 @@ public class Node {
                 get_ticketResponse.fullResponse = Utils.GetHtmlFromURL(get_ticketResponse.fullRequest);
                 long after = System.currentTimeMillis();
                 long ts = after - before;
-                get_ticketResponse.milliseconds = (int) ts;
 
                 if (get_ticketResponse.fullResponse.contains("ticket")) {
                     String[] KeyPairs = get_ticketResponse.fullResponse.split(",");
@@ -449,24 +309,15 @@ public class Node {
                     int startTicket = Utils.ordinalIndexOf(message, "\"", 3) + 2;
                     int endTicket = Utils.ordinalIndexOf(message, "\"", 4) - startTicket;
                     get_ticketResponse.outcome = message.substring(startTicket - 1, endTicket + 1); //This is the ticket or message
-                    get_ticketResponse.success = true;
-                    HasTicket = true;
-                    ticketHistory = TicketHistory.Success;
-                    Ticket = get_ticketResponse.outcome;
 
                 } else {
-                    get_ticketResponse.success = false;
-                    HasTicket = false;
-                    ticketHistory = TicketHistory.Failed;
                 }//end if
 
             } catch (Exception e) {
+                System.out.println("/6" + e.getLocalizedMessage());
                 e.printStackTrace();
                 get_ticketResponse.outcome = "error";
-                get_ticketResponse.fullResponse = e.getMessage();
-                get_ticketResponse.success = false;
-                HasTicket = false;
-                ticketHistory = TicketHistory.Failed;
+                get_ticketResponse.fullResponse = e.getLocalizedMessage();
             }//end try catch
             return get_ticketResponse;
         });

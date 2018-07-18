@@ -36,8 +36,8 @@ public class FileUtils {
             try {
                 if (br != null)
                     br.close();
-            } catch (IOException ex) {
-                ex.printStackTrace();
+            } catch (IOException e){
+                //e.printStackTrace();
             }
         }
         return jsonData;
@@ -72,9 +72,9 @@ public class FileUtils {
                 String currentFilename = fileName.substring(fileName.lastIndexOf(File.separatorChar) + 1);
                 cloudCoins.add(new CloudCoin(currentFilename, nn, sn, ans, ed, pown, aoid));
             }
-        } catch (JSONException ex) {
-            System.out.println("File " + fileName + " was not imported.");
-            ex.printStackTrace();
+        } catch (JSONException e){
+            System.out.println("JSON File " + fileName + " was not imported. " + e.getLocalizedMessage());
+            //e.printStackTrace();
         }
 
         return cloudCoins;
@@ -100,23 +100,6 @@ public class FileUtils {
             }
         }
         return files.toArray(new String[]{});
-    }
-
-    /**
-     * Converts a JSONArray to a String array
-     *
-     * @param jsonArray a JSONArray Object
-     * @return String[]
-     */
-    public static String[] toStringArray(JSONArray jsonArray) {
-        if (jsonArray == null)
-            return null;
-
-        String[] arr = new String[jsonArray.length()];
-        for (int i = 0; i < arr.length; i++) {
-            arr[i] = jsonArray.optString(i);
-        }
-        return arr;
     }
 
     /**

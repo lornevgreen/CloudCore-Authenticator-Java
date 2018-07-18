@@ -1,6 +1,5 @@
 package com.cloudcore.authenticator.core;
 
-import com.cloudcore.authenticator.Event;
 import com.cloudcore.authenticator.utils.SimpleLogger;
 import com.google.gson.Gson;
 
@@ -8,10 +7,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -22,25 +18,16 @@ public class RAIDA {
     public static RAIDA MainNetwork;
     public Node[] nodes = new Node[Config.NodeCount];
     public MultiDetectRequest multiRequest;
-    public Network network;
     public int NetworkNumber = 1;
 
     public static IFileSystem FileSystem;
     public IFileSystem FS;
 
     public ArrayList<CloudCoin> coins;
-    public CloudCoin coin;
 
     public static ArrayList<RAIDA> networks = new ArrayList<>();
     public static RAIDA ActiveRAIDA;
-    public static String Workspace;
     public static SimpleLogger logger;
-
-    public Event ProgressChanged;
-    public Event LoggerHandler;
-    public Event CoinDetected;
-
-    static DateTimeFormatter datetimeFormat = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
     // Singleton Pattern implemented using private constructor
     // This allows only one instance of RAIDA per application
@@ -55,7 +42,6 @@ public class RAIDA {
     private RAIDA(Network network) {
         nodes = new Node[network.raida.length];
         this.NetworkNumber = network.nn;
-        this.network = network;
         for (int i = 0; i < nodes.length; i++) {
             nodes[i] = new Node(i + 1, network.raida[i]);
         }
@@ -73,6 +59,7 @@ public class RAIDA {
         try {
             nodesJson = Utils.GetHtmlFromURL(Config.URL_DIRECTORY);
         } catch (Exception e) {
+            System.out.println(": " + e.getLocalizedMessage());
             e.printStackTrace();
             if (!Files.exists(Paths.get("directory.json"))) {
                 System.out.println("RAIDA instantiation failed. No Directory found on server or local path");
@@ -83,6 +70,7 @@ public class RAIDA {
                 nodesJson = new String(Files.readAllBytes(Paths.get(Paths.get("").toAbsolutePath().toString()
                         + File.separator + "directory.json")));
             } catch (IOException e1) {
+                System.out.println("| " + e.getLocalizedMessage());
                 e1.printStackTrace();
             }
         }
@@ -123,75 +111,6 @@ public class RAIDA {
         RAIDA raida = new RAIDA(network);
         raida.FS = FileSystem;
         return raida;
-    }
-
-    public ArrayList<CompletableFuture> GetEchoTasks() {
-        ArrayList<CompletableFuture> echoTasks = new ArrayList<>();
-        for (int i = 0; i < nodes.length; i++) {
-            echoTasks.add(nodes[i].Echo());
-        }
-        return echoTasks;
-    }
-
-    public ArrayList<CompletableFuture> GetDetectTasks(CloudCoin coin) {
-        this.coin = coin;
-
-        ArrayList<CompletableFuture> detectTasks = new ArrayList<>();
-        for (int i = 0; i < nodes.length; i++) {
-            detectTasks.add(nodes[i].Detect());
-        }
-        return detectTasks;
-    }
-
-    public static CompletableFuture ProcessCoins() {
-        return CompletableFuture.supplyAsync(() -> {
-            int[] networks = new int[IFileSystem.importCoins.size()];
-            for (int i = 0; i < IFileSystem.importCoins.size(); i++) {
-                CloudCoin cc = IFileSystem.importCoins.get(i);
-                networks[i] = cc.nn;
-            }
-
-            // TODO: remove duplicates in array
-
-            long ts;
-            long before = System.currentTimeMillis();
-            long after;
-
-            for (int nn : networks) {
-                ActiveRAIDA = null;
-
-                for (RAIDA network : RAIDA.networks) {
-                    if (ActiveRAIDA == null && nn == network.NetworkNumber) {
-                        ActiveRAIDA = network;
-                    }
-                }
-
-                int NetworkExists = 0;
-                for (RAIDA network : RAIDA.networks) {
-                    if (nn == network.NetworkNumber) {
-                        NetworkExists++;
-                    }
-                }
-                if (NetworkExists != 0) {
-                    //updateLog("Starting Coins detection for Network " + nn);
-                    try {
-                        CompletableFuture task = ProcessNetworkCoins(nn, true);
-                        if (task != null)
-                            task.get();
-                    } catch (InterruptedException | ExecutionException e) {
-                        e.printStackTrace();
-                    }
-                    //updateLog("Coins detection for Network " + nn + "Finished.");
-                }
-            }
-            after = System.currentTimeMillis();
-            ts = after - before;
-
-            System.out.println("Detection Completed in : " + ts / 1000);
-            updateLog("Detection Completed in : " + ts / 1000);
-
-            return null;
-        });
     }
 
     public static CompletableFuture<Object> ProcessNetworkCoins(int NetworkNumber) {
@@ -238,10 +157,10 @@ public class RAIDA {
                     coins = new ArrayList<>(predetectCoins.subList(i * Config.MultiDetectLoad, Math.min(predetectCoins.size(), 200)));
                     raida.coins = coins;
                 } catch (Exception e) {
-                    System.out.println(e.getMessage());
+                    System.out.println(":" + e.getLocalizedMessage());
                     e.printStackTrace();
                 }
-                ArrayList<CompletableFuture<Node.MultiDetectResponse>> tasks = raida.GetMultiDetectTasks(raida.coins, Config.milliSecondsToTimeOut, ChangeANS);
+                ArrayList<CompletableFuture<Node.MultiDetectResponse>> tasks = raida.GetMultiDetectTasks(raida.coins, ChangeANS);
                 try {
                     try {
                         CompletableFuture.allOf(tasks.toArray(new CompletableFuture[0])).get();
@@ -275,24 +194,26 @@ public class RAIDA {
                         //coin.sortToFolder();
                         pge.MinorProgress = (CoinCount) * 100 / totalCoinCount;
                         System.out.println("Minor Progress- " + pge.MinorProgress);
-                        raida.OnProgressChanged(pge);
+                        raida.OnProgressChanged();
                     }
                     pge.MinorProgress = (CoinCount - 1) * 100 / totalCoinCount;
                     System.out.println("Minor Progress- " + pge.MinorProgress);
-                    raida.OnProgressChanged(pge);
+                    raida.OnProgressChanged();
                     FileSystem.WriteCoin(coins, FileSystem.DetectedFolder);
                     FileSystem.RemoveCoinsRealName(coins, FileSystem.SuspectFolder);
 
                     updateLog(pge.MinorProgress + " % of Coins on Network " + NetworkNumber + " processed.");
                 } catch (Exception e) {
-                    System.out.println(e.getMessage());
+                    System.out.println("RAIDA#PNC: " + e.getLocalizedMessage());
+                }/* catch (Exception e) {
+                    System.out.println("RAIDA#PNC: " + e.getLocalizedMessage());
                     e.printStackTrace();
-                }
+                }*/
             }
 
             pge.MinorProgress = 100;
             System.out.println("Minor Progress- " + pge.MinorProgress);
-            raida.OnProgressChanged(pge);
+            raida.OnProgressChanged();
             ArrayList<CloudCoin> detectedCoins = FileSystem.LoadFolderCoins(FileSystem.DetectedFolder);
 
             detectedCoins.forEach(CloudCoin::GradeSimple); // Apply Grading to all detected coins at once.
@@ -339,11 +260,7 @@ public class RAIDA {
         });
     }
 
-    public ArrayList<CompletableFuture<Node.MultiDetectResponse>> GetMultiDetectTasks(ArrayList<CloudCoin> coins, int milliSecondsToTimeOut) {
-        return GetMultiDetectTasks(coins, milliSecondsToTimeOut, true);
-    }
-
-    public ArrayList<CompletableFuture<Node.MultiDetectResponse>> GetMultiDetectTasks(ArrayList<CloudCoin> coins, int milliSecondsToTimeOut, boolean changeANs) {
+    public ArrayList<CompletableFuture<Node.MultiDetectResponse>> GetMultiDetectTasks(ArrayList<CloudCoin> coins, boolean changeANs) {
         this.coins = coins;
 
         int[] nns = new int[coins.size()];
@@ -363,8 +280,10 @@ public class RAIDA {
             nns[i] = coins.get(i).nn;
             sns[i] = coins.get(i).getSn();
             dens[i] = coins.get(i).denomination;
+            System.out.println(coins.get(i).toString());
         }
 
+        try {
         multiRequest = new MultiDetectRequest();
         multiRequest.timeout = Config.milliSecondsToTimeOut;
         for (int nodeNumber = 0; nodeNumber < Config.NodeCount; nodeNumber++) {
@@ -381,6 +300,10 @@ public class RAIDA {
             multiRequest.sn = sns;
             multiRequest.d = dens;
         }
+        } catch (Exception e) {
+            System.out.println("/0" + e.getLocalizedMessage());
+            e.printStackTrace();
+        }
 
         try {
             for (int nodeNumber = 0; nodeNumber < Config.NodeCount; nodeNumber++) {
@@ -394,86 +317,8 @@ public class RAIDA {
         return detectTasks;
     }
 
-    public Response[] responseArray = new Response[25];
-
-    public void GetTickets(int[] triad, String[] ans, int nn, int sn, int denomination, int milliSecondsToTimeOut) {
-        CompletableFuture t00 = GetTicket(0, triad[00], nn, sn, ans[00], denomination);
-        CompletableFuture t01 = GetTicket(1, triad[01], nn, sn, ans[01], denomination);
-        CompletableFuture t02 = GetTicket(2, triad[02], nn, sn, ans[02], denomination);
-        CompletableFuture[] taskList = new CompletableFuture[]{t00, t01, t02};
-
-        try {
-            CompletableFuture.allOf(taskList).get(milliSecondsToTimeOut, TimeUnit.MILLISECONDS);
-        } catch (TimeoutException | InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }
-    }//end detect coin
-
-    public CompletableFuture GetTicket(int i, int raidaID, int nn, int sn, String an, int d) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                responseArray[raidaID] = nodes[raidaID].GetTicket(nn, sn, an, d).get();
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
-            return null;
-        });
-    }//end get ticket
-
-    public CompletableFuture DetectCoin(CloudCoin coin, int milliSecondsToTimeOut) {
-        try {
-            CompletableFuture.allOf(coin.detectTaskList.toArray(new CompletableFuture[0])).get();
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }
-
-        int counts = 0;
-        int countsf = 0;
-        for (Response response : coin.response)
-            if ("pass".equals(response.outcome)) counts++;
-            else countsf++;
-        //int counts = (int) Arrays.stream(coin.response).filter(x -> "pass".equals(x.outcome)).count();
-        //int countsf = (int) Arrays.stream(coin.response).filter(x -> "fail".equals(x.outcome)).count();
-
-        System.out.println("Pass Count -" + counts);
-        System.out.println("Fail Count -" + countsf);
-
-        coin.SetAnsToPansIfPassed();
-        coin.CalculateHP();
-
-        coin.CalcExpirationDate();
-        coin.grade();
-        coin.SortToFolder();
-        DetectEventArgs de = new DetectEventArgs(coin);
-        OnCoinDetected(de);
-
-        return null;
-    }//end detect coin
-
-    public int ReadyCount() {
-        int ReadyCount = 0;
-        for (Node node : nodes) if (node.RAIDANodeStatus == Node.NodeStatus.Ready) ReadyCount++;
-        return ReadyCount;
-        //return (int) Arrays.stream(nodes).filter(x -> x.RAIDANodeStatus == Node.NodeStatus.Ready).count();
-    }
-
-    public int NotReadyCount() {
-        int NotReadyCount = 0;
-        for (Node node : nodes) if (node.RAIDANodeStatus == Node.NodeStatus.NotReady) NotReadyCount++;
-        return NotReadyCount;
-        //return (int) Arrays.stream(nodes).filter(x -> x.RAIDANodeStatus == Node.NodeStatus.NotReady).count();
-    }
-
-    public void OnProgressChanged(ProgressChangedEventArgs e) {
+    public void OnProgressChanged() {
         //ProgressChanged.Invoke(this, e);
-    }
-
-    public void OnLogRecieved(ProgressChangedEventArgs e) {
-        //LoggerHandler.Invoke(this, e);
-    }
-
-    protected void OnCoinDetected(DetectEventArgs e) {
-        //CoinDetected.Invoke(this, e);
     }
 
     public static void updateLog(String message) {

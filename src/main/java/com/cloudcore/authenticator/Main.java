@@ -1,10 +1,7 @@
 package com.cloudcore.authenticator;
 
-import com.cloudcore.authenticator.core.Config;
-import com.cloudcore.authenticator.core.Frack_Fixer;
-import com.cloudcore.authenticator.core.RAIDA;
+import com.cloudcore.authenticator.core.*;
 import com.cloudcore.authenticator.coreclasses.FileSystem;
-import com.cloudcore.authenticator.coreclasses.TrustedTradeSocket;
 import com.cloudcore.authenticator.utils.SimpleLogger;
 
 import java.nio.file.Paths;
@@ -18,24 +15,26 @@ public class Main {
     public static String rootFolder = Paths.get("C:/CloudCoins-Authenticate").toAbsolutePath().toString();
 
     static FileSystem FS;
-    public static RAIDA raida;
-    public static Frack_Fixer fixer;
     public static SimpleLogger logger;
-    static TrustedTradeSocket tts;
 
     public static int NetworkNumber = 1;
 
     public static void main(String[] args) {
-        setup();
+        try {
+            setup();
 
-        RAIDA.logger = logger;
-        updateLog("Loading Network Directory");
-        SetupRAIDA();
-        FS.LoadFileSystem();
-        fixer = new Frack_Fixer(FS, Config.milliSecondsToTimeOut);
+            RAIDA.logger = logger;
+            updateLog("Loading Network Directory");
+            SetupRAIDA();
+            FS.LoadFileSystem();
 
-        System.out.println("Processing Network Coins...");
-        RAIDA.ProcessNetworkCoins(NetworkNumber);
+            System.out.println("Processing Network Coins...");
+            RAIDA.ProcessNetworkCoins(NetworkNumber);
+        } catch (Exception e) {
+            System.out.println("Uncaught exception - " + e.getLocalizedMessage());
+            //e.printStackTrace();
+        }
+
     }
 
     private static void setup() {
@@ -60,7 +59,7 @@ public class Main {
         }
         catch(Exception e)
         {
-            System.out.println(e.getMessage());
+            System.out.println(e.getLocalizedMessage());
             e.printStackTrace();
             System.exit(1);
         }
@@ -85,10 +84,6 @@ public class Main {
             {
                 updateLog("Selected Network Number not found. Quitting.");
                 System.exit(0);
-            }
-            else
-            {
-                updateLog("Network Number set to " + NetworkNumber);
             }
         }
         //networks[0]

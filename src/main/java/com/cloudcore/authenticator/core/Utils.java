@@ -34,32 +34,6 @@ public class Utils {
         }
     }
 
-    public static StringBuilder CoinsToCSV(ArrayList<CloudCoin> coins) {
-        StringBuilder csv = new StringBuilder();
-
-        String headerLine = String.format("sn,denomination,nn,");
-        String headeranString = "";
-        for (int i = 0; i < Config.NodeCount; i++) {
-            headeranString += "an" + (i + 1) + ",";
-        }
-
-        // Write the Header Record
-        csv.append(headerLine + headeranString + System.lineSeparator());
-
-        // Write the Coin Serial Numbers
-        for (CloudCoin coin : coins) {
-            csv.append(coin.GetCSV() + System.lineSeparator());
-        }
-        return csv;
-    }
-
-    public static String WriteObjecttoString() {
-        // TODO: Never Implemented: MemoryStream ms = new MemoryStream();
-
-        // Serializer the User Object to the stream.
-        return "";
-    }
-
 
     private static Random random = new Random();
     private static final String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -113,10 +87,4 @@ public class Utils {
         return data;
     }//end get HTML
 
-    public static void setArraySize(ArrayList array, int size) {
-        array.ensureCapacity(Config.NodeCount);
-        for (int i = 0, j = size - array.size(); i < j; i++) {
-            array.add(null);
-        }
-    }
 }

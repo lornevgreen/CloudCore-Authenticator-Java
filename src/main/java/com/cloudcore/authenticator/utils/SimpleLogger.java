@@ -13,8 +13,6 @@ import static com.cloudcore.authenticator.utils.SimpleLogger.LogLevel.*;
 
 public class SimpleLogger {
 
-    private String programName = "authenticator";
-
     private DateTimeFormatter DatetimeFormat;
     private String Filename;
 
@@ -26,15 +24,6 @@ public class SimpleLogger {
     /// <param name="append">True to append to existing log file, False to overwrite and create new log file</param>
 
 
-    public SimpleLogger() {
-        initialize(programName + ".log", false);
-    }
-    public SimpleLogger(String FileName) {
-        initialize(FileName, false);
-    }
-    public SimpleLogger(boolean append) {
-        initialize(programName + ".log", append);
-    }
     public SimpleLogger(String FileName, boolean append) {
         initialize(FileName, append);
     }
@@ -54,51 +43,11 @@ public class SimpleLogger {
 
 
     /// <summary>
-    /// Log a debug message
-    /// </summary>
-    /// <param name="text">Message</param>
-    public void Debug(String text) {
-        WriteFormattedLog(DEBUG, text);
-    }
-
-    /// <summary>
-    /// Log an error message
-    /// </summary>
-    /// <param name="text">Message</param>
-    public void Error(String text) {
-        WriteFormattedLog(ERROR, text);
-    }
-
-    /// <summary>
-    /// Log a fatal error message
-    /// </summary>
-    /// <param name="text">Message</param>
-    public void Fatal(String text) {
-        WriteFormattedLog(FATAL, text);
-    }
-
-    /// <summary>
     /// Log an info message
     /// </summary>
     /// <param name="text">Message</param>
     public void Info(String text) {
         WriteFormattedLog(INFO, text);
-    }
-
-    /// <summary>
-    /// Log a trace message
-    /// </summary>
-    /// <param name="text">Message</param>
-    public void Trace(String text) {
-        WriteFormattedLog(TRACE, text);
-    }
-
-    /// <summary>
-    /// Log a waning message
-    /// </summary>
-    /// <param name="text">Message</param>
-    public void Warning(String text) {
-        WriteFormattedLog(WARNING, text);
     }
 
     /// <summary>
@@ -153,7 +102,7 @@ public class SimpleLogger {
             }
             Files.write(path, text.getBytes(StandardCharsets.UTF_8), option);
         } catch (IOException e) {
-            System.out.println(e.getMessage());
+            System.out.println(e.getLocalizedMessage());
             e.printStackTrace();
         }
     }

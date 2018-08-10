@@ -14,14 +14,8 @@ public class FileSystem extends IFileSystem {
         this.RootPath = RootPath;
 
         ImportFolder = RootPath + File.separator + Config.TAG_IMPORT + File.separator;
-        ImportedFolder = RootPath + File.separator + Config.TAG_IMPORTED + File.separator;
         DetectedFolder = RootPath + File.separator + Config.TAG_DETECTED + File.separator;
         SuspectFolder = RootPath + File.separator + Config.TAG_SUSPECT + File.separator;
-
-        BankFolder = RootPath + File.separator + Config.TAG_BANK + File.separator;
-        FrackedFolder = RootPath + File.separator + Config.TAG_FRACKED + File.separator;
-        CounterfeitFolder = RootPath + File.separator + Config.TAG_COUNTERFEIT + File.separator;
-        LostFolder = RootPath + File.separator + Config.TAG_LOST + File.separator;
 
         LogsFolder = RootPath + File.separator + Config.TAG_LOGS + File.separator;
     }
@@ -34,14 +28,8 @@ public class FileSystem extends IFileSystem {
             Files.createDirectories(Paths.get(RootPath));
 
             Files.createDirectories(Paths.get(ImportFolder));
-            Files.createDirectories(Paths.get(ImportedFolder));
             Files.createDirectories(Paths.get(DetectedFolder));
             Files.createDirectories(Paths.get(SuspectFolder));
-
-            Files.createDirectories(Paths.get(BankFolder));
-            Files.createDirectories(Paths.get(FrackedFolder));
-            Files.createDirectories(Paths.get(CounterfeitFolder));
-            Files.createDirectories(Paths.get(LostFolder));
 
             Files.createDirectories(Paths.get(LogsFolder));
         } catch (Exception e) {

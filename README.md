@@ -8,7 +8,7 @@ The Authenticator uses Gson for converting server calls to Java objects, and Asy
 
 ### License
 
-CloudCoin-Authenticator-Java is released under the [MIT License](LICENSE).
+CloudCore-Authenticator-Java is released under the [MIT License](LICENSE).
 
 ```
 Copyright (c) 2018 CloudCoin Consortium

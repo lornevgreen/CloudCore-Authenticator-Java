@@ -19,6 +19,10 @@ public class Utils {
                 .create();
     }
 
+    public static int charCount(String pown, char character) {
+        return pown.length() - pown.replace(Character.toString(character), "").length();
+    }
+
     public static String getHtmlFromURL(String urlAddress) {
         String data = "";
 

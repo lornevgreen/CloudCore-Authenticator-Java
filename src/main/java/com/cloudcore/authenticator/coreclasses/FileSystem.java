@@ -1,6 +1,7 @@
 package com.cloudcore.authenticator.coreclasses;
 
 import com.cloudcore.authenticator.core.*;
+import com.cloudcore.authenticator.utils.CoinUtils;
 import com.cloudcore.authenticator.utils.Utils;
 
 import java.io.File;
@@ -51,7 +52,7 @@ public class FileSystem extends IFileSystem {
     @Override
     public void DetectPreProcessing() {
         for (CloudCoin coin : importCoins) {
-            String fileName = GetCoinName(coin.FileName());
+            String fileName = CoinUtils.generateFilename(coin);
             int coinExists = 0;
             for (CloudCoin folderCoin : predetectCoins)
                 if (folderCoin.getSn() == coin.getSn())
@@ -72,10 +73,6 @@ public class FileSystem extends IFileSystem {
                 e.printStackTrace();
             }
         }
-    }
-
-    public String GetCoinName(String CoinName) {
-        return CoinName;
     }
 }
 

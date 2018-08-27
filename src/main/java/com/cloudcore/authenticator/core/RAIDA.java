@@ -1,5 +1,6 @@
 package com.cloudcore.authenticator.core;
 
+import com.cloudcore.authenticator.utils.CoinUtils;
 import com.cloudcore.authenticator.utils.SimpleLogger;
 import com.cloudcore.authenticator.utils.Utils;
 import com.google.gson.Gson;
@@ -120,7 +121,7 @@ public class RAIDA {
             ArrayList<CloudCoin> folderSuspectCoins = FileSystem.LoadFolderCoins(FileSystem.SuspectFolder);
             ArrayList<CloudCoin> suspectCoins = new ArrayList<>();
             for (CloudCoin oldPredetectCoin : folderSuspectCoins) {
-                if (NetworkNumber == oldPredetectCoin.nn) {
+                if (NetworkNumber == oldPredetectCoin.getNn()) {
                     suspectCoins.add(oldPredetectCoin);
                 }
             }
@@ -144,7 +145,7 @@ public class RAIDA {
             if (suspectCoins.size() % Config.multiDetectLoad > 0)
                 LotCount++;
 
-            int CoinCount = 0;
+            int coinCount = 0;
             int totalCoinCount = suspectCoins.size();
             int progress;
             for (int i = 0; i < LotCount; i++) {
@@ -168,31 +169,23 @@ public class RAIDA {
                     for (int j = 0; j < coins.size(); j++) {
                         CloudCoin coin = coins.get(j);
                         StringBuilder pownString = new StringBuilder();
-                        coin.pown = "";
-                        int countp = 0;
-                        int countf = 0;
+                        coin.setPown("");
                         for (int k = 0; k < Config.nodeCount; k++) {
                             coin.response[k] = raida.nodes[k].MultiResponse.responses[j];
                             pownString.append(coin.response[k].outcome, 0, 1);
-                            if ("pass".equals(coin.response[k].outcome))
-                                countp++;
-                            else
-                                countf++;
                         }
-                        coin.pown = pownString.toString();
-                        coin.setPassCount(countp);
-                        coin.setFailCount(countf);
-                        CoinCount++;
+                        coin.setPown(pownString.toString());
+                        coinCount++;
 
-                        updateLog("No. " + CoinCount + ". Coin Detected. sn - " + coin.getSn() + ". Pass Count - " + coin.getPassCount() +
-                                ". Fail Count  - " + coin.getFailCount() + ". Result - " + coin.DetectionResult + "." + coin.pown);
-                        System.out.println("Coin Detected. sn - " + coin.getSn() + ". Pass Count - " + coin.getPassCount() +
-                                ". Fail Count  - " + coin.getFailCount() + ". Result - " + coin.DetectionResult);
+                        updateLog("No. " + coinCount + ". Coin Detected. sn - " + coin.getSn() + ". Pass Count - " + CoinUtils.getPassCount(coin) +
+                                ". Fail Count  - " + CoinUtils.getFailCount(coin) + ". Result - " + CoinUtils.getDetectionResult(coin) + "." + coin.getPown());
+                        System.out.println("Coin Detected. sn - " + coin.getSn() + ". Pass Count - " + CoinUtils.getPassCount(coin) +
+                                ". Fail Count  - " + CoinUtils.getFailCount(coin) + ". Result - " + CoinUtils.getDetectionResult(coin));
                         //coin.sortToFolder();
-                        progress = (CoinCount) * 100 / totalCoinCount;
+                        progress = (coinCount) * 100 / totalCoinCount;
                         System.out.println("Minor Progress- " + progress);
                     }
-                    progress = (CoinCount - 1) * 100 / totalCoinCount;
+                    progress = (coinCount - 1) * 100 / totalCoinCount;
                     System.out.println("Minor Progress- " + progress);
                     FileSystem.WriteCoin(coins, FileSystem.DetectedFolder);
                     FileSystem.RemoveCoinsRealName(coins, FileSystem.SuspectFolder);
@@ -223,14 +216,15 @@ public class RAIDA {
         ArrayList<CompletableFuture<Node.MultiDetectResponse>> detectTasks = new ArrayList<>(); // Stripe the coins
 
         for (int i = 0; i < coins.size(); i++) {
+            CloudCoin coin = coins.get(i);
             if (changeANs)
-                coins.get(i).GeneratePAN();
+                CoinUtils.generatePAN(coin);
             else
-                coins.get(i).SetAnsToPans();
-            nns[i] = coins.get(i).nn;
-            sns[i] = coins.get(i).getSn();
-            dens[i] = coins.get(i).denomination;
-            System.out.println(coins.get(i).toString());
+                CoinUtils.setAnsToPans(coin);
+            nns[i] = coin.getNn();
+            sns[i] = coin.getSn();
+            dens[i] = CoinUtils.getDenomination(coin);
+            System.out.println(coin.toString());
         }
 
         try {
@@ -241,7 +235,7 @@ public class RAIDA {
             pans[nodeNumber] = new String[coins.size()];
 
             for (int i = 0; i < coins.size(); i++) {
-                ans[nodeNumber][i] = coins.get(i).an.get(nodeNumber);
+                ans[nodeNumber][i] = coins.get(i).getAn().get(nodeNumber);
                 pans[nodeNumber][i] = coins.get(i).pan[nodeNumber];
             }
             multiRequest.an[nodeNumber] = ans[nodeNumber];

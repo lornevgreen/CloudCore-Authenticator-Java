@@ -1,5 +1,6 @@
 package com.cloudcore.authenticator.core;
 
+import com.cloudcore.authenticator.utils.CoinUtils;
 import com.cloudcore.authenticator.utils.FileUtils;
 import com.cloudcore.authenticator.utils.Utils;
 import com.google.gson.Gson;
@@ -89,7 +90,7 @@ public abstract class IFileSystem {
         ArrayList<CloudCoin> folderCoins = LoadFolderCoins(folder);
 
         for (CloudCoin coin : coins) {
-            String fileName = coin.FileName();
+            String fileName = CoinUtils.generateFilename(coin);;
             int coinExists = 0;
             for (CloudCoin folderCoin : folderCoins)
                 if (folderCoin.getSn() == coin.getSn())

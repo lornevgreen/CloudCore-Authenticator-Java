@@ -29,7 +29,7 @@ public class CloudCoin {
     @SerializedName("aoid")
     public ArrayList<String> aoid;
 
-    public transient String[] pan = new String[Config.NodeCount];
+    public transient String[] pan = new String[Config.nodeCount];
 
     public transient String folder;
 
@@ -37,7 +37,7 @@ public class CloudCoin {
 
     //Fields
 
-    public transient Response[] response = new Response[Config.NodeCount];
+    public transient Response[] response = new Response[Config.nodeCount];
 
     public transient int denomination;
     public transient String DetectionResult;
@@ -52,7 +52,7 @@ public class CloudCoin {
 
     public void setPassCount(int passCount) {
         this.passCount = passCount;
-        if (passCount >= Config.PassCount) {
+        if (passCount >= Config.passCount) {
             DetectionResult = "Pass";
             an = new ArrayList<>(Arrays.asList(pan));
         } else
@@ -65,7 +65,7 @@ public class CloudCoin {
 
     public void setFailCount(int failCount) {
         this.failCount = failCount;
-        DetectionResult = (passCount >= Config.PassCount) ? "Pass" : "Fail";
+        DetectionResult = (passCount >= Config.passCount) ? "Pass" : "Fail";
     }
 
 
@@ -113,15 +113,15 @@ public class CloudCoin {
     }
 
     public void GeneratePAN() {
-        pan = new String[Config.NodeCount];
-        for (int i = 0; i < Config.NodeCount; i++) {
+        pan = new String[Config.nodeCount];
+        for (int i = 0; i < Config.nodeCount; i++) {
             pan[i] = this.generatePan();
         }
     }
 
 
     public void SetAnsToPans() {
-        for (int i = 0; (i < Config.NodeCount); i++) {
+        for (int i = 0; (i < Config.nodeCount); i++) {
             this.an.set(i, an.get(i));
         }
     }

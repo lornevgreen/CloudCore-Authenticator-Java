@@ -1,6 +1,7 @@
 package com.cloudcore.authenticator.coreclasses;
 
 import com.cloudcore.authenticator.core.*;
+import com.cloudcore.authenticator.utils.Utils;
 
 import java.io.File;
 import java.io.IOException;
@@ -59,7 +60,7 @@ public class FileSystem extends IFileSystem {
 
             //if (coinExists > 0)
             //{
-            //    String suffix = Utils.RandomString(16);
+            //    String suffix = Utils.randomString(16);
             //    fileName += suffix.toLowerCase();
             //}
 

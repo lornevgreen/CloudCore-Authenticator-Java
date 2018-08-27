@@ -1,5 +1,6 @@
 package com.cloudcore.authenticator.core;
 
+import com.cloudcore.authenticator.utils.Utils;
 import com.google.gson.Gson;
 
 import java.util.*;

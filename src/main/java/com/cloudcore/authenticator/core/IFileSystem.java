@@ -1,6 +1,7 @@
 package com.cloudcore.authenticator.core;
 
 import com.cloudcore.authenticator.utils.FileUtils;
+import com.cloudcore.authenticator.utils.Utils;
 import com.google.gson.Gson;
 
 import java.io.IOException;
@@ -45,9 +46,8 @@ public abstract class IFileSystem {
                     case "celeb":
                     case "celebrium":
                     case "stack":
-                        ArrayList<CloudCoin> coins = FileUtils.loadCloudCoinsFromJSON(fileName);
-                        if (coins != null)
-                            folderCoins.addAll(coins);
+                        ArrayList<CloudCoin> coins = FileUtils.loadCloudCoinsFromStack(fileName);
+                        folderCoins.addAll(coins);
                         break;
                 }
             }
@@ -75,7 +75,7 @@ public abstract class IFileSystem {
 
     public void WriteCoin(ArrayList<CloudCoin> coins, String folder, boolean writeAll) {
         if (writeAll) {
-            String file = folder + Utils.RandomString(16) + ".stack";
+            String file = folder + FileUtils.randomString(16) + ".stack";
             try {
                 Stack stack = new Stack(coins);
                 Gson gson = Utils.createGson();
@@ -97,7 +97,7 @@ public abstract class IFileSystem {
             //int coinExists = (int) Arrays.stream(folderCoins.toArray(new CloudCoin[0])).filter(x -> x.getSn() == coin.getSn()).count();
 
             if (coinExists > 0) {
-                String suffix = Utils.RandomString(16);
+                String suffix = FileUtils.randomString(16);
                 fileName += suffix.toLowerCase();
             }
 

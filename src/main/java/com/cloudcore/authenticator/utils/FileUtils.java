@@ -1,6 +1,8 @@
 package com.cloudcore.authenticator.utils;
 
 import com.cloudcore.authenticator.core.CloudCoin;
+import com.cloudcore.authenticator.core.Stack;
+import com.google.gson.JsonSyntaxException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -9,105 +11,75 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Random;
 
 public class FileUtils {
 
-    /**
-     * Attempts to read a JSON Object from a file.
-     *
-     * @param jsonFilePath the filepath pointing to the JSON file
-     * @return String
-     */
-    public static String loadJSON(String jsonFilePath) {
-        String jsonData = "";
-        String line;
-        try (BufferedReader br = new BufferedReader(new FileReader(jsonFilePath))) {
-            while ((line = br.readLine()) != null) {
-                jsonData += line + System.lineSeparator();
-            }
-        } catch (IOException e) {
-            System.out.println("Failed to open " + jsonFilePath);
-            e.printStackTrace();
+
+    /* Fields */
+
+    private static Random random = new Random();
+    private static final String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+
+    /* Methods */
+
+    public static String randomString(int length) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < length; i++) {
+            builder.append(chars.charAt(random.nextInt(chars.length())));
         }
-        //e.printStackTrace();
-        return jsonData;
+        return builder.toString();
     }
 
-    /** Attempt to read an array of CloudCoins from a JSON String. */
-    public static ArrayList<CloudCoin> loadCloudCoinsFromJSON(String fileName) {
-        ArrayList<CloudCoin> cloudCoins = new ArrayList<>();
-
-        String fileJson;
-        fileJson = loadJSON(fileName);
-        if (fileJson == null) {
-            System.out.println("File " + fileName + " was not imported.");
-            return cloudCoins;
-        }
-
-        JSONArray incomeJsonArray;
+    /**
+     * Loads an array of CloudCoins from a Stack file.
+     *
+     * @param fullFilePath the absolute filepath of the Stack file.
+     * @return ArrayList of CloudCoins.
+     */
+    public static ArrayList<CloudCoin> loadCloudCoinsFromStack(String fullFilePath) {
         try {
-            JSONObject json = new JSONObject(fileJson);
-            incomeJsonArray = (json.has("cloudcoin")) ? json.getJSONArray("cloudcoin") : new JSONArray().put(json);
-            for (int i = 0; i < incomeJsonArray.length(); i++) {
-                JSONObject childJSONObject = incomeJsonArray.getJSONObject(i);
-                int nn = childJSONObject.getInt("nn");
-                int sn = childJSONObject.getInt("sn");
-                JSONArray an = childJSONObject.getJSONArray("an");
-                ArrayList<String> ans = toStringArrayList(an);
-                String ed = childJSONObject.getString("ed");
-                String pown = childJSONObject.optString("pown", "");
-                String aoidKey = (childJSONObject.has("aoid"))? "aoid" : "aoidText";
-                ArrayList<String> aoid = toStringArrayList(childJSONObject.getJSONArray(aoidKey));
-
-                String currentFilename = fileName.substring(fileName.lastIndexOf(File.separatorChar) + 1);
-                cloudCoins.add(new CloudCoin(currentFilename, nn, sn, ans, ed, pown, aoid));
-            }
-        } catch (JSONException e){
-            System.out.println("JSON File " + fileName + " was not imported. " + e.getLocalizedMessage());
-            //e.printStackTrace();
+            String file = new String(Files.readAllBytes(Paths.get(fullFilePath)));
+            Stack stack = Utils.createGson().fromJson(file, Stack.class);
+            for (CloudCoin coin : stack.cc)
+                coin.setFullFilePath(fullFilePath);
+            return new ArrayList<>(Arrays.asList(stack.cc));
+        } catch (IOException e) {
+            System.out.println(e.getLocalizedMessage());
+            e.printStackTrace();
+        } catch (JsonSyntaxException e) {
+            System.out.println(e.getLocalizedMessage());
+            e.printStackTrace();
         }
-
-        return cloudCoins;
+        return new ArrayList<>();
     }
 
     /**
      * Returns an array containing all filenames in a directory.
      *
-     * @param directoryPath the directory to check for files
+     * @param folderPath the directory to check for files
      * @return String[]
      */
-    public static String[] selectFileNamesInFolder(String directoryPath) {
-        File dir = new File(directoryPath);
+    public static String[] selectFileNamesInFolder(String folderPath) {
+        File folder = new File(folderPath);
         Collection<String> files = new ArrayList<>();
-        if (dir.isDirectory()) {
-            File[] listFiles = dir.listFiles();
+        if (folder.isDirectory()) {
+            File[] filenames = folder.listFiles();
 
-            if (listFiles != null) {
-                for (File file : listFiles) {
-                    if (file.isFile()) {//Only add files with the matching file extension
+            if (null != filenames) {
+                for (File file : filenames) {
+                    if (file.isFile()) {
                         files.add(file.getName());
                     }
                 }
             }
         }
         return files.toArray(new String[]{});
-    }
-
-    /**
-     * Converts a JSONArray to a String ArrayList
-     *
-     * @param jsonArray a JSONArray Object
-     * @return String[]
-     */
-    public static ArrayList<String> toStringArrayList(JSONArray jsonArray) {
-        if (jsonArray == null)
-            return null;
-
-        ArrayList<String> arr = new ArrayList<>(jsonArray.length());
-        for (int i = 0; i < jsonArray.length(); i++)
-            arr.add(jsonArray.optString(i));
-        return arr;
     }
 }

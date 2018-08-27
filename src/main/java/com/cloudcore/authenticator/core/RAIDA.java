@@ -1,6 +1,7 @@
 package com.cloudcore.authenticator.core;
 
 import com.cloudcore.authenticator.utils.SimpleLogger;
+import com.cloudcore.authenticator.utils.Utils;
 import com.google.gson.Gson;
 
 import java.io.File;
@@ -52,7 +53,7 @@ public class RAIDA {
         networks.clear();
 
         try {
-            nodesJson = Utils.GetHtmlFromURL(Config.URL_DIRECTORY);
+            nodesJson = Utils.getHtmlFromURL(Config.URL_DIRECTORY);
         } catch (Exception e) {
             System.out.println(": " + e.getLocalizedMessage());
             e.printStackTrace();

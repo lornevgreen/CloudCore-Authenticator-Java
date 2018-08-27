@@ -3,6 +3,7 @@ package com.cloudcore.authenticator.core;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+import java.io.File;
 import java.security.SecureRandom;
 import java.util.*;
 
@@ -29,6 +30,8 @@ public class CloudCoin {
     public ArrayList<String> aoid;
 
     public transient String[] pan = new String[Config.NodeCount];
+
+    public transient String folder;
 
     public transient String currentFilename;
 
@@ -137,5 +140,8 @@ public class CloudCoin {
         return sn;
     }
 
-
+    public void setFullFilePath(String fullFilePath) {
+        this.folder = fullFilePath.substring(0, 1 + fullFilePath.lastIndexOf(File.separatorChar));
+        this.currentFilename = fullFilePath.substring(1 + fullFilePath.lastIndexOf(File.separatorChar, fullFilePath.length()));
+    }
 }

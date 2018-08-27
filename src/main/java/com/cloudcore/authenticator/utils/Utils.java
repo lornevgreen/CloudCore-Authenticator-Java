@@ -1,4 +1,4 @@
-package com.cloudcore.authenticator.core;
+package com.cloudcore.authenticator.utils;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -12,7 +12,6 @@ import java.util.Random;
 
 public class Utils {
 
-
     public static Gson createGson() {
         return new GsonBuilder()
                 .excludeFieldsWithoutExposeAnnotation()
@@ -20,20 +19,7 @@ public class Utils {
                 .create();
     }
 
-
-    private static Random random = new Random();
-    private static final String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-
-    public static String RandomString(int length) {
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < length; i++) {
-            builder.append(chars.charAt(random.nextInt(chars.length())));
-        }
-        return builder.toString();
-    }
-
-
-    public static String GetHtmlFromURL(String urlAddress) {
+    public static String getHtmlFromURL(String urlAddress) {
         String data = "";
 
         try {

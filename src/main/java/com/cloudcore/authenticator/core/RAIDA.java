@@ -1,5 +1,6 @@
 package com.cloudcore.authenticator.core;
 
+import com.cloudcore.authenticator.coreclasses.FileSystem;
 import com.cloudcore.authenticator.utils.CoinUtils;
 import com.cloudcore.authenticator.utils.SimpleLogger;
 import com.cloudcore.authenticator.utils.Utils;
@@ -18,8 +19,6 @@ public class RAIDA {
     public Node[] nodes = new Node[Config.nodeCount];
     public MultiDetectRequest multiRequest;
     public int NetworkNumber = 1;
-
-    public static IFileSystem FileSystem;
 
     public ArrayList<CloudCoin> coins;
 
@@ -114,11 +113,11 @@ public class RAIDA {
 
     public static CompletableFuture<Object> ProcessNetworkCoins(int NetworkNumber, boolean ChangeANS) {
         return CompletableFuture.supplyAsync(() -> {
-            FileSystem.LoadFileSystem();
-            FileSystem.DetectPreProcessing();
+            FileSystem.loadFileSystem();
+            FileSystem.detectPreProcessing();
 
             System.out.println("Getting coins...");
-            ArrayList<CloudCoin> folderSuspectCoins = FileSystem.LoadFolderCoins(FileSystem.SuspectFolder);
+            ArrayList<CloudCoin> folderSuspectCoins = FileSystem.loadFolderCoins(FileSystem.SuspectFolder);
             ArrayList<CloudCoin> suspectCoins = new ArrayList<>();
             for (CloudCoin oldPredetectCoin : folderSuspectCoins) {
                 if (NetworkNumber == oldPredetectCoin.getNn()) {
@@ -126,7 +125,7 @@ public class RAIDA {
                 }
             }
 
-            IFileSystem.predetectCoins = suspectCoins;
+            FileSystem.predetectCoins = suspectCoins;
 
             System.out.println("Getting network...");
             RAIDA raida = null;
@@ -171,8 +170,7 @@ public class RAIDA {
                         StringBuilder pownString = new StringBuilder();
                         coin.setPown("");
                         for (int k = 0; k < Config.nodeCount; k++) {
-                            coin.response[k] = raida.nodes[k].MultiResponse.responses[j];
-                            pownString.append(coin.response[k].outcome, 0, 1);
+                            pownString.append(raida.nodes[k].MultiResponse.responses[j].outcome, 0, 1);
                         }
                         coin.setPown(pownString.toString());
                         coinCount++;
@@ -187,8 +185,8 @@ public class RAIDA {
                     }
                     progress = (coinCount - 1) * 100 / totalCoinCount;
                     System.out.println("Minor Progress- " + progress);
-                    FileSystem.WriteCoin(coins, FileSystem.DetectedFolder);
-                    FileSystem.RemoveCoinsRealName(coins, FileSystem.SuspectFolder);
+                    FileSystem.writeCoin(coins, FileSystem.DetectedFolder);
+                    FileSystem.removeCoinsRealName(coins, FileSystem.SuspectFolder);
 
                     updateLog(progress + " % of Coins on Network " + NetworkNumber + " processed.");
                 } catch (Exception e) {

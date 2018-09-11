@@ -20,27 +20,25 @@ public class CloudCoin {
     private int sn;
     @Expose
     @SerializedName("an")
-    private ArrayList<String> an;
+    private ArrayList<String> an = new ArrayList<>(Config.nodeCount);
     @Expose
     @SerializedName("ed")
     private String ed;
     @Expose
     @SerializedName("pown")
-    private String pown;
+    private String pown = "uuuuuuuuuuuuuuuuuuuuuuuuu";
     @Expose
     @SerializedName("aoid")
-    private ArrayList<String> aoid;
+    private ArrayList<String> aoid = new ArrayList<>();
+
+
+    /* Fields */
 
     public transient String[] pan = new String[Config.nodeCount];
 
     public transient String folder;
 
     public transient String currentFilename;
-
-
-    /* Fields */
-
-    public transient Response[] response = new Response[Config.nodeCount];
 
 
     /* Methods */

@@ -4,7 +4,6 @@ import com.cloudcore.authenticator.core.*;
 import com.cloudcore.authenticator.coreclasses.FileSystem;
 import com.cloudcore.authenticator.utils.SimpleLogger;
 
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -12,9 +11,6 @@ import static com.cloudcore.authenticator.core.RAIDA.updateLog;
 
 public class Main {
 
-    public static String rootFolder = Paths.get("C:/CloudCoins-Authenticate").toAbsolutePath().toString();
-
-    static FileSystem FS;
     public static SimpleLogger logger;
 
     public static int NetworkNumber = 1;
@@ -26,7 +22,7 @@ public class Main {
             RAIDA.logger = logger;
             updateLog("Loading Network Directory");
             SetupRAIDA();
-            FS.LoadFileSystem();
+            FileSystem.loadFileSystem();
 
             System.out.println("Processing Network Coins...");
             RAIDA.ProcessNetworkCoins(NetworkNumber);
@@ -38,21 +34,18 @@ public class Main {
     }
 
     private static void setup() {
-        FS = new FileSystem(rootFolder);
-        FS.CreateDirectories();
+        FileSystem.createDirectories();
         RAIDA.GetInstance();
-        FS.LoadFileSystem();
+        FileSystem.loadFileSystem();
 
-        logger = new SimpleLogger(FS.LogsFolder + "logs" +
+        logger = new SimpleLogger(FileSystem.LogsFolder + "logs" +
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS")).toLowerCase() + ".log", true);
 
         //Connect to Trusted Trade Socket
         //tts = new TrustedTradeSocket("wss://escrow.cloudcoin.digital/ws/", 10, OnWord, OnStatusChange, OnReceive, OnProgress);
         //tts.Connect().Wait();
     }
-    public static void SetupRAIDA()
-    {
-        RAIDA.FileSystem = new FileSystem(rootFolder);
+    public static void SetupRAIDA() {
         try
         {
             RAIDA.Instantiate();

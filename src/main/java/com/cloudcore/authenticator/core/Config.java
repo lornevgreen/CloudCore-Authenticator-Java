@@ -7,8 +7,8 @@ public class Config  {
 
     public static final String URL_DIRECTORY = "http://michael.pravoslavnye.ru/";
 
-    public static final String TAG_IMPORT = "Import";
     public static final String TAG_DETECTED = "Detected";
+    public static final String TAG_IMPORT = "Import";
     public static final String TAG_SUSPECT = "Suspect";
 
     public static final String TAG_LOGS = "Logs";

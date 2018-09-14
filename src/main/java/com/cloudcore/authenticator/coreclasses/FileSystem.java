@@ -89,13 +89,12 @@ public class FileSystem {
             int index = fileName.lastIndexOf('.');
             if (index > 0) {
                 extension = fileName.substring(index + 1);
-                fileName = folder + fileName;
 
                 switch (extension) {
                     case "celeb":
                     case "celebrium":
                     case "stack":
-                        ArrayList<CloudCoin> coins = FileUtils.loadCloudCoinsFromStack(fileName);
+                        ArrayList<CloudCoin> coins = FileUtils.loadCloudCoinsFromStack(folder, fileName);
                         folderCoins.addAll(coins);
                         break;
                 }

@@ -16,7 +16,7 @@ public class Config  {
 
     /* Fields */
 
-    public static int milliSecondsToTimeOut = 20000;
+    public static int milliSecondsToTimeOut = 2000;
     public static int multiDetectLoad = 200;
     public static int nodeCount = 25;
     public static int passCount = 16;

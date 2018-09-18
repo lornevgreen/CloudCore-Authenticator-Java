@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 
 public class FileSystem {
@@ -107,7 +108,7 @@ public class FileSystem {
         return folderCoins;
     }
 
-    public static void removeCoinsRealName(ArrayList<CloudCoin> coins, String folder) {
+    public static void removeCoins(ArrayList<CloudCoin> coins, String folder) {
         for (CloudCoin coin : coins) {
             try {
                 Files.deleteIfExists(Paths.get(folder + coin.currentFilename));
@@ -118,44 +119,23 @@ public class FileSystem {
         }
     }
 
-    public static void writeCoin(ArrayList<CloudCoin> coins, String folder) {
-        writeCoin(coins, folder, false);
+    public static void saveCoin(CloudCoin coin) {
+        saveCoin(coin, coin.folder);
     }
-
-    public static void writeCoin(ArrayList<CloudCoin> coins, String folder, boolean writeAll) {
-        if (writeAll) {
-            String file = folder + FileUtils.randomString(16) + ".stack";
-            try {
-                Stack stack = new Stack(coins);
-                Gson gson = Utils.createGson();
-                Files.write(Paths.get(file), gson.toJson(stack).getBytes(StandardCharsets.UTF_8));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            return;
-        }
-
-        ArrayList<CloudCoin> folderCoins = loadFolderCoins(folder);
-
-        for (CloudCoin coin : coins) {
-            String fileName = CoinUtils.generateFilename(coin);;
-            int coinExists = 0;
-            for (CloudCoin folderCoin : folderCoins)
-                if (folderCoin.getSn() == coin.getSn())
-                    coinExists++;
-            //int coinExists = (int) Arrays.stream(folderCoins.toArray(new CloudCoin[0])).filter(x -> x.getSn() == coin.getSn()).count();
-
-            if (coinExists > 0) {
-                String suffix = FileUtils.randomString(16);
-                fileName += suffix.toLowerCase();
-            }
-
+    public static void saveCoin(CloudCoin coin, String folder) {
+        Gson gson = Utils.createGson();
+        try {
+            coin.currentFilename = FileUtils.ensureFilenameUnique(CoinUtils.generateFilename(coin), ".stack", folder);
             Stack stack = new Stack(coin);
-            try {
-                Files.write(Paths.get(folder + fileName + ".stack"), Utils.createGson().toJson(stack).getBytes(StandardCharsets.UTF_8));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            Files.write(Paths.get(folder + coin.currentFilename), gson.toJson(stack).getBytes(), StandardOpenOption.CREATE_NEW);
+        } catch (IOException e) {
+            System.out.println(e.getLocalizedMessage());
+            e.printStackTrace();
+        }
+    }
+    public static void saveCoins(ArrayList<CloudCoin> coins) {
+        for (CloudCoin coin : coins) {
+            saveCoin(coin);
         }
     }
 }

@@ -29,6 +29,27 @@ public class FileUtils {
 
     /* Methods */
 
+    /**
+     * Appends a filename with an increasing index if a filename is in use. Loops until a free filename is found.
+     * TODO: Potential endless loop if every filename is taken.
+     *
+     * @param filename
+     * @return an unused filename
+     */
+    public static String ensureFilenameUnique(String filename, String extension, String folder) {
+        if (!Files.exists(Paths.get(folder + filename + extension)))
+            return filename + extension;
+
+        filename = filename + '.';
+        String newFilename;
+        int loopCount = 0;
+        do {
+            newFilename = filename + Integer.toString(++loopCount);
+        }
+        while (Files.exists(Paths.get(folder + newFilename + extension)));
+        return newFilename + extension;
+    }
+
     public static String randomString(int length) {
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < length; i++) {

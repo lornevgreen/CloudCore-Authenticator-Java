@@ -80,24 +80,27 @@ public class FileSystem {
         }
     }
 
+    /**
+     * Loads all CloudCoins from a specific folder.
+     *
+     * @param folder the folder to search for CloudCoin files.
+     * @return an ArrayList of all CloudCoins in the specified folder.
+     */
     public static ArrayList<CloudCoin> loadFolderCoins(String folder) {
         ArrayList<CloudCoin> folderCoins = new ArrayList<>();
 
-        String[] fileNames = FileUtils.selectFileNamesInFolder(folder);
-        String extension;
-        for (String fileName : fileNames) {
-            int index = fileName.lastIndexOf('.');
-            if (index > 0) {
-                extension = fileName.substring(index + 1);
+        String[] filenames = FileUtils.selectFileNamesInFolder(folder);
+        for (String filename : filenames) {
+            int index = filename.lastIndexOf('.');
+            if (index == -1) continue;
 
-                switch (extension) {
-                    case "celeb":
-                    case "celebrium":
-                    case "stack":
-                        ArrayList<CloudCoin> coins = FileUtils.loadCloudCoinsFromStack(folder, fileName);
-                        folderCoins.addAll(coins);
-                        break;
-                }
+            String extension = filename.substring(index + 1);
+
+            switch (extension) {
+                case "stack":
+                    ArrayList<CloudCoin> coins = FileUtils.loadCloudCoinsFromStack(folder, filename);
+                    folderCoins.addAll(coins);
+                    break;
             }
         }
 

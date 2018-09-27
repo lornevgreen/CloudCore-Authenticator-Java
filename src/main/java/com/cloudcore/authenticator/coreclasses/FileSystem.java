@@ -38,8 +38,8 @@ public class FileSystem {
         try {
             Files.createDirectories(Paths.get(RootPath));
 
-            Files.createDirectories(Paths.get(ImportFolder));
             Files.createDirectories(Paths.get(DetectedFolder));
+            Files.createDirectories(Paths.get(ImportFolder));
             Files.createDirectories(Paths.get(SuspectFolder));
 
             Files.createDirectories(Paths.get(LogsFolder));
@@ -60,22 +60,11 @@ public class FileSystem {
     public static void detectPreProcessing() {
         for (CloudCoin coin : importCoins) {
             String fileName = CoinUtils.generateFilename(coin);
-            int coinExists = 0;
-            for (CloudCoin folderCoin : predetectCoins)
-                if (folderCoin.getSn() == coin.getSn())
-                    coinExists++;
-            //int coinExists = (int) Arrays.stream(predetectCoins.toArray(new CloudCoin[0])).filter(x -> x.getSn() == coin.getSn()).count();
-
-            //if (coinExists > 0)
-            //{
-            //    String suffix = Utils.randomString(16);
-            //    fileName += suffix.toLowerCase();
-            //}
 
             Stack stack = new Stack(coin);
             try {
-                Files.deleteIfExists(Paths.get(ImportFolder + coin.currentFilename));
                 Files.write(Paths.get(SuspectFolder + fileName + ".stack"), Utils.createGson().toJson(stack).getBytes(StandardCharsets.UTF_8));
+                Files.deleteIfExists(Paths.get(ImportFolder + coin.currentFilename));
             } catch (IOException e) {
                 System.out.println("FS#DPP: " + e.getLocalizedMessage());
                 e.printStackTrace();

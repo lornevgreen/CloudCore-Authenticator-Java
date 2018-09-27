@@ -9,16 +9,7 @@ import java.util.UUID;
 public class CoinUtils {
 
 
-    public static int getPassCount(CloudCoin coin) {
-        return Utils.charCount(coin.getPown(), 'p');
-    }
-    public static int getFailCount(CloudCoin coin) {
-        return Utils.charCount(coin.getPown(), 'f');
-    }
-    public static String getDetectionResult(CloudCoin coin) {
-        return (getPassCount(coin) >= Config.passCount) ? "Pass" : "Fail";
-    }
-
+    /* Methods */
 
     /**
      * Returns a denomination describing the currency value of the CloudCoin.
@@ -74,6 +65,16 @@ public class CoinUtils {
             UUID uuid = UUID.nameUUIDFromBytes(cryptoRandomBuffer);
             coin.pan[i] = uuid.toString().replace("-", "");
         }
+    }
+
+    public static int getPassCount(CloudCoin coin) {
+        return Utils.charCount(coin.getPown(), 'p');
+    }
+    public static int getFailCount(CloudCoin coin) {
+        return Utils.charCount(coin.getPown(), 'f');
+    }
+    public static String getDetectionResult(CloudCoin coin) {
+        return (getPassCount(coin) >= Config.passCount) ? "Pass" : "Fail";
     }
 
     /**

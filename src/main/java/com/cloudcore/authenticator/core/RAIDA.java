@@ -127,6 +127,11 @@ public class RAIDA {
 
             FileSystem.predetectCoins = suspectCoins;
 
+            if (suspectCoins.size() == 0) {
+                System.out.println("No coins in Suspect folder! Finishing...");
+                return null;
+            }
+
             System.out.println("Getting network...");
             RAIDA raida = null;
             for (RAIDA network : RAIDA.networks) {
@@ -145,8 +150,6 @@ public class RAIDA {
                 LotCount++;
 
             int coinCount = 0;
-            int totalCoinCount = suspectCoins.size();
-            int progress;
             for (int i = 0; i < LotCount; i++) {
                 ArrayList<CloudCoin> coins = new ArrayList<>();
                 try { // Pick up to 200 Coins and send them to RAIDA
@@ -174,27 +177,17 @@ public class RAIDA {
                         }
                         coin.setPown(pownString.toString());
                         coinCount++;
+                        CoinUtils.setAnsToPans(coin);
+                        FileSystem.moveCoin(coin, FileSystem.SuspectFolder, coin.folder, ".stack");
 
                         updateLog("No. " + coinCount + ". Coin Detected. sn - " + coin.getSn() + ". Pass Count - " + CoinUtils.getPassCount(coin) +
                                 ". Fail Count  - " + CoinUtils.getFailCount(coin) + ". Result - " + CoinUtils.getDetectionResult(coin) + "." + coin.getPown());
                         System.out.println("Coin Detected. sn - " + coin.getSn() + ". Pass Count - " + CoinUtils.getPassCount(coin) +
                                 ". Fail Count  - " + CoinUtils.getFailCount(coin) + ". Result - " + CoinUtils.getDetectionResult(coin));
-                        //coin.sortToFolder();
-                        progress = (coinCount) * 100 / totalCoinCount;
-                        System.out.println("Minor Progress- " + progress);
                     }
-                    progress = (coinCount - 1) * 100 / totalCoinCount;
-                    System.out.println("Minor Progress- " + progress);
-                    FileSystem.removeCoins(coins, FileSystem.SuspectFolder);
-                    FileSystem.saveCoins(coins);
-
-                    updateLog(progress + " % of Coins on Network " + NetworkNumber + " processed.");
                 } catch (Exception e) {
                     System.out.println("RAIDA#PNC: " + e.getLocalizedMessage());
-                }/* catch (Exception e) {
-                    System.out.println("RAIDA#PNC: " + e.getLocalizedMessage());
-                    e.printStackTrace();
-                }*/
+                }
             }
 
             return null;

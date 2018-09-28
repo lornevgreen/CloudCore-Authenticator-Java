@@ -1,4 +1,4 @@
-package com.cloudcore.authenticator.core;
+package com.cloudcore.authenticator.raida;
 
 import com.cloudcore.authenticator.utils.Utils;
 import com.google.gson.Gson;
@@ -18,44 +18,44 @@ public class Node {
     private AsyncHttpClient client;
     private Gson gson;
 
-    public int NodeNumber;
-    public String FullUrl;
-    public MultiDetectResponse MultiResponse = new MultiDetectResponse();
+    public int nodeNumber;
+    public String fullUrl;
+    public MultiDetectResponse multiResponse = new MultiDetectResponse();
 
     //Constructor
     public Node(int NodeNumber) {
-        this.NodeNumber = NodeNumber;
-        FullUrl = GetFullURL();
-        System.out.println(FullUrl);
+        this.nodeNumber = NodeNumber;
+        fullUrl = GetFullURL();
+        System.out.println(fullUrl);
 
         client = asyncHttpClient();
         gson = Utils.createGson();
     }
 
     public Node(int NodeNumber, RAIDANode node) {
-        this.NodeNumber = NodeNumber;
-        FullUrl = "https://" + node.urls[0].url + "/service/";
+        this.nodeNumber = NodeNumber;
+        fullUrl = "https://" + node.urls[0].url + "/service/";
 
         client = asyncHttpClient();
         gson = Utils.createGson();
     }
 
     public String GetFullURL() {
-        return "https://raida" + (NodeNumber - 1) + ".cloudcoin.global/service/";
+        return "https://raida" + (nodeNumber - 1) + ".cloudcoin.global/service/";
     }
 
     public class MultiDetectResponse {
-        public Response[] responses;
+        public com.cloudcore.authenticator.raida.Response[] responses;
     }
 
     //int[] nn, int[] sn, String[] an, String[] pan, int[] d, int timeout
     public CompletableFuture<MultiDetectResponse> MultiDetect() {
         /*PREPARE REQUEST*/
-        RAIDA raida = RAIDA.ActiveRAIDA;
+        RAIDA raida = RAIDA.activeRAIDA;
         int[] nn = raida.multiRequest.nn;
         int[] sn = raida.multiRequest.sn;
-        String[] an = raida.multiRequest.an[NodeNumber - 1];
-        String[] pan = raida.multiRequest.pan[NodeNumber - 1];
+        String[] an = raida.multiRequest.an[nodeNumber - 1];
+        String[] pan = raida.multiRequest.pan[nodeNumber - 1];
         int[] d = raida.multiRequest.d;
         int timeout = raida.multiRequest.timeout;
 
@@ -63,9 +63,9 @@ public class Node {
     }
 
     public CompletableFuture<MultiDetectResponse> MultiDetect(int[] nn, int[] sn, String[] an, String[] pan, int[] d, int timeout) {
-        Response[] response = new Response[nn.length];
+        com.cloudcore.authenticator.raida.Response[] response = new com.cloudcore.authenticator.raida.Response[nn.length];
         for (int i = 0; i < nn.length; i++) {
-            response[i] = new Response();
+            response[i] = new com.cloudcore.authenticator.raida.Response();
         }
 
         ArrayList<Param> formParams = new ArrayList<>();
@@ -73,16 +73,17 @@ public class Node {
             formParams.add(new Param("nns[]", Integer.toString(nn[i])));
             formParams.add(new Param("sns[]", Integer.toString(sn[i])));
             formParams.add(new Param("ans[]", an[i]));
-            formParams.add(new Param("pans[]", pan[i]));
+            //formParams.add(new Param("pans[]", pan[i]));
+            formParams.add(new Param("pans[]", an[i])); // TODO: NEVER UPLOAD THIS TO GITHUB!!! TEST ONLY.
             formParams.add(new Param("denomination[]", Integer.toString(d[i])));
-            // System.out.println("url is " + this.fullUrl + "detect?nns[]=" + nn[i] + "&sns[]=" + sn[i] + "&ans[]=" + an[i] + "&pans[]=" + pan[i] + "&denomination[]=" + d[i]);
-            response[i].fullRequest = this.FullUrl + "detect?nns[]=" + nn[i] + "&sns[]=" + sn[i] + "&ans[]=" + an[i] + "&pans[]=" + pan[i] + "&denomination[]=" + d[i]; // Record what was sent
+            //System.out.println("url is " + this.fullUrl + "detect?nns[]=" + nn[i] + "&sns[]=" + sn[i] + "&ans[]=" + an[i] + "&pans[]=" + pan[i] + "&denomination[]=" + d[i]);
+            response[i].fullRequest = this.fullUrl + "detect?nns[]=" + nn[i] + "&sns[]=" + sn[i] + "&ans[]=" + an[i] + "&pans[]=" + pan[i] + "&denomination[]=" + d[i]; // Record what was sent
         }
 
         /* MAKE REQUEST */
         final long before = System.currentTimeMillis();
 
-        return client.preparePost(FullUrl + "multi_detect")
+        return client.preparePost(fullUrl + "multi_detect")
                 .setFormParams(formParams)
                 .setRequestTimeout(timeout)
                 .execute(new AsyncHandler() {
@@ -136,10 +137,10 @@ public class Node {
                                     }
                                 }
 
-                                MultiResponse.responses = response;
-                                return MultiResponse;
+                                multiResponse.responses = response;
+                                return multiResponse;
                             } else { // 404 not found or 500 error.
-                                System.out.println("RAIDA " + NodeNumber + " had an error: " + httpResponse.getStatusCode());
+                                System.out.println("RAIDA " + nodeNumber + " had an error: " + httpResponse.getStatusCode());
                                 after = System.currentTimeMillis();
                                 ts = after - before;
 
@@ -147,14 +148,14 @@ public class Node {
                                     response[i].outcome = "error";
                                     response[i].fullResponse = Integer.toString(httpResponse.getStatusCode());
                                 }
-                                MultiResponse.responses = response;
-                                return MultiResponse;
+                                multiResponse.responses = response;
+                                return multiResponse;
                             }
                         } catch (Exception e) {
                             System.out.println("Exception: " + e.getLocalizedMessage());
                             e.printStackTrace();
                         }
-                        return MultiResponse;
+                        return multiResponse;
                     }
 
                     @Override
@@ -168,7 +169,7 @@ public class Node {
                                     response[i].outcome = "noresponse";
                                     response[i].fullResponse = e.getLocalizedMessage();
                                 }
-                                MultiResponse.responses = response;
+                                multiResponse.responses = response;
                                 return;
                             default:
                                 System.out.println("Node#MD" + e.getLocalizedMessage());
@@ -176,7 +177,7 @@ public class Node {
                                     response[i].outcome = "error";
                                     response[i].fullResponse = e.getLocalizedMessage();
                                 }
-                                MultiResponse.responses = response;
+                                multiResponse.responses = response;
                                 return;
                         }
                     }

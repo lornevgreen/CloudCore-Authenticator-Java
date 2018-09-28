@@ -1,4 +1,6 @@
-package com.cloudcore.authenticator.core;
+package com.cloudcore.authenticator.raida;
+
+import com.cloudcore.authenticator.core.Config;
 
 public class MultiDetectRequest {
 

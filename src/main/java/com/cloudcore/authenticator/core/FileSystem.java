@@ -1,4 +1,4 @@
-package com.cloudcore.authenticator.coreclasses;
+package com.cloudcore.authenticator.core;
 
 import com.cloudcore.authenticator.core.*;
 import com.cloudcore.authenticator.utils.CoinUtils;

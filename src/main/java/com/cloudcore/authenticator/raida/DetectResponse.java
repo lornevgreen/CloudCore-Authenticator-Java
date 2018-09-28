@@ -1,4 +1,4 @@
-package com.cloudcore.authenticator.core;
+package com.cloudcore.authenticator.raida;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;

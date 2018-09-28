@@ -8,11 +8,9 @@ public class Response {
     public String fullResponse;
     public boolean success;
     public String outcome;
-    public int milliseconds;
 
     public Response() {
         this.outcome = "not used";
-        this.milliseconds = 0;
         this.fullRequest = "No request";
         this.fullResponse = "No response";
     }

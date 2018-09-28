@@ -3,20 +3,14 @@ package com.cloudcore.authenticator.utils;
 import com.cloudcore.authenticator.core.CloudCoin;
 import com.cloudcore.authenticator.core.Stack;
 import com.google.gson.JsonSyntaxException;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Random;
 
 public class FileUtils {
 

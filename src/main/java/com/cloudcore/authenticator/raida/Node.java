@@ -73,8 +73,7 @@ public class Node {
             formParams.add(new Param("nns[]", Integer.toString(nn[i])));
             formParams.add(new Param("sns[]", Integer.toString(sn[i])));
             formParams.add(new Param("ans[]", an[i]));
-            //formParams.add(new Param("pans[]", pan[i]));
-            formParams.add(new Param("pans[]", an[i])); // TODO: NEVER UPLOAD THIS TO GITHUB!!! TEST ONLY.
+            formParams.add(new Param("pans[]", pan[i]));
             formParams.add(new Param("denomination[]", Integer.toString(d[i])));
             //System.out.println("url is " + this.fullUrl + "detect?nns[]=" + nn[i] + "&sns[]=" + sn[i] + "&ans[]=" + an[i] + "&pans[]=" + pan[i] + "&denomination[]=" + d[i]);
             response[i].fullRequest = this.fullUrl + "detect?nns[]=" + nn[i] + "&sns[]=" + sn[i] + "&ans[]=" + an[i] + "&pans[]=" + pan[i] + "&denomination[]=" + d[i]; // Record what was sent

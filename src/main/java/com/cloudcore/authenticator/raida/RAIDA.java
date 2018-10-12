@@ -184,7 +184,7 @@ public class RAIDA {
                         }
                         coin.setPown(pownString.toString());
                         coinCount++;
-                        //CoinUtils.setAnsToPans(coin); // TODO: COMMENTED OUT FOR TESTING, DO NOT ADD TO GITHUB
+                        CoinUtils.setAnsToPans(coin);
                         FileSystem.moveCoin(coin, FileSystem.SuspectFolder, FileSystem.DetectedFolder, ".stack");
 
                         updateLog("No. " + coinCount + ". Coin Detected. sn - " + coin.getSn() + ". Pass Count - " + CoinUtils.getPassCount(coin) +

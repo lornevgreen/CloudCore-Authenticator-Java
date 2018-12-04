@@ -2,6 +2,7 @@ package com.cloudcore.authenticator;
 
 import com.cloudcore.authenticator.core.FileSystem;
 import com.cloudcore.authenticator.raida.RAIDA;
+import com.cloudcore.authenticator.utils.FileUtils;
 import com.cloudcore.authenticator.utils.SimpleLogger;
 
 import java.time.LocalDateTime;
@@ -24,11 +25,37 @@ public class Main {
             SetupRAIDA();
             FileSystem.loadFileSystem();
 
-            System.out.println("Processing Network Coins...");
-            RAIDA.processNetworkCoins(NetworkNumber);
+            FolderWatcher watcher = new FolderWatcher(FileSystem.SuspectFolder);
+            boolean stop = false;
+            boolean detectingFiles = false;
+            long timeWaitingForFilesToBeWritten = 0;
+
+            if (0 != FileUtils.selectFileNamesInFolder(FileSystem.SuspectFolder).length) {
+                RAIDA.processNetworkCoins(NetworkNumber);
+            }
+
+            System.out.println("Watching folders at " + FileSystem.SuspectFolder + "...");
+
+            while (!stop) {
+                // If a change is detected, set the timer.
+                if (watcher.newFileDetected()) {
+                    detectingFiles = true;
+                    timeWaitingForFilesToBeWritten = System.currentTimeMillis() + 1000;
+                    System.out.println("found files, waiting a second to authenticate");
+                    continue;
+                }
+
+                if (!detectingFiles || timeWaitingForFilesToBeWritten > System.currentTimeMillis())
+                    continue;
+
+                detectingFiles = false;
+
+                System.out.println("Processing Network Coins...");
+                RAIDA.processNetworkCoins(NetworkNumber);
+            }
         } catch (Exception e) {
+            e.printStackTrace();
             System.out.println("Uncaught exception - " + e.getLocalizedMessage());
-            //e.printStackTrace();
         }
 
     }

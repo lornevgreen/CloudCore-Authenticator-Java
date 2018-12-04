@@ -3,8 +3,6 @@ package com.cloudcore.authenticator.core;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-import java.io.File;
-import java.security.SecureRandom;
 import java.util.*;
 
 public class CloudCoin {

@@ -5,6 +5,8 @@ public class Config  {
 
     /* Constant Fields */
 
+    public static final boolean DEBUG_MODE = false;
+
     public static final String URL_DIRECTORY = "http://michael.pravoslavnye.ru/";
 
     public static final String TAG_DETECTED = "Detected";

@@ -4,7 +4,6 @@ import com.cloudcore.authenticator.core.*;
 import com.cloudcore.authenticator.utils.CoinUtils;
 import com.cloudcore.authenticator.utils.FileUtils;
 import com.cloudcore.authenticator.utils.Utils;
-import com.google.gson.Gson;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,7 +11,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 
 public class FileSystem {
@@ -20,7 +18,7 @@ public class FileSystem {
 
     /* Fields */
 
-    public static String RootPath = Paths.get("").toAbsolutePath().toString() + File.separator;
+    public static String RootPath = "C:\\CloudCoinServer\\accounts\\DefaultUser\\";
 
     public static String DetectedFolder = RootPath + Config.TAG_DETECTED + File.separator;
     public static String ImportFolder = RootPath + Config.TAG_IMPORT + File.separator;

@@ -24,7 +24,7 @@ public class FileSystem {
     public static String ImportFolder = RootPath + Config.TAG_IMPORT + File.separator;
     public static String SuspectFolder = RootPath + Config.TAG_SUSPECT + File.separator;
 
-    public static String LogsFolder = RootPath + Config.TAG_LOGS + File.separator;
+    public static String LogsFolder = RootPath + Config.TAG_LOGS + File.separator + Config.MODULE_NAME + File.separator;
 
     public static ArrayList<CloudCoin> importCoins;
     public static ArrayList<CloudCoin> predetectCoins;
@@ -103,8 +103,6 @@ public class FileSystem {
         try {
             Files.move(Paths.get(sourceFolder + coin.currentFilename), Paths.get(targetFolder + fileName),
                     StandardCopyOption.REPLACE_EXISTING);
-            //Files.write(Paths.get(targetFolder + fileName + extension), gson.toJson(stack).getBytes(StandardCharsets.UTF_8));
-            //Files.deleteIfExists(Paths.get(sourceFolder + coin.currentFilename));
         } catch (Exception e) {
             System.out.println(e.getLocalizedMessage());
             e.printStackTrace();

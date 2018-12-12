@@ -17,6 +17,8 @@ public class Main {
     public static int NetworkNumber = 1;
 
     public static void main(String[] args) {
+        SimpleLogger.writeLog("ServantEraserStarted", "");
+
         try {
             setup();
 

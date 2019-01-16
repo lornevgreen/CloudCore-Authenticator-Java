@@ -21,11 +21,9 @@ public class SimpleLogger {
     private DateTimeFormatter DatetimeFormat;
     private String Filename;
 
-    private static String fullFilePath = FileSystem.LogsFolder;
-
 
     public static void writeLog(String filenameDetails, String logFileDetails) {
-        String filepath = fullFilePath + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS")).toLowerCase() + '-' + filenameDetails;
+        String filepath = FileSystem.LogsFolder + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS")).toLowerCase() + '-' + filenameDetails;
         String finalFilepath = filepath + ".log";
         int counter = 0;
 

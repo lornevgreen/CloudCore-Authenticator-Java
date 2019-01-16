@@ -5,6 +5,8 @@ import com.cloudcore.authenticator.raida.RAIDA;
 import com.cloudcore.authenticator.utils.FileUtils;
 import com.cloudcore.authenticator.utils.SimpleLogger;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -17,9 +19,13 @@ public class Main {
     public static int NetworkNumber = 1;
 
     public static void main(String[] args) {
-        SimpleLogger.writeLog("ServantEraserStarted", "");
+        SimpleLogger.writeLog("ServantAuthenticatorStarted", "");
 
         try {
+            if (args.length != 0 && Files.exists(Paths.get(args[0]))) {
+                System.out.println("New root path: " + args[0]);
+                FileSystem.changeRootPath(args[0]);
+            }
             setup();
 
             RAIDA.logger = logger;

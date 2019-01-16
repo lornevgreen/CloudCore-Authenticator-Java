@@ -18,7 +18,7 @@ public class FileSystem {
 
     /* Fields */
 
-    public static String RootPath = "C:\\CloudCoinServer\\accounts\\DefaultUser\\";
+    public static String RootPath = "C:\\Users\\Public\\Documents\\CloudCoin\\";
 
     public static String DetectedFolder = RootPath + Config.TAG_DETECTED + File.separator;
     public static String ImportFolder = RootPath + Config.TAG_IMPORT + File.separator;
@@ -48,6 +48,15 @@ public class FileSystem {
         }
 
         return true;
+    }
+
+    public static void changeRootPath(String rootPath) {
+        RootPath = rootPath;
+        DetectedFolder = RootPath + Config.TAG_DETECTED + File.separator;
+        ImportFolder = RootPath + Config.TAG_IMPORT + File.separator;
+        SuspectFolder = RootPath + Config.TAG_SUSPECT + File.separator;
+
+        LogsFolder = RootPath + Config.TAG_LOGS + File.separator + Config.MODULE_NAME + File.separator;
     }
 
     public static void loadFileSystem() {

@@ -21,51 +21,53 @@ public class Main {
     public static void main(String[] args) {
         SimpleLogger.writeLog("ServantAuthenticatorStarted", "");
 
-        try {
             if (args.length != 0 && Files.exists(Paths.get(args[0]))) {
                 System.out.println("New root path: " + args[0]);
                 FileSystem.changeRootPath(args[0]);
             }
-            setup();
+            //FileSystem.changeRootPath("C:\\Users\\You\\Documents\\CloudCoin\\Accounts\\DefaultUser\\");
+            //SimpleLogger.writeLog("changedpath_" + FileSystem.RootPath.contains("You"), "lol");
+            System.out.println(FileSystem.RootPath);
 
+            setup();
             RAIDA.logger = logger;
             updateLog("Loading Network Directory");
             SetupRAIDA();
             FileSystem.loadFileSystem();
 
-            FolderWatcher watcher = new FolderWatcher(FileSystem.SuspectFolder);
-            boolean stop = false;
-            boolean detectingFiles = false;
-            long timeWaitingForFilesToBeWritten = 0;
-
             if (0 != FileUtils.selectFileNamesInFolder(FileSystem.SuspectFolder).length) {
                 RAIDA.processNetworkCoins(NetworkNumber);
             }
 
+            FolderWatcher watcher = new FolderWatcher(FileSystem.SuspectFolder);
             System.out.println("Watching folders at " + FileSystem.SuspectFolder + "...");
+            boolean detectingFiles = false;
+            long timeWaitingForFilesToBeWritten = 0;
 
-            while (!stop) {
-                // If a change is detected, set the timer.
-                if (watcher.newFileDetected()) {
-                    detectingFiles = true;
-                    timeWaitingForFilesToBeWritten = System.currentTimeMillis() + 1000;
-                    System.out.println("found files, waiting a second to authenticate");
-                    continue;
+            while (true) {
+                try {
+                    Thread.sleep(100);
+
+                    // If a change is detected, set the timer.
+                    if (watcher.newFileDetected()) {
+                        detectingFiles = true;
+                        timeWaitingForFilesToBeWritten = System.currentTimeMillis() + 1000;
+                        System.out.println("found files, waiting a second to authenticate");
+                        continue;
+                    }
+
+                    if (!detectingFiles || timeWaitingForFilesToBeWritten > System.currentTimeMillis())
+                        continue;
+
+                    detectingFiles = false;
+
+                    System.out.println("Processing Network Coins...");
+                    RAIDA.processNetworkCoins(NetworkNumber);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    System.out.println("Uncaught exception - " + e.getLocalizedMessage());
                 }
-
-                if (!detectingFiles || timeWaitingForFilesToBeWritten > System.currentTimeMillis())
-                    continue;
-
-                detectingFiles = false;
-
-                System.out.println("Processing Network Coins...");
-                RAIDA.processNetworkCoins(NetworkNumber);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("Uncaught exception - " + e.getLocalizedMessage());
-        }
-
     }
 
     private static void setup() {

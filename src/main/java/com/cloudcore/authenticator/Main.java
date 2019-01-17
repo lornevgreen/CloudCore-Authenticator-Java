@@ -20,54 +20,65 @@ public class Main {
 
     public static void main(String[] args) {
         SimpleLogger.writeLog("ServantAuthenticatorStarted", "");
+        singleRun = isSingleRun(args);
+        if (args.length != 0 && Files.exists(Paths.get(args[0]))) {
+            System.out.println("New root path: " + args[0]);
+            FileSystem.changeRootPath(args[0]);
+        }
 
-            if (args.length != 0 && Files.exists(Paths.get(args[0]))) {
-                System.out.println("New root path: " + args[0]);
-                FileSystem.changeRootPath(args[0]);
-            }
-            //FileSystem.changeRootPath("C:\\Users\\You\\Documents\\CloudCoin\\Accounts\\DefaultUser\\");
-            //SimpleLogger.writeLog("changedpath_" + FileSystem.RootPath.contains("You"), "lol");
-            System.out.println(FileSystem.RootPath);
+        setup();
+        RAIDA.logger = logger;
+        updateLog("Loading Network Directory");
+        SetupRAIDA();
+        FileSystem.loadFileSystem();
 
-            setup();
-            RAIDA.logger = logger;
-            updateLog("Loading Network Directory");
-            SetupRAIDA();
-            FileSystem.loadFileSystem();
+        if (0 != FileUtils.selectFileNamesInFolder(FileSystem.SuspectFolder).length) {
+            RAIDA.processNetworkCoins(NetworkNumber);
+            exitIfSingleRun();
+        }
 
-            if (0 != FileUtils.selectFileNamesInFolder(FileSystem.SuspectFolder).length) {
-                RAIDA.processNetworkCoins(NetworkNumber);
-            }
+        FolderWatcher watcher = new FolderWatcher(FileSystem.SuspectFolder);
+        System.out.println("Watching folders at " + FileSystem.SuspectFolder + "...");
+        boolean detectingFiles = false;
+        long timeWaitingForFilesToBeWritten = 0;
 
-            FolderWatcher watcher = new FolderWatcher(FileSystem.SuspectFolder);
-            System.out.println("Watching folders at " + FileSystem.SuspectFolder + "...");
-            boolean detectingFiles = false;
-            long timeWaitingForFilesToBeWritten = 0;
+        while (true) {
+            try {
+                Thread.sleep(1000);
 
-            while (true) {
-                try {
-                    Thread.sleep(100);
-
-                    // If a change is detected, set the timer.
-                    if (watcher.newFileDetected()) {
-                        detectingFiles = true;
-                        timeWaitingForFilesToBeWritten = System.currentTimeMillis() + 1000;
-                        System.out.println("found files, waiting a second to authenticate");
-                        continue;
-                    }
-
-                    if (!detectingFiles || timeWaitingForFilesToBeWritten > System.currentTimeMillis())
-                        continue;
-
-                    detectingFiles = false;
-
-                    System.out.println("Processing Network Coins...");
-                    RAIDA.processNetworkCoins(NetworkNumber);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    System.out.println("Uncaught exception - " + e.getLocalizedMessage());
+                // If a change is detected, set the timer.
+                if (watcher.newFileDetected()) {
+                    detectingFiles = true;
+                    timeWaitingForFilesToBeWritten = System.currentTimeMillis() + 1000;
+                    System.out.println("found files, waiting a second to authenticate");
+                    continue;
                 }
+
+                if (!detectingFiles || timeWaitingForFilesToBeWritten > System.currentTimeMillis())
+                    continue;
+
+                detectingFiles = false;
+
+                System.out.println("Processing Network Coins...");
+                RAIDA.processNetworkCoins(NetworkNumber);
+                exitIfSingleRun();
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.out.println("Uncaught exception - " + e.getLocalizedMessage());
             }
+        }
+    }
+
+    public static boolean singleRun = false;
+    public static boolean isSingleRun(String[] args) {
+        for (String arg : args)
+            if (arg.equals("singleRun"))
+                return true;
+        return false;
+    }
+    public static void exitIfSingleRun() {
+        if (singleRun)
+            System.exit(0);
     }
 
     private static void setup() {

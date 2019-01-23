@@ -114,6 +114,11 @@ public class RAIDA {
         return new RAIDA(network);
     }
 
+    public static void resetInstance() {
+        mainNetwork = activeRAIDA = null;
+        networks.clear();
+    }
+
     public static CompletableFuture<Object> processNetworkCoins(int NetworkNumber) {
         return processNetworkCoins(NetworkNumber, true);
     }

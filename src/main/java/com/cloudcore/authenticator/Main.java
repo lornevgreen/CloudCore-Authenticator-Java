@@ -10,6 +10,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import static com.cloudcore.authenticator.raida.RAIDA.resetInstance;
 import static com.cloudcore.authenticator.raida.RAIDA.updateLog;
 
 public class Main {
@@ -26,15 +27,11 @@ public class Main {
             FileSystem.changeRootPath(args[0]);
         }
 
-        setup();
-        RAIDA.logger = logger;
-        updateLog("Loading Network Directory");
-        SetupRAIDA();
-        FileSystem.loadFileSystem();
-
         if (0 != FileUtils.selectFileNamesInFolder(FileSystem.SuspectFolder).length) {
+            setup();
             RAIDA.processNetworkCoins(NetworkNumber);
             exitIfSingleRun();
+            resetInstance();
         }
 
         FolderWatcher watcher = new FolderWatcher(FileSystem.SuspectFolder);
@@ -57,14 +54,18 @@ public class Main {
                 if (!detectingFiles || timeWaitingForFilesToBeWritten > System.currentTimeMillis())
                     continue;
 
+                setup();
+
                 detectingFiles = false;
 
                 System.out.println("Processing Network Coins...");
                 RAIDA.processNetworkCoins(NetworkNumber);
+                resetInstance();
                 exitIfSingleRun();
             } catch (Exception e) {
                 e.printStackTrace();
                 System.out.println("Uncaught exception - " + e.getLocalizedMessage());
+                resetInstance();
             }
         }
     }
@@ -92,6 +93,11 @@ public class Main {
         //Connect to Trusted Trade Socket
         //tts = new TrustedTradeSocket("wss://escrow.cloudcoin.digital/ws/", 10, OnWord, OnStatusChange, OnReceive, OnProgress);
         //tts.Connect().Wait();
+
+        RAIDA.logger = logger;
+        updateLog("Loading Network Directory");
+        SetupRAIDA();
+        FileSystem.loadFileSystem();
     }
     public static void SetupRAIDA() {
         try

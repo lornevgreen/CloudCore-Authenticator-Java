@@ -153,8 +153,10 @@ public class RAIDA {
                 }
             }
 
-            if (raida == null)
+            if (raida == null) {
+                System.out.println("no raida, cancelling authentication");
                 return null;
+            }
 
             // Process Coins in Lots of 200. Can be changed from Config File
             int LotCount = suspectCoins.size() / Config.multiDetectLoad;

@@ -7,7 +7,7 @@ public class Config  {
 
     public static final String MODULE_NAME = "authenticator";
 
-    public static final boolean DEBUG_MODE = true;
+    public static final boolean DEBUG_MODE = false;
 
     public static final String URL_DIRECTORY = "http://michael.pravoslavnye.ru/";
 

@@ -29,9 +29,14 @@ public class Main {
 
         if (0 != FileUtils.selectFileNamesInFolder(FileSystem.SuspectFolder).length) {
             setup();
-            RAIDA.processNetworkCoins(NetworkNumber);
+            System.out.println("Processing Network Coins...");
+            try {
+                RAIDA.processNetworkCoins(NetworkNumber).get();
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
             exitIfSingleRun();
-            resetInstance();
+            RAIDA.resetInstance();
         }
 
         FolderWatcher watcher = new FolderWatcher(FileSystem.SuspectFolder);
@@ -59,13 +64,13 @@ public class Main {
                 detectingFiles = false;
 
                 System.out.println("Processing Network Coins...");
-                RAIDA.processNetworkCoins(NetworkNumber);
-                resetInstance();
+                RAIDA.processNetworkCoins(NetworkNumber).get();
+                RAIDA.resetInstance();
                 exitIfSingleRun();
             } catch (Exception e) {
                 e.printStackTrace();
                 System.out.println("Uncaught exception - " + e.getLocalizedMessage());
-                resetInstance();
+                RAIDA.resetInstance();
             }
         }
     }
